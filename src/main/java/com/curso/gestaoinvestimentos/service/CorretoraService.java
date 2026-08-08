@@ -4,6 +4,10 @@ import com.curso.gestaoinvestimentos.dto.CorretoraRequestDTO;
 import com.curso.gestaoinvestimentos.dto.CorretoraResponseDTO;
 import com.curso.gestaoinvestimentos.exception.CorretoraDuplicadaException;
 import com.curso.gestaoinvestimentos.exception.CorretoraNaoEncontradaException;
+import com.curso.gestaoinvestimentos.integration.CepClient;
+import com.curso.gestaoinvestimentos.integration.CnpjClient;
+import com.curso.gestaoinvestimentos.integration.DadosCepResponse;
+import com.curso.gestaoinvestimentos.integration.DadosCnpjResponse;
 import com.curso.gestaoinvestimentos.model.Corretora;
 import com.curso.gestaoinvestimentos.repository.CorretoraRepository;
 import org.springframework.stereotype.Service;
@@ -15,9 +19,13 @@ import java.util.List;
 public class CorretoraService {
 
     private final CorretoraRepository repository;
+    private final CnpjClient cnpjClient;
+    private final CepClient cepClient;
 
-    public CorretoraService(CorretoraRepository repository) {
+    public CorretoraService(CorretoraRepository repository, CnpjClient cnpjClient, CepClient cepClient) {
         this.repository = repository;
+        this.cnpjClient = cnpjClient;
+        this.cepClient = cepClient;
     }
 
     public CorretoraResponseDTO criar(CorretoraRequestDTO dto) {
@@ -25,22 +33,28 @@ public class CorretoraService {
             throw new CorretoraDuplicadaException("Ja existe uma corretora cadastrada com o CNPJ " + dto.cnpj());
         });
 
-        Corretora corretora = new Corretora();
-        corretora.setCnpj(dto.cnpj());
-        corretora.setRazaoSocial(dto.razaoSocial());
-        corretora.setNomeFantasia(dto.nomeFantasia());
-        corretora.setEmail(dto.email());
-        corretora.setTelefone(dto.telefone());
-        corretora.setCep(dto.cep());
-        corretora.setLogradouro(dto.logradouro());
-        corretora.setNumero(dto.numero());
-        corretora.setComplemento(dto.complemento());
-        corretora.setBairro(dto.bairro());
-        corretora.setCidade(dto.cidade());
-        corretora.setUf(dto.uf());
+        // Isolamento do servico de terceiro (Adapter): o Service so conhece CnpjClient/CepClient,
+        // nunca sabe que por tras existe BrasilAPI ou ViaCEP.
+        DadosCnpjResponse dadosCnpj = cnpjClient.buscar(dto.cnpj());
+        DadosCepResponse dadosCep = cepClient.buscar(dadosCnpj.cep());
 
-        // Campos controlados pelo sistema, nunca pelo cliente:
-        corretora.setSituacaoCadastral("PENDENTE");
+        Corretora corretora = new Corretora();
+        corretora.setCnpj(dadosCnpj.cnpj());
+        corretora.setRazaoSocial(dadosCnpj.razaoSocial());
+        corretora.setNomeFantasia(dadosCnpj.nomeFantasia());
+        corretora.setTelefone(dadosCnpj.telefone());
+        corretora.setNumero(dadosCnpj.numero());
+        corretora.setComplemento(dadosCnpj.complemento());
+        corretora.setSituacaoCadastral(dadosCnpj.situacaoCadastral());
+
+        // Endereco resolvido pelo ViaCEP (fonte mais confiavel para logradouro/bairro/cidade/uf).
+        corretora.setCep(dadosCep.cep());
+        corretora.setLogradouro(dadosCep.logradouro());
+        corretora.setBairro(dadosCep.bairro());
+        corretora.setCidade(dadosCep.cidade());
+        corretora.setUf(dadosCep.uf());
+
+        // Campo controlado pelo sistema, nunca pelo cliente. Validacao CVM real fica para outra fase.
         corretora.setValidadaNaCvm(false);
         corretora.setDataCadastro(LocalDate.now());
 

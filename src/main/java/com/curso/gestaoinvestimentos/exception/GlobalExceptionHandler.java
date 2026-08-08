@@ -35,6 +35,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
     }
 
+    @ExceptionHandler(RecursoExternoNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleRecursoExternoNaoEncontrado(RecursoExternoNaoEncontradoException ex) {
+        ErrorResponse erro = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+    }
+
+    @ExceptionHandler(ServicoExternoIndisponivelException.class)
+    public ResponseEntity<ErrorResponse> handleServicoExternoIndisponivel(ServicoExternoIndisponivelException ex) {
+        ErrorResponse erro = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(erro);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidacao(MethodArgumentNotValidException ex) {
         String mensagem = ex.getBindingResult().getFieldErrors().stream()
