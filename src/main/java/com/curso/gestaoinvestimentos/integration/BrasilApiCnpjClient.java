@@ -1,6 +1,6 @@
 package com.curso.gestaoinvestimentos.integration;
 
-import com.curso.gestaoinvestimentos.exception.RecursoExternoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -34,7 +34,7 @@ public class BrasilApiCnpjClient implements CnpjClient {
                     .body(RespostaBrasilApi.class);
 
             if (resposta == null) {
-                throw new RecursoExternoNaoEncontradoException("CNPJ nao encontrado: " + cnpj);
+                throw new RecursoNaoEncontradoException("CNPJ nao encontrado: " + cnpj);
             }
 
             return new DadosCnpjResponse(
@@ -50,10 +50,7 @@ public class BrasilApiCnpjClient implements CnpjClient {
                     resposta.descricao_situacao_cadastral()
             );
         } catch (HttpClientErrorException ex) {
-            // BrasilAPI usa 400 para CNPJ com digito verificador invalido e 404 para
-            // CNPJ bem formado mas inexistente na Receita Federal. Para o nosso dominio,
-            // as duas situacoes significam a mesma coisa: nao foi possivel confirmar o CNPJ.
-            throw new RecursoExternoNaoEncontradoException("CNPJ nao encontrado ou invalido: " + cnpj);
+            throw new RecursoNaoEncontradoException("CNPJ nao encontrado ou invalido: " + cnpj);
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar o CNPJ na BrasilAPI");
         }

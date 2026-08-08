@@ -2,8 +2,8 @@ package com.curso.gestaoinvestimentos.service;
 
 import com.curso.gestaoinvestimentos.dto.CorretoraRequestDTO;
 import com.curso.gestaoinvestimentos.dto.CorretoraResponseDTO;
-import com.curso.gestaoinvestimentos.exception.CorretoraDuplicadaException;
-import com.curso.gestaoinvestimentos.exception.CorretoraNaoEncontradaException;
+import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
+import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.integration.CepClient;
 import com.curso.gestaoinvestimentos.integration.CnpjClient;
 import com.curso.gestaoinvestimentos.integration.DadosCepResponse;
@@ -30,7 +30,7 @@ public class CorretoraService {
 
     public CorretoraResponseDTO criar(CorretoraRequestDTO dto) {
         repository.findByCnpj(dto.cnpj()).ifPresent(existente -> {
-            throw new CorretoraDuplicadaException("Ja existe uma corretora cadastrada com o CNPJ " + dto.cnpj());
+            throw new RecursoDuplicadoException("Ja existe uma corretora cadastrada com o CNPJ " + dto.cnpj());
         });
 
         // Isolamento do servico de terceiro (Adapter): o Service so conhece CnpjClient/CepClient,
@@ -70,13 +70,13 @@ public class CorretoraService {
 
     public CorretoraResponseDTO buscarPorId(Long id) {
         Corretora corretora = repository.findById(id)
-                .orElseThrow(() -> new CorretoraNaoEncontradaException("Corretora nao encontrada com id " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Corretora nao encontrada com id " + id));
         return toResponseDTO(corretora);
     }
 
     public CorretoraResponseDTO buscarPorCnpj(String cnpj) {
         Corretora corretora = repository.findByCnpj(cnpj)
-                .orElseThrow(() -> new CorretoraNaoEncontradaException("Corretora nao encontrada com CNPJ " + cnpj));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Corretora nao encontrada com CNPJ " + cnpj));
         return toResponseDTO(corretora);
     }
 
