@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CorretoraNaoEncontradaException.class)
-    public ResponseEntity<ErrorResponse> handleNaoEncontrada(CorretoraNaoEncontradaException ex) {
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> handleNaoEncontrado(RecursoNaoEncontradoException ex) {
         ErrorResponse erro = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
@@ -24,8 +24,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
     }
 
-    @ExceptionHandler(CorretoraDuplicadaException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicada(CorretoraDuplicadaException ex) {
+    @ExceptionHandler(RecursoDuplicadoException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicado(RecursoDuplicadoException ex) {
         ErrorResponse erro = new ErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(),
@@ -33,17 +33,6 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
-    }
-
-    @ExceptionHandler(RecursoExternoNaoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> handleRecursoExternoNaoEncontrado(RecursoExternoNaoEncontradoException ex) {
-        ErrorResponse erro = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
     }
 
     @ExceptionHandler(ServicoExternoIndisponivelException.class)

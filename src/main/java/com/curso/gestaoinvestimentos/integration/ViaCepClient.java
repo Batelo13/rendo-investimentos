@@ -1,6 +1,6 @@
 package com.curso.gestaoinvestimentos.integration;
 
-import com.curso.gestaoinvestimentos.exception.RecursoExternoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -33,7 +33,7 @@ public class ViaCepClient implements CepClient {
                     .body(RespostaViaCep.class);
 
             if (resposta == null || Boolean.TRUE.equals(resposta.erro())) {
-                throw new RecursoExternoNaoEncontradoException("CEP nao encontrado: " + cep);
+                throw new RecursoNaoEncontradoException("CEP nao encontrado: " + cep);
             }
 
             return new DadosCepResponse(
@@ -43,7 +43,7 @@ public class ViaCepClient implements CepClient {
                     resposta.localidade(),
                     resposta.uf()
             );
-        } catch (RecursoExternoNaoEncontradoException ex) {
+        } catch (RecursoNaoEncontradoException ex) {
             throw ex;
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar o CEP no ViaCEP");
