@@ -11,6 +11,7 @@ import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,6 +30,7 @@ public class UsuarioService {
         this.carteiraRepository = carteiraRepository;
     }
 
+    @Transactional
     public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
         repository.findByEmail(dto.email()).ifPresent(existente -> {
             throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + dto.email());
