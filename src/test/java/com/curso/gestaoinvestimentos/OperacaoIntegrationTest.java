@@ -207,8 +207,12 @@ class OperacaoIntegrationTest {
         cadastrarUsuario("admin@example.com", "senha1234", Role.ADMIN);
         MockHttpSession sessaoAdmin = logar("admin@example.com", "senha1234");
 
-        mockMvc.perform(get("/carteiras/" + usuarioComum.getId()).session(sessaoAdmin))
-                .andExpect(status().isOk());
+        MvcResult resultado = mockMvc.perform(get("/carteiras/" + usuarioComum.getId()).session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andReturn();
+        PosicaoDTO[] posicoes = objectMapper.readValue(resultado.getResponse().getContentAsString(), PosicaoDTO[].class);
+
+        assertEquals(0, posicoes.length);
     }
 
     @Test
