@@ -32,7 +32,6 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,6 +83,9 @@ class OperacaoIntegrationTest {
         return salvo;
     }
 
+    // Acao e Corretora sao inseridas direto via repository, nao via POST /acoes ou
+    // POST /corretoras -- esses endpoints chamam APIs externas reais (cotacao,
+    // CNPJ) e deixariam os testes lentos e flaky.
     private Acao cadastrarAcao(String ticker) {
         Acao acao = new Acao();
         acao.setTicker(ticker);
