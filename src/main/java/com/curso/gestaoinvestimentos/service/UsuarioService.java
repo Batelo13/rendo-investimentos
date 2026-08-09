@@ -4,8 +4,10 @@ import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
+import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,13 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private final CarteiraRepository carteiraRepository;
 
-    public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder,
+                           CarteiraRepository carteiraRepository) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.carteiraRepository = carteiraRepository;
     }
 
     public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
@@ -40,6 +45,12 @@ public class UsuarioService {
         usuario.setDataCadastro(LocalDate.now());
 
         Usuario salvo = repository.save(usuario);
+
+        Carteira carteira = new Carteira();
+        carteira.setUsuario(salvo);
+        carteira.setDataCriacao(LocalDate.now());
+        carteiraRepository.save(carteira);
+
         return toResponseDTO(salvo);
     }
 

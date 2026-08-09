@@ -3,6 +3,7 @@ package com.curso.gestaoinvestimentos;
 import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
+import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -40,10 +41,16 @@ class UsuarioAuthIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private CarteiraRepository carteiraRepository;
+
     // H2 em memoria e recriado uma vez por contexto Spring, nao por teste -
     // sem isso, cadastros de um teste vazam pro proximo (ex: email duplicado).
+    // Carteira e criada automaticamente no cadastro (FK obrigatoria pra
+    // usuarios), por isso precisa ser apagada antes.
     @AfterEach
     void limparBanco() {
+        carteiraRepository.deleteAll();
         usuarioRepository.deleteAll();
     }
 
