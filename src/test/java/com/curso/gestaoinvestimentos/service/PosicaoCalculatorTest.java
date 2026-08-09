@@ -77,4 +77,17 @@ class PosicaoCalculatorTest {
         assertEquals(5, resultado.quantidade());
         assertEquals(-5, resultado.quantidadeMinimaHistorica());
     }
+
+    @Test
+    void naoQuebraQuandoQuantidadeVoltaAZeroPartindoDeNegativo() {
+        var resultado = PosicaoCalculator.calcular(List.of(
+                operacao(TipoOperacao.COMPRA, 10, "100.00"),
+                operacao(TipoOperacao.VENDA, 15, "50.00"),
+                operacao(TipoOperacao.COMPRA, 5, "20.00")
+        ));
+
+        assertEquals(0, resultado.quantidade());
+        assertEquals(0, resultado.precoMedio().compareTo(BigDecimal.ZERO));
+        assertEquals(-5, resultado.quantidadeMinimaHistorica());
+    }
 }

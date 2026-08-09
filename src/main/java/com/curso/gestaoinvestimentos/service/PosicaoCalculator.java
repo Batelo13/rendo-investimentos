@@ -28,10 +28,14 @@ public class PosicaoCalculator {
         for (Operacao operacao : operacoesEmOrdemCronologica) {
             if (operacao.getTipo() == TipoOperacao.COMPRA) {
                 int novaQuantidade = quantidade + operacao.getQuantidade();
-                BigDecimal custoAntigo = precoMedio.multiply(BigDecimal.valueOf(quantidade));
-                BigDecimal custoNovo = operacao.getPrecoUnitario().multiply(BigDecimal.valueOf(operacao.getQuantidade()));
-                precoMedio = custoAntigo.add(custoNovo)
-                        .divide(BigDecimal.valueOf(novaQuantidade), 6, RoundingMode.HALF_UP);
+                if (novaQuantidade == 0) {
+                    precoMedio = BigDecimal.ZERO;
+                } else {
+                    BigDecimal custoAntigo = precoMedio.multiply(BigDecimal.valueOf(quantidade));
+                    BigDecimal custoNovo = operacao.getPrecoUnitario().multiply(BigDecimal.valueOf(operacao.getQuantidade()));
+                    precoMedio = custoAntigo.add(custoNovo)
+                            .divide(BigDecimal.valueOf(novaQuantidade), 6, RoundingMode.HALF_UP);
+                }
                 quantidade = novaQuantidade;
             } else {
                 quantidade -= operacao.getQuantidade();
