@@ -35,6 +35,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
     }
 
+    @ExceptionHandler(RegraDeNegocioException.class)
+    public ResponseEntity<ErrorResponse> handleRegraDeNegocio(RegraDeNegocioException ex) {
+        ErrorResponse erro = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(),
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(erro);
+    }
+
     @ExceptionHandler(ServicoExternoIndisponivelException.class)
     public ResponseEntity<ErrorResponse> handleServicoExternoIndisponivel(ServicoExternoIndisponivelException ex) {
         ErrorResponse erro = new ErrorResponse(
