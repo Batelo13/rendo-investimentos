@@ -17,6 +17,7 @@ import com.curso.gestaoinvestimentos.repository.CorretoraRepository;
 import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,6 +43,7 @@ public class OperacaoService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    @Transactional
     public OperacaoResponseDTO registrar(String emailUsuarioAutenticado, OperacaoRequestDTO dto) {
         Usuario usuario = buscarUsuarioPorEmail(emailUsuarioAutenticado);
         Carteira carteira = carteiraRepository.findByUsuarioId(usuario.getId())
@@ -96,6 +98,7 @@ public class OperacaoService {
         return listarPorCarteira(carteira);
     }
 
+    @Transactional
     public OperacaoResponseDTO cancelar(Long operacaoId, String emailAdmin) {
         Usuario admin = buscarUsuarioPorEmail(emailAdmin);
 
