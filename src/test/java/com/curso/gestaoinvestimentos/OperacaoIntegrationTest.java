@@ -32,7 +32,9 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -171,5 +173,96 @@ class OperacaoIntegrationTest {
                 resultadoVenda.getResponse().getContentAsString(), OperacaoResponseDTO.class);
         assertEquals(0, operacaoVenda.precoMedioNaVenda().compareTo(new BigDecimal("100.00")));
         assertEquals(0, operacaoVenda.lucroPrejuizoRealizado().compareTo(new BigDecimal("-250.00")));
+    }
+
+    @Test
+    void deveBloquearOperacaoEmCorretoraNaoValidadaNaCvm() throws Exception {
+        cadastrarUsuario("naovalidado@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcao("VALE3");
+        Corretora corretora = cadastrarCorretora(false);
+        MockHttpSession sessao = logar("naovalidado@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("100.00"));
+
+        mockMvc.perform(post("/operacoes")
+                        .session(sessao)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void usuarioNaoAcessaCarteiraDeOutroUsuario() throws Exception {
+        Usuario outro = cadastrarUsuario("outro@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("proprio@example.com", "senha1234", Role.USER);
+        MockHttpSession sessao = logar("proprio@example.com", "senha1234");
+
+        mockMvc.perform(get("/carteiras/" + outro.getId()).session(sessao))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void adminAcessaCarteiraDeQualquerUsuarioSomenteLeitura() throws Exception {
+        Usuario usuarioComum = cadastrarUsuario("comum@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin@example.com", "senha1234");
+
+        mockMvc.perform(get("/carteiras/" + usuarioComum.getId()).session(sessaoAdmin))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void adminCancelaCompraUsuarioComumNaoConsegue() throws Exception {
+        cadastrarUsuario("dono@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin2@example.com", "senha1234", Role.ADMIN);
+        Acao acao = cadastrarAcao("ITUB4");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessaoDono = logar("dono@example.com", "senha1234");
+        MockHttpSession sessaoAdmin = logar("admin2@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("30.00"));
+        MvcResult resultado = mockMvc.perform(post("/operacoes")
+                        .session(sessaoDono)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Long operacaoId = objectMapper.readValue(resultado.getResponse().getContentAsString(), OperacaoResponseDTO.class).id();
+
+        mockMvc.perform(patch("/operacoes/" + operacaoId + "/cancelar").session(sessaoDono))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(patch("/operacoes/" + operacaoId + "/cancelar").session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELADA"));
+    }
+
+    @Test
+    void cancelamentoBloqueadoQuandoDeixariaSaldoNegativo() throws Exception {
+        cadastrarUsuario("dono2@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin3@example.com", "senha1234", Role.ADMIN);
+        Acao acao = cadastrarAcao("MGLU3");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessaoDono = logar("dono2@example.com", "senha1234");
+        MockHttpSession sessaoAdmin = logar("admin3@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("30.00"));
+        MvcResult resultadoCompra = mockMvc.perform(post("/operacoes")
+                        .session(sessaoDono)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        Long operacaoId = objectMapper.readValue(resultadoCompra.getResponse().getContentAsString(), OperacaoResponseDTO.class).id();
+
+        OperacaoRequestDTO venda = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, 8, new BigDecimal("40.00"));
+        mockMvc.perform(post("/operacoes")
+                        .session(sessaoDono)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(venda)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(patch("/operacoes/" + operacaoId + "/cancelar").session(sessaoAdmin))
+                .andExpect(status().isUnprocessableEntity());
     }
 }
