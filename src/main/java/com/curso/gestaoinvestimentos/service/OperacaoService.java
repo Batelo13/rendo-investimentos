@@ -32,15 +32,17 @@ public class OperacaoService {
     private final AcaoRepository acaoRepository;
     private final CorretoraRepository corretoraRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PosicaoCacheService posicaoCacheService;
 
     public OperacaoService(OperacaoRepository operacaoRepository, CarteiraRepository carteiraRepository,
                             AcaoRepository acaoRepository, CorretoraRepository corretoraRepository,
-                            UsuarioRepository usuarioRepository) {
+                            UsuarioRepository usuarioRepository, PosicaoCacheService posicaoCacheService) {
         this.operacaoRepository = operacaoRepository;
         this.carteiraRepository = carteiraRepository;
         this.acaoRepository = acaoRepository;
         this.corretoraRepository = corretoraRepository;
         this.usuarioRepository = usuarioRepository;
+        this.posicaoCacheService = posicaoCacheService;
     }
 
     @Transactional
@@ -82,6 +84,7 @@ public class OperacaoService {
         }
 
         Operacao salva = operacaoRepository.save(operacao);
+        posicaoCacheService.atualizar(carteira, acao, corretora);
         return toResponseDTO(salva);
     }
 
@@ -129,6 +132,7 @@ public class OperacaoService {
         operacao.setCanceladaPor(admin);
 
         Operacao salva = operacaoRepository.save(operacao);
+        posicaoCacheService.atualizar(operacao.getCarteira(), operacao.getAcao(), operacao.getCorretora());
         return toResponseDTO(salva);
     }
 

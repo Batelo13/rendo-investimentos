@@ -5,32 +5,31 @@ import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
-import com.curso.gestaoinvestimentos.model.Operacao;
-import com.curso.gestaoinvestimentos.model.StatusOperacao;
+import com.curso.gestaoinvestimentos.model.PosicaoAtual;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
-import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
+import com.curso.gestaoinvestimentos.repository.PosicaoAtualRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class CarteiraService {
 
     private final CarteiraRepository carteiraRepository;
-    private final OperacaoRepository operacaoRepository;
+    private final PosicaoAtualRepository posicaoAtualRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PosicaoCacheService posicaoCacheService;
 
-    public CarteiraService(CarteiraRepository carteiraRepository, OperacaoRepository operacaoRepository,
-                            UsuarioRepository usuarioRepository) {
+    public CarteiraService(CarteiraRepository carteiraRepository, PosicaoAtualRepository posicaoAtualRepository,
+                            UsuarioRepository usuarioRepository, PosicaoCacheService posicaoCacheService) {
         this.carteiraRepository = carteiraRepository;
-        this.operacaoRepository = operacaoRepository;
+        this.posicaoAtualRepository = posicaoAtualRepository;
         this.usuarioRepository = usuarioRepository;
+        this.posicaoCacheService = posicaoCacheService;
     }
 
     public List<PosicaoDTO> buscarPosicaoPropria(String emailUsuarioAutenticado) {
@@ -43,36 +42,36 @@ public class CarteiraService {
         Carteira carteira = carteiraRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuarioId));
 
-        List<Operacao> ativas = operacaoRepository.findByCarteiraIdAndStatusOrderByDataHoraAsc(carteira.getId(), StatusOperacao.ATIVA);
-
-        Map<String, List<Operacao>> porAcaoECorretora = new LinkedHashMap<>();
-        for (Operacao operacao : ativas) {
-            String chave = operacao.getAcao().getId() + "-" + operacao.getCorretora().getId();
-            porAcaoECorretora.computeIfAbsent(chave, k -> new ArrayList<>()).add(operacao);
-        }
+        List<PosicaoAtual> posicoesEmCache = posicaoAtualRepository.findByCarteiraId(carteira.getId());
 
         List<PosicaoDTO> posicoes = new ArrayList<>();
-        for (List<Operacao> grupo : porAcaoECorretora.values()) {
-            PosicaoCalculator.Posicao calculada = PosicaoCalculator.calcular(grupo);
-            if (calculada.quantidade().compareTo(BigDecimal.ZERO) <= 0) {
+        for (PosicaoAtual posicaoAtual : posicoesEmCache) {
+            if (posicaoAtual.getQuantidade().compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
-            Acao acao = grupo.get(0).getAcao();
-            Corretora corretora = grupo.get(0).getCorretora();
-            BigDecimal valorInvestido = calculada.precoMedio().multiply(calculada.quantidade());
+            Acao acao = posicaoAtual.getAcao();
+            Corretora corretora = posicaoAtual.getCorretora();
+            BigDecimal valorInvestido = posicaoAtual.getPrecoMedio().multiply(posicaoAtual.getQuantidade());
             BigDecimal valorAtual = acao.getCotacaoAtual() == null
                     ? null
-                    : acao.getCotacaoAtual().multiply(calculada.quantidade());
+                    : acao.getCotacaoAtual().multiply(posicaoAtual.getQuantidade());
 
             posicoes.add(new PosicaoDTO(
                     acao.getTicker(),
                     corretora.getNomeFantasia(),
-                    calculada.quantidade(),
-                    calculada.precoMedio(),
+                    posicaoAtual.getQuantidade(),
+                    posicaoAtual.getPrecoMedio(),
                     valorInvestido,
                     valorAtual
             ));
         }
         return posicoes;
+    }
+
+    public List<PosicaoDTO> reconstruirPosicao(Long usuarioId) {
+        Carteira carteira = carteiraRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuarioId));
+        posicaoCacheService.reconstruirCarteira(carteira);
+        return buscarPosicaoPorUsuarioId(usuarioId);
     }
 }
