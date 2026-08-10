@@ -40,4 +40,9 @@ public class CarteiraController {
     public List<OperacaoResponseDTO> operacoesPorUsuario(@PathVariable Long usuarioId) {
         return operacaoService.listarComoAdmin(usuarioId);
     }
+
+    @PatchMapping("/{usuarioId}/reconstruir")
+    public List<PosicaoDTO> reconstruir(@PathVariable Long usuarioId) {
+        return carteiraService.reconstruirPosicao(usuarioId);
+    }
 }
