@@ -47,7 +47,8 @@ public class BrasilApiCnpjClient implements CnpjClient {
                     resposta.bairro(),
                     resposta.cep(),
                     resposta.ddd_telefone_1(),
-                    resposta.descricao_situacao_cadastral()
+                    resposta.descricao_situacao_cadastral(),
+                    resposta.cnae_fiscal() == null ? null : String.valueOf(resposta.cnae_fiscal())
             );
         } catch (HttpClientErrorException ex) {
             throw new RecursoNaoEncontradoException("CNPJ nao encontrado ou invalido: " + cnpj);
@@ -67,7 +68,8 @@ public class BrasilApiCnpjClient implements CnpjClient {
             String bairro,
             String cep,
             String descricao_situacao_cadastral,
-            String ddd_telefone_1
+            String ddd_telefone_1,
+            Integer cnae_fiscal
     ) {
     }
 }
