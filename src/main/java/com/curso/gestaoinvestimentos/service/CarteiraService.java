@@ -54,15 +54,15 @@ public class CarteiraService {
         List<PosicaoDTO> posicoes = new ArrayList<>();
         for (List<Operacao> grupo : porAcaoECorretora.values()) {
             PosicaoCalculator.Posicao calculada = PosicaoCalculator.calcular(grupo);
-            if (calculada.quantidade() <= 0) {
+            if (calculada.quantidade().compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
             Acao acao = grupo.get(0).getAcao();
             Corretora corretora = grupo.get(0).getCorretora();
-            BigDecimal valorInvestido = calculada.precoMedio().multiply(BigDecimal.valueOf(calculada.quantidade()));
+            BigDecimal valorInvestido = calculada.precoMedio().multiply(calculada.quantidade());
             BigDecimal valorAtual = acao.getCotacaoAtual() == null
                     ? null
-                    : acao.getCotacaoAtual().multiply(BigDecimal.valueOf(calculada.quantidade()));
+                    : acao.getCotacaoAtual().multiply(calculada.quantidade());
 
             posicoes.add(new PosicaoDTO(
                     acao.getTicker(),

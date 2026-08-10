@@ -73,7 +73,7 @@ public class OperacaoService {
         operacao.setStatus(StatusOperacao.ATIVA);
 
         if (dto.tipo() == TipoOperacao.VENDA) {
-            if (dto.quantidade() > posicaoAntes.quantidade()) {
+            if (dto.quantidade().compareTo(posicaoAntes.quantidade()) > 0) {
                 throw new RegraDeNegocioException(
                         "Saldo insuficiente: ha " + posicaoAntes.quantidade() + " unidade(s) de "
                                 + acao.getTicker() + " nessa corretora, tentando vender " + dto.quantidade());
@@ -119,7 +119,7 @@ public class OperacaoService {
         historicoSemEssaCompra.removeIf(op -> op.getId().equals(operacao.getId()));
 
         PosicaoCalculator.Posicao simulacao = PosicaoCalculator.calcular(historicoSemEssaCompra);
-        if (simulacao.quantidadeMinimaHistorica() < 0) {
+        if (simulacao.quantidadeMinimaHistorica().compareTo(BigDecimal.ZERO) < 0) {
             throw new RegraDeNegocioException(
                     "Cancelar essa compra deixaria o saldo negativo em alguma venda posterior");
         }
@@ -148,7 +148,7 @@ public class OperacaoService {
         if (operacao.getTipo() == TipoOperacao.VENDA && operacao.getPrecoMedioNaVenda() != null) {
             lucroPrejuizoRealizado = operacao.getPrecoUnitario()
                     .subtract(operacao.getPrecoMedioNaVenda())
-                    .multiply(BigDecimal.valueOf(operacao.getQuantidade()));
+                    .multiply(operacao.getQuantidade());
         }
 
         return new OperacaoResponseDTO(

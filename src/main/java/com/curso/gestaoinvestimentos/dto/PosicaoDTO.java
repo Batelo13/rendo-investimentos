@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public record PosicaoDTO(
         String acaoTicker,
         String corretoraNome,
-        Integer quantidade,
+        BigDecimal quantidade,
         BigDecimal precoMedio,
         BigDecimal valorInvestido,
         BigDecimal valorAtual
