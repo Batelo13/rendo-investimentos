@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -151,5 +152,71 @@ class UsuarioAuthIntegrationTest {
 
         mockMvc.perform(get("/usuarios/" + usuario.getId()).session(sessao))
                 .andExpect(status().isUnauthorized());
+    }
+
+    private MockHttpSession logar(String email, String senhaPlana) throws Exception {
+        MvcResult resultado = mockMvc.perform(post("/login")
+                        .param("username", email)
+                        .param("password", senhaPlana))
+                .andReturn();
+        return (MockHttpSession) resultado.getRequest().getSession(false);
+    }
+
+    @Test
+    void adminBloqueiaUsuarioEImpedeLoginSubsequente() throws Exception {
+        Usuario alvo = cadastrarUsuario("bloqueado@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.bloqueio@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.bloqueio@example.com", "senha1234");
+
+        mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ativo").value(false));
+
+        mockMvc.perform(post("/login")
+                        .param("username", "bloqueado@example.com")
+                        .param("password", "senha1234"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/login?error")));
+    }
+
+    @Test
+    void usuarioComumNaoConsegueBloquearOutroUsuario() throws Exception {
+        Usuario alvo = cadastrarUsuario("alvo@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("comum.bloqueio@example.com", "senha1234", Role.USER);
+        MockHttpSession sessaoComum = logar("comum.bloqueio@example.com", "senha1234");
+
+        mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoComum))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void bloquearUsuarioJaBloqueadoRetorna422() throws Exception {
+        Usuario alvo = cadastrarUsuario("jabloqueado@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.duplo@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.duplo@example.com", "senha1234");
+
+        mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
+                .andExpect(status().isOk());
+        mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void adminDesbloqueiaUsuarioERestauraLogin() throws Exception {
+        Usuario alvo = cadastrarUsuario("desbloquear@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.desbloqueio@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.desbloqueio@example.com", "senha1234");
+
+        mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
+                .andExpect(status().isOk());
+        mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/desbloquear").session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ativo").value(true));
+
+        mockMvc.perform(post("/login")
+                        .param("username", "desbloquear@example.com")
+                        .param("password", "senha1234"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", org.hamcrest.Matchers.not(org.hamcrest.Matchers.endsWith("/login?error"))));
     }
 }
