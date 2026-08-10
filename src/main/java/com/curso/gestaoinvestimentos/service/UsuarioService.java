@@ -4,6 +4,7 @@ import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.exception.RegraDeNegocioException;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
@@ -66,6 +67,28 @@ public class UsuarioService {
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado com id " + id));
         return toResponseDTO(usuario);
+    }
+
+    @Transactional
+    public UsuarioResponseDTO bloquear(Long id) {
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado com id " + id));
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            throw new RegraDeNegocioException("Usuario " + id + " ja esta bloqueado");
+        }
+        usuario.setAtivo(false);
+        return toResponseDTO(repository.save(usuario));
+    }
+
+    @Transactional
+    public UsuarioResponseDTO desbloquear(Long id) {
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado com id " + id));
+        if (Boolean.TRUE.equals(usuario.getAtivo())) {
+            throw new RegraDeNegocioException("Usuario " + id + " ja esta ativo");
+        }
+        usuario.setAtivo(true);
+        return toResponseDTO(repository.save(usuario));
     }
 
     private UsuarioResponseDTO toResponseDTO(Usuario usuario) {

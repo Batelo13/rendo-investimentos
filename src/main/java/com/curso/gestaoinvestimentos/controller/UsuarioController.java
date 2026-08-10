@@ -36,4 +36,14 @@ public class UsuarioController {
     public UsuarioResponseDTO buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id);
     }
+
+    @PatchMapping("/{id}/bloquear")
+    public UsuarioResponseDTO bloquear(@PathVariable Long id) {
+        return service.bloquear(id);
+    }
+
+    @PatchMapping("/{id}/desbloquear")
+    public UsuarioResponseDTO desbloquear(@PathVariable Long id) {
+        return service.desbloquear(id);
+    }
 }
