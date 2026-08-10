@@ -1,0 +1,24 @@
+/*
+ * Estilos que consomem os tokens de design/tokens.css. O reset basico
+ * (box-sizing, margin do body) ja vem do reboot do Bootstrap -- aqui so o
+ * que e proprio do Rendo, tipo o componente de logo. Vai crescer conforme
+ * mais componentes forem construidos.
+ */
+.rendo-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rendo-logo svg {
+    height: 36px;
+    width: auto;
+}
+
+.rendo-logo-text {
+    font-family: var(--rendo-font-logo);
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--rendo-color-text);
+    line-height: 1;
+}

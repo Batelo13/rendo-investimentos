@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Componente de logo reutilizavel. SVG desenhado a partir de medicao
+  pixel-a-pixel do logo original (Rendo.png, criado no Canva) -- carteira
+  com moedas/nota atras do topo, botao mint, coordenadas em
+  docs/superpowers/specs/2026-08-10-identidade-visual-design.md.
+-->
+<div th:fragment="logo" class="rendo-logo">
+    <svg viewBox="0 0 68 62" role="img" aria-label="Rendo">
+        <rect x="8" y="2" width="22" height="9" rx="1.5" fill="#5FE1B0" transform="rotate(-16 19 6.5)"/>
+        <circle cx="38" cy="13.75" r="6.75" fill="#5FE1B0"/>
+        <circle cx="55" cy="13.75" r="6.75" fill="#5FE1B0"/>
+        <rect x="1" y="10.5" width="65" height="50" rx="4" fill="#242530" stroke="#5FE1B0" stroke-width="1.2"/>
+        <circle cx="55" cy="35.5" r="6.5" fill="#5FE1B0"/>
+    </svg>
+    <span class="rendo-logo-text">Rendo</span>
+</div>
+</body>
+</html>

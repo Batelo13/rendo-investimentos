@@ -1,0 +1,53 @@
+/*
+ * Design tokens do Rendo. So variaveis (cor, tipografia, raio de borda) --
+ * nenhuma regra visual concreta aqui. Ver base.css pra estilos que consomem
+ * esses tokens. Valores definidos em docs/superpowers/specs/2026-08-10-identidade-visual-design.md
+ */
+:root {
+    --rendo-color-primary: #4C4B63;
+    --rendo-color-accent: #5FE1B0;
+
+    --rendo-color-bg: #1B1A24;
+    --rendo-color-surface: #24232F;
+    --rendo-color-surface-alt: #242530;
+
+    --rendo-color-text: #EDEBF5;
+    --rendo-color-text-muted: #B7B5C4;
+
+    --rendo-color-warning: #F2B84B;
+    --rendo-color-danger: #F07167;
+
+    --rendo-color-border: #34333f;
+
+    --rendo-font-body: 'Inter', sans-serif;
+    --rendo-font-logo: 'Baloo 2', sans-serif;
+
+    --rendo-radius-sm: 8px;
+    --rendo-radius-md: 10px;
+}
+
+/*
+ * Sobrescreve as variaveis do Bootstrap com os tokens acima -- sem Sass, sem
+ * build step. So funciona porque este arquivo e carregado DEPOIS do
+ * bootstrap.min.css no <head> (cascata: mesma especificidade, ultimo vence).
+ */
+:root {
+    --bs-primary: var(--rendo-color-primary);
+    --bs-primary-rgb: 76, 75, 99;
+    --bs-success: var(--rendo-color-accent);
+    --bs-success-rgb: 95, 225, 176;
+    --bs-warning: var(--rendo-color-warning);
+    --bs-warning-rgb: 242, 184, 75;
+    --bs-danger: var(--rendo-color-danger);
+    --bs-danger-rgb: 240, 113, 103;
+
+    --bs-body-bg: var(--rendo-color-bg);
+    --bs-body-color: var(--rendo-color-text);
+    --bs-border-color: var(--rendo-color-border);
+    --bs-border-radius: var(--rendo-radius-sm);
+    --bs-border-radius-lg: var(--rendo-radius-md);
+
+    --bs-body-font-family: var(--rendo-font-body);
+    --bs-link-color: var(--rendo-color-accent);
+    --bs-link-hover-color: var(--rendo-color-accent);
+}
