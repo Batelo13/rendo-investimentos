@@ -3,6 +3,7 @@ package com.curso.gestaoinvestimentos;
 import com.curso.gestaoinvestimentos.dto.OperacaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
+import com.curso.gestaoinvestimentos.dto.SaldoDTO;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
@@ -384,5 +385,51 @@ class OperacaoIntegrationTest {
 
         mockMvc.perform(patch("/carteiras/" + alvo.getId() + "/reconstruir").session(sessaoComum))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deveBloquearCompraQuandoSaldoInsuficiente() throws Exception {
+        cadastrarUsuario("semsaldo@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcao("CARO3");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("semsaldo@example.com", "senha1234");
+
+        // saldo inicial e 100000.00; 2000 x 100.00 = 200000.00, maior que o saldo disponivel
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("2000"), new BigDecimal("100.00"));
+
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void compraDescontaSaldoEVendaDevolve() throws Exception {
+        cadastrarUsuario("saldodono@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcao("SALDO3");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("saldodono@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isCreated());
+
+        MvcResult apósCompra = mockMvc.perform(get("/carteiras/me/saldo").session(sessao))
+                .andExpect(status().isOk())
+                .andReturn();
+        SaldoDTO saldoApósCompra = objectMapper.readValue(apósCompra.getResponse().getContentAsString(), SaldoDTO.class);
+        assertEquals(0, saldoApósCompra.saldoDisponivel().compareTo(new BigDecimal("99000.00")));
+
+        OperacaoRequestDTO venda = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, new BigDecimal("10"), new BigDecimal("120.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(venda)))
+                .andExpect(status().isCreated());
+
+        MvcResult apósVenda = mockMvc.perform(get("/carteiras/me/saldo").session(sessao))
+                .andExpect(status().isOk())
+                .andReturn();
+        SaldoDTO saldoApósVenda = objectMapper.readValue(apósVenda.getResponse().getContentAsString(), SaldoDTO.class);
+        // 100000 - 1000 + 1200 = 100200
+        assertEquals(0, saldoApósVenda.saldoDisponivel().compareTo(new BigDecimal("100200.00")));
     }
 }
