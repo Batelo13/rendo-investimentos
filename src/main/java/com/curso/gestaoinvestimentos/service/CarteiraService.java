@@ -1,13 +1,17 @@
 package com.curso.gestaoinvestimentos.service;
 
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
+import com.curso.gestaoinvestimentos.dto.SaldoDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
+import com.curso.gestaoinvestimentos.model.Operacao;
 import com.curso.gestaoinvestimentos.model.PosicaoAtual;
+import com.curso.gestaoinvestimentos.model.StatusOperacao;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
+import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
 import com.curso.gestaoinvestimentos.repository.PosicaoAtualRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
@@ -21,13 +25,16 @@ public class CarteiraService {
 
     private final CarteiraRepository carteiraRepository;
     private final PosicaoAtualRepository posicaoAtualRepository;
+    private final OperacaoRepository operacaoRepository;
     private final UsuarioRepository usuarioRepository;
     private final PosicaoCacheService posicaoCacheService;
 
     public CarteiraService(CarteiraRepository carteiraRepository, PosicaoAtualRepository posicaoAtualRepository,
-                            UsuarioRepository usuarioRepository, PosicaoCacheService posicaoCacheService) {
+                            OperacaoRepository operacaoRepository, UsuarioRepository usuarioRepository,
+                            PosicaoCacheService posicaoCacheService) {
         this.carteiraRepository = carteiraRepository;
         this.posicaoAtualRepository = posicaoAtualRepository;
+        this.operacaoRepository = operacaoRepository;
         this.usuarioRepository = usuarioRepository;
         this.posicaoCacheService = posicaoCacheService;
     }
@@ -73,5 +80,20 @@ public class CarteiraService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuarioId));
         posicaoCacheService.reconstruirCarteira(carteira);
         return buscarPosicaoPorUsuarioId(usuarioId);
+    }
+
+    // Sem cache aqui, diferente da posicao: e uma unica soma sobre o historico
+    // inteiro da carteira (nao por acao+corretora), bem mais barato de calcular
+    // na hora. Se um dia isso precisar de cache, mesmo padrao do PosicaoAtual.
+    public SaldoDTO buscarSaldoPropria(String emailUsuarioAutenticado) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioAutenticado)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado: " + emailUsuarioAutenticado));
+        Carteira carteira = carteiraRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuario.getId()));
+
+        List<Operacao> historico = operacaoRepository.findByCarteiraIdAndStatusOrderByDataHoraAsc(carteira.getId(), StatusOperacao.ATIVA);
+        BigDecimal saldoDisponivel = SaldoCalculator.calcular(carteira.getSaldoInicial(), historico);
+
+        return new SaldoDTO(carteira.getSaldoInicial(), saldoDisponivel);
     }
 }

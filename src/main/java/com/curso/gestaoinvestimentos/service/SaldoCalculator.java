@@ -1,0 +1,32 @@
+package com.curso.gestaoinvestimentos.service;
+
+import com.curso.gestaoinvestimentos.model.Operacao;
+import com.curso.gestaoinvestimentos.model.TipoOperacao;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * Calcula o saldo virtual disponivel a partir do saldo inicial da carteira e
+ * do historico de operacoes em ordem cronologica. Mesmo raciocinio do
+ * PosicaoCalculator: Operacao e a fonte da verdade, saldo e um valor
+ * derivado, nunca guardado separadamente -- cancelar uma compra "devolve" o
+ * saldo automaticamente, so por ela sair do historico ATIVA usado aqui.
+ */
+public class SaldoCalculator {
+
+    public static BigDecimal calcular(BigDecimal saldoInicial, List<Operacao> operacoesEmOrdemCronologica) {
+        BigDecimal saldo = saldoInicial;
+
+        for (Operacao operacao : operacoesEmOrdemCronologica) {
+            BigDecimal valor = operacao.getPrecoUnitario().multiply(operacao.getQuantidade());
+            if (operacao.getTipo() == TipoOperacao.COMPRA) {
+                saldo = saldo.subtract(valor);
+            } else {
+                saldo = saldo.add(valor);
+            }
+        }
+
+        return saldo;
+    }
+}

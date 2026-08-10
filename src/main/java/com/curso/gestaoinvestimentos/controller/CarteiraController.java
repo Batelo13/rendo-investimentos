@@ -2,6 +2,7 @@ package com.curso.gestaoinvestimentos.controller;
 
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
+import com.curso.gestaoinvestimentos.dto.SaldoDTO;
 import com.curso.gestaoinvestimentos.service.CarteiraService;
 import com.curso.gestaoinvestimentos.service.OperacaoService;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,11 @@ public class CarteiraController {
     @GetMapping("/me/operacoes")
     public List<OperacaoResponseDTO> operacoesProprias(Principal principal) {
         return operacaoService.listarProprias(principal.getName());
+    }
+
+    @GetMapping("/me/saldo")
+    public SaldoDTO saldoProprio(Principal principal) {
+        return carteiraService.buscarSaldoPropria(principal.getName());
     }
 
     @GetMapping("/{usuarioId}")
