@@ -14,6 +14,7 @@ import com.curso.gestaoinvestimentos.repository.AcaoRepository;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.CorretoraRepository;
 import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
+import com.curso.gestaoinvestimentos.repository.PosicaoAtualRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -57,9 +58,12 @@ class OperacaoIntegrationTest {
     private CorretoraRepository corretoraRepository;
     @Autowired
     private OperacaoRepository operacaoRepository;
+    @Autowired
+    private PosicaoAtualRepository posicaoAtualRepository;
 
     @AfterEach
     void limparBanco() {
+        posicaoAtualRepository.deleteAll();
         operacaoRepository.deleteAll();
         carteiraRepository.deleteAll();
         acaoRepository.deleteAll();
