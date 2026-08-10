@@ -42,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class OperacaoIntegrationTest {
 
+    private static final BigDecimal SALDO_INICIAL_TESTE = new BigDecimal("100000.00");
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -84,6 +86,7 @@ class OperacaoIntegrationTest {
         Carteira carteira = new Carteira();
         carteira.setUsuario(salvo);
         carteira.setDataCriacao(LocalDate.now());
+        carteira.setSaldoInicial(SALDO_INICIAL_TESTE);
         carteiraRepository.save(carteira);
 
         return salvo;

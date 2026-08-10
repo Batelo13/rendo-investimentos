@@ -14,11 +14,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class UsuarioService {
+
+    // Saldo virtual fictício com que toda carteira nova começa -- simulação
+    // academica, nenhum dinheiro real envolvido.
+    private static final BigDecimal SALDO_INICIAL_PADRAO = new BigDecimal("100000.00");
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -52,6 +57,7 @@ public class UsuarioService {
         Carteira carteira = new Carteira();
         carteira.setUsuario(salvo);
         carteira.setDataCriacao(LocalDate.now());
+        carteira.setSaldoInicial(SALDO_INICIAL_PADRAO);
         carteiraRepository.save(carteira);
 
         return toResponseDTO(salvo);

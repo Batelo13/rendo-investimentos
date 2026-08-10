@@ -60,6 +60,18 @@ public class OperacaoService {
             throw new RegraDeNegocioException("Corretora " + corretora.getNomeFantasia() + " nao e validada na CVM");
         }
 
+        if (dto.tipo() == TipoOperacao.COMPRA) {
+            List<Operacao> historicoCarteira = operacaoRepository.findByCarteiraIdAndStatusOrderByDataHoraAsc(
+                    carteira.getId(), StatusOperacao.ATIVA);
+            BigDecimal saldoDisponivel = SaldoCalculator.calcular(carteira.getSaldoInicial(), historicoCarteira);
+            BigDecimal custoCompra = dto.precoUnitario().multiply(dto.quantidade());
+            if (custoCompra.compareTo(saldoDisponivel) > 0) {
+                throw new RegraDeNegocioException(
+                        "Saldo em conta insuficiente: disponivel R$ " + saldoDisponivel
+                                + ", tentando comprar R$ " + custoCompra);
+            }
+        }
+
         List<Operacao> historico = operacaoRepository.findByCarteiraIdAndAcaoIdAndCorretoraIdAndStatusOrderByDataHoraAsc(
                 carteira.getId(), acao.getId(), corretora.getId(), StatusOperacao.ATIVA);
         PosicaoCalculator.Posicao posicaoAntes = PosicaoCalculator.calcular(historico);

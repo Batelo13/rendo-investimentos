@@ -1,5 +1,6 @@
 package com.curso.gestaoinvestimentos.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -8,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -23,6 +25,9 @@ public class Carteira {
     private Usuario usuario;
 
     private LocalDate dataCriacao;
+
+    @Column(nullable = false)
+    private BigDecimal saldoInicial;
 
     public Long getId() {
         return id;
@@ -46,5 +51,13 @@ public class Carteira {
 
     public void setDataCriacao(LocalDate dataCriacao) {
         this.dataCriacao = dataCriacao;
+    }
+
+    public BigDecimal getSaldoInicial() {
+        return saldoInicial;
+    }
+
+    public void setSaldoInicial(BigDecimal saldoInicial) {
+        this.saldoInicial = saldoInicial;
     }
 }
