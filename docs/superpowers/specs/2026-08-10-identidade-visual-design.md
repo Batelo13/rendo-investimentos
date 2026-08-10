@@ -44,19 +44,21 @@ Sucesso e "cor secundária" são a mesma cor (menta) — decisão deliberada: no
 
 **Carteira clássica (billfold)**, não um monograma "R" nem uma moeda — decisão final depois de testar as duas ideias, porque o app é literalmente uma carteira de ações, e o símbolo deve dizer isso diretamente.
 
-Especificação do ícone (SVG, 64×64 viewBox, escala livremente):
+A versão final foi desenhada pelo usuário no Canva (não pelo Claude) e o SVG abaixo foi recriado medindo pixel a pixel a imagem original (`Rendo.png`, 1080×1350) pra ficar fiel — carteira com duas moedas + uma nota saindo por trás do topo (só a ponta aparece, o resto fica atrás do corpo da carteira), e um botão/fecho circular em menta:
 
 ```html
-<svg viewBox="0 0 64 64">
-  <rect x="8" y="18" width="48" height="34" rx="7" fill="#24232F" stroke="#4C4B63" stroke-width="3"/>
-  <path d="M8 30 H56" stroke="#4C4B63" stroke-width="2" opacity="0.5"/>
-  <circle cx="44" cy="35" r="4" fill="#5FE1B0"/>
+<svg viewBox="0 0 68 62" role="img" aria-label="Rendo">
+  <rect x="8" y="2" width="22" height="9" rx="1.5" fill="#5FE1B0" transform="rotate(-16 19 6.5)"/>
+  <circle cx="38" cy="13.75" r="6.75" fill="#5FE1B0"/>
+  <circle cx="55" cy="13.75" r="6.75" fill="#5FE1B0"/>
+  <rect x="1" y="10.5" width="65" height="50" rx="4" fill="#242530" stroke="#5FE1B0" stroke-width="1.2"/>
+  <circle cx="55" cy="35.5" r="6.5" fill="#5FE1B0"/>
 </svg>
 ```
 
-Composição: corpo da carteira (retângulo arredondado, contorno roxo ardósia, preenchimento cor de superfície), uma linha horizontal sutil sugerindo a dobra, e um "botão"/fecho circular em menta. Funciona em tamanho pequeno (favicon ~16-32px) — testado mentalmente, sem detalhe fino demais.
+Ordem de desenho importa: nota + moedas primeiro (ficam parcialmente cobertas), depois o corpo da carteira por cima, depois o botão por último (sempre visível). `#242530` é o preenchimento do corpo da carteira — quase igual ao fundo (`#1B1A24`) mas perceptivelmente mais claro, medido direto da imagem original.
 
-Wordmark ao lado do símbolo: "Rendo" em Inter 700.
+**Wordmark**: "Rendo" em **Baloo 2**, peso 800 — não Inter. Decisão deliberada: a logo é uma peça gráfica fixa com fonte própria (igual o usuário desenhou no Canva); o resto do sistema (menus, botões, títulos de página) continua em Inter. As duas fontes nunca competem porque só aparecem juntas nesse um lugar (o cabeçalho com a logo).
 
 ## Estilo de componentes
 
@@ -72,9 +74,22 @@ Raio de borda: 8px em botões/inputs, 10px em cards. Sem sombras pesadas, sem gr
 
 Decisão importante: o pedido original descrevia uma **moeda estilizada girando**. Como o símbolo final virou uma **carteira** (não moeda), a animação de loading foi realinhada pra usar o mesmo símbolo da marca, em vez de um motivo desconectado. Direção geral (detalhamento técnico — CSS vs. SVG vs. Canvas — fica pra quando a tela de loading for construída, como já era o plano original): algo sutil envolvendo a carteira (ex: o botão mint pulsando, ou a carteira "abrindo" levemente), não uma rotação 3D como a moeda original sugeria — o formato de carteira não tem a simetria circular que fazia sentido girar.
 
+## Implementação
+
+Diferente do resto deste spec (só decisão de design), o símbolo/wordmark e os tokens já foram implementados de verdade nesta mesma branch, pra ter uma prova concreta de que renderiza certo no pipeline real do Spring (não só no mockup do companheiro visual):
+
+- `src/main/resources/static/css/tokens.css` — variáveis de design (cores, fontes, raio de borda), sem nenhuma regra visual.
+- `src/main/resources/static/css/base.css` — reset mínimo + o componente `.rendo-logo`, consumindo os tokens.
+- `src/main/resources/templates/fragments/logo.html` — fragmento Thymeleaf reutilizável (`th:fragment="logo"`) com o SVG acima.
+- `src/main/resources/templates/index.html` — landing page mínima (só cabeçalho com a logo por enquanto), serve de smoke test. Mapeada automaticamente em `/` pelo Spring Boot (resolução padrão de welcome page com Thymeleaf, sem controller próprio).
+- `SecurityConfig`: `GET /`, `/css/**` e `/images/**` liberados (`permitAll`) — a landing page é pública (seção 22 do escopo original: páginas públicas).
+
+Verificado rodando a aplicação de verdade e conferindo no Chrome — logo renderiza igual ao aprovado no companheiro visual, fundo/cores batem.
+
 ## Fora de escopo (adiar pra quando as telas forem construídas)
 
 - Biblioteca de gráficos para o dashboard.
-- CSS/Thymeleaf reais (só a especificação de design tokens está aqui).
+- Resto do CSS/Thymeleaf (páginas de verdade além da landing mínima).
 - Detalhamento técnico da animação de loading (CSS/SVG/Canvas).
 - Ícones adicionais além do símbolo da marca (ex: ícones de navegação, categorias).
+- Favicon (o SVG funciona pequeno, mas gerar o `.ico`/`.png` de verdade fica pra quando as páginas forem construídas).

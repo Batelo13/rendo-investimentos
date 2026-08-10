@@ -1,0 +1,27 @@
+/*
+ * Design tokens do Rendo. So variaveis (cor, tipografia, raio de borda) --
+ * nenhuma regra visual concreta aqui. Ver base.css pra estilos que consomem
+ * esses tokens. Valores definidos em docs/superpowers/specs/2026-08-10-identidade-visual-design.md
+ */
+:root {
+    --rendo-color-primary: #4C4B63;
+    --rendo-color-accent: #5FE1B0;
+
+    --rendo-color-bg: #1B1A24;
+    --rendo-color-surface: #24232F;
+    --rendo-color-surface-alt: #242530;
+
+    --rendo-color-text: #EDEBF5;
+    --rendo-color-text-muted: #B7B5C4;
+
+    --rendo-color-warning: #F2B84B;
+    --rendo-color-danger: #F07167;
+
+    --rendo-color-border: #34333f;
+
+    --rendo-font-body: 'Inter', sans-serif;
+    --rendo-font-logo: 'Baloo 2', sans-serif;
+
+    --rendo-radius-sm: 8px;
+    --rendo-radius-md: 10px;
+}
