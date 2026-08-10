@@ -34,3 +34,6 @@ build/
 
 ### Graphify ###
 graphify-out/
+
+### Superpowers brainstorming companion ###
+.superpowers/
