@@ -25,3 +25,29 @@
     --rendo-radius-sm: 8px;
     --rendo-radius-md: 10px;
 }
+
+/*
+ * Sobrescreve as variaveis do Bootstrap com os tokens acima -- sem Sass, sem
+ * build step. So funciona porque este arquivo e carregado DEPOIS do
+ * bootstrap.min.css no <head> (cascata: mesma especificidade, ultimo vence).
+ */
+:root {
+    --bs-primary: var(--rendo-color-primary);
+    --bs-primary-rgb: 76, 75, 99;
+    --bs-success: var(--rendo-color-accent);
+    --bs-success-rgb: 95, 225, 176;
+    --bs-warning: var(--rendo-color-warning);
+    --bs-warning-rgb: 242, 184, 75;
+    --bs-danger: var(--rendo-color-danger);
+    --bs-danger-rgb: 240, 113, 103;
+
+    --bs-body-bg: var(--rendo-color-bg);
+    --bs-body-color: var(--rendo-color-text);
+    --bs-border-color: var(--rendo-color-border);
+    --bs-border-radius: var(--rendo-radius-sm);
+    --bs-border-radius-lg: var(--rendo-radius-md);
+
+    --bs-body-font-family: var(--rendo-font-body);
+    --bs-link-color: var(--rendo-color-accent);
+    --bs-link-hover-color: var(--rendo-color-accent);
+}

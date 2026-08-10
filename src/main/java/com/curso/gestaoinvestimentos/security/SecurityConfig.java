@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Landing page publica (secao 22 do escopo: paginas publicas) + os
                         // assets estaticos que ela carrega (CSS/imagens).
-                        .requestMatchers(HttpMethod.GET, "/", "/css/**", "/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/css/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/usuarios/*/bloquear", "/usuarios/*/desbloquear").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/carteiras/me", "/carteiras/me/operacoes", "/carteiras/me/saldo").authenticated()

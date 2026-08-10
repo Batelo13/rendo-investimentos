@@ -78,13 +78,14 @@ Decisão importante: o pedido original descrevia uma **moeda estilizada girando*
 
 Diferente do resto deste spec (só decisão de design), o símbolo/wordmark e os tokens já foram implementados de verdade nesta mesma branch, pra ter uma prova concreta de que renderiza certo no pipeline real do Spring (não só no mockup do companheiro visual):
 
-- `src/main/resources/static/css/tokens.css` — variáveis de design (cores, fontes, raio de borda), sem nenhuma regra visual.
-- `src/main/resources/static/css/base.css` — reset mínimo + o componente `.rendo-logo`, consumindo os tokens.
+- `pom.xml` — dependência `org.webjars:bootstrap:5.3.3`. Via WebJars (Maven), não CDN — sem dependência de rede externa em runtime, Spring Boot serve `/webjars/**` automaticamente. O prompt original do usuário (seção 6) pedia Bootstrap explicitamente; a primeira versão desta branch tinha ido só de CSS customizado, corrigido depois de o usuário notar a divergência.
+- `src/main/resources/static/css/tokens.css` — variáveis de design (cores, fontes, raio de borda) **+ sobrescrita das variáveis CSS do Bootstrap** (`--bs-primary`, `--bs-body-bg`, etc.) com os mesmos tokens — sem Sass, sem build step, só cascata CSS (tokens.css carrega depois do bootstrap.min.css no `<head>`).
+- `src/main/resources/static/css/base.css` — o componente `.rendo-logo`, consumindo os tokens. Reset básico (box-sizing, margem do body) já vem do reboot do Bootstrap, não duplicado aqui.
 - `src/main/resources/templates/fragments/logo.html` — fragmento Thymeleaf reutilizável (`th:fragment="logo"`) com o SVG acima.
-- `src/main/resources/templates/index.html` — landing page mínima (só cabeçalho com a logo por enquanto), serve de smoke test. Mapeada automaticamente em `/` pelo Spring Boot (resolução padrão de welcome page com Thymeleaf, sem controller próprio).
-- `SecurityConfig`: `GET /`, `/css/**` e `/images/**` liberados (`permitAll`) — a landing page é pública (seção 22 do escopo original: páginas públicas).
+- `src/main/resources/templates/index.html` — landing page mínima (só cabeçalho com a logo por enquanto), serve de smoke test. Mapeada automaticamente em `/` pelo Spring Boot (resolução padrão de welcome page com Thymeleaf, sem controller próprio). Carrega Bootstrap antes de tokens/base para a cascata de sobrescrita funcionar.
+- `SecurityConfig`: `GET /`, `/css/**`, `/images/**` e `/webjars/**` liberados (`permitAll`) — a landing page é pública (seção 22 do escopo original: páginas públicas).
 
-Verificado rodando a aplicação de verdade e conferindo no Chrome — logo renderiza igual ao aprovado no companheiro visual, fundo/cores batem.
+Verificado rodando a aplicação de verdade e conferindo no Chrome (incluindo checar a aba de rede pra confirmar que `bootstrap.min.css` carrega com 200, não só que a página parece certa visualmente) — logo renderiza igual ao aprovado no companheiro visual, fundo/cores batem, nenhum branco do tema padrão do Bootstrap vazando.
 
 ## Fora de escopo (adiar pra quando as telas forem construídas)
 
