@@ -10,6 +10,7 @@ public record DadosCnpjResponse(
         String bairro,
         String cep,
         String telefone,
-        String situacaoCadastral
+        String situacaoCadastral,
+        String cnaePrincipal
 ) {
 }

@@ -4,8 +4,10 @@ import com.curso.gestaoinvestimentos.dto.CorretoraRequestDTO;
 import com.curso.gestaoinvestimentos.dto.CorretoraResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.exception.RegraDeNegocioException;
 import com.curso.gestaoinvestimentos.integration.CepClient;
 import com.curso.gestaoinvestimentos.integration.CnpjClient;
+import com.curso.gestaoinvestimentos.integration.CvmValidador;
 import com.curso.gestaoinvestimentos.integration.DadosCepResponse;
 import com.curso.gestaoinvestimentos.integration.DadosCnpjResponse;
 import com.curso.gestaoinvestimentos.model.Corretora;
@@ -36,6 +38,20 @@ public class CorretoraService {
         // Isolamento do servico de terceiro (Adapter): o Service so conhece CnpjClient/CepClient,
         // nunca sabe que por tras existe BrasilAPI ou ViaCEP.
         DadosCnpjResponse dadosCnpj = cnpjClient.buscar(dto.cnpj());
+
+        if (dadosCnpj.razaoSocial() == null || dadosCnpj.razaoSocial().isBlank()) {
+            throw new RegraDeNegocioException("CNPJ sem razao social na base consultada");
+        }
+        if (dadosCnpj.situacaoCadastral() != null
+                && !dadosCnpj.situacaoCadastral().equalsIgnoreCase("ATIVA")) {
+            throw new RegraDeNegocioException(
+                    "Instituicao com situacao cadastral nao ativa: " + dadosCnpj.situacaoCadastral());
+        }
+        if (!CvmValidador.instituicaoValidaNoMercado(dadosCnpj)) {
+            throw new RegraDeNegocioException(
+                    "Instituicao nao identificada como participante valido do mercado financeiro (CNAE/CVM)");
+        }
+
         DadosCepResponse dadosCep = cepClient.buscar(dadosCnpj.cep());
 
         Corretora corretora = new Corretora();
@@ -54,8 +70,9 @@ public class CorretoraService {
         corretora.setCidade(dadosCep.cidade());
         corretora.setUf(dadosCep.uf());
 
-        // Campo controlado pelo sistema, nunca pelo cliente. Validacao CVM real fica para outra fase.
-        corretora.setValidadaNaCvm(false);
+        // Campo controlado pelo sistema, nunca pelo cliente. So chega aqui se passou pelas
+        // validacoes acima (situacao cadastral ativa + CNAE compativel com o mercado financeiro).
+        corretora.setValidadaNaCvm(true);
         corretora.setDataCadastro(LocalDate.now());
 
         Corretora salva = repository.save(corretora);
