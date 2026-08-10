@@ -19,7 +19,7 @@ public record OperacaoRequestDTO(
 
         @NotNull(message = "Quantidade e obrigatoria")
         @Positive(message = "Quantidade deve ser maior que zero")
-        Integer quantidade,
+        BigDecimal quantidade,
 
         @NotNull(message = "Preco unitario e obrigatorio")
         @Positive(message = "Preco unitario deve ser maior que zero")

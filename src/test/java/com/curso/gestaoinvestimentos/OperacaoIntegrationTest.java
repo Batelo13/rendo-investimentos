@@ -121,7 +121,7 @@ class OperacaoIntegrationTest {
         Corretora corretora = cadastrarCorretora(true);
         MockHttpSession sessao = logar("investidor@example.com", "senha1234");
 
-        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("100.00"));
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
 
         mockMvc.perform(post("/operacoes")
                         .session(sessao)
@@ -136,7 +136,7 @@ class OperacaoIntegrationTest {
 
         assertEquals(1, posicoes.length);
         assertEquals("AAPL", posicoes[0].acaoTicker());
-        assertEquals(10, posicoes[0].quantidade());
+        assertEquals(0, posicoes[0].quantidade().compareTo(new BigDecimal("10")));
         assertEquals(0, posicoes[0].precoMedio().compareTo(new BigDecimal("100.00")));
     }
 
@@ -147,21 +147,21 @@ class OperacaoIntegrationTest {
         Corretora corretora = cadastrarCorretora(true);
         MockHttpSession sessao = logar("vendedor@example.com", "senha1234");
 
-        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("100.00"));
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
         mockMvc.perform(post("/operacoes")
                         .session(sessao)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(compra)))
                 .andExpect(status().isCreated());
 
-        OperacaoRequestDTO vendaADescoberto = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, 15, new BigDecimal("50.00"));
+        OperacaoRequestDTO vendaADescoberto = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, new BigDecimal("15"), new BigDecimal("50.00"));
         mockMvc.perform(post("/operacoes")
                         .session(sessao)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vendaADescoberto)))
                 .andExpect(status().isUnprocessableEntity());
 
-        OperacaoRequestDTO vendaParcial = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, 5, new BigDecimal("50.00"));
+        OperacaoRequestDTO vendaParcial = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, new BigDecimal("5"), new BigDecimal("50.00"));
         MvcResult resultadoVenda = mockMvc.perform(post("/operacoes")
                         .session(sessao)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +182,7 @@ class OperacaoIntegrationTest {
         Corretora corretora = cadastrarCorretora(false);
         MockHttpSession sessao = logar("naovalidado@example.com", "senha1234");
 
-        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("100.00"));
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
 
         mockMvc.perform(post("/operacoes")
                         .session(sessao)
@@ -224,7 +224,7 @@ class OperacaoIntegrationTest {
         MockHttpSession sessaoDono = logar("dono@example.com", "senha1234");
         MockHttpSession sessaoAdmin = logar("admin2@example.com", "senha1234");
 
-        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("30.00"));
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("30.00"));
         MvcResult resultado = mockMvc.perform(post("/operacoes")
                         .session(sessaoDono)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -250,7 +250,7 @@ class OperacaoIntegrationTest {
         MockHttpSession sessaoDono = logar("dono2@example.com", "senha1234");
         MockHttpSession sessaoAdmin = logar("admin3@example.com", "senha1234");
 
-        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("30.00"));
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("30.00"));
         MvcResult resultadoCompra = mockMvc.perform(post("/operacoes")
                         .session(sessaoDono)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -259,7 +259,7 @@ class OperacaoIntegrationTest {
                 .andReturn();
         Long operacaoId = objectMapper.readValue(resultadoCompra.getResponse().getContentAsString(), OperacaoResponseDTO.class).id();
 
-        OperacaoRequestDTO venda = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, 8, new BigDecimal("40.00"));
+        OperacaoRequestDTO venda = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, new BigDecimal("8"), new BigDecimal("40.00"));
         mockMvc.perform(post("/operacoes")
                         .session(sessaoDono)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -277,17 +277,17 @@ class OperacaoIntegrationTest {
         Corretora corretora = cadastrarCorretora(true);
         MockHttpSession sessao = logar("recomeco@example.com", "senha1234");
 
-        OperacaoRequestDTO compra1 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("10.00"));
+        OperacaoRequestDTO compra1 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("10.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(compra1)))
                 .andExpect(status().isCreated());
 
-        OperacaoRequestDTO vendeTudo = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, 10, new BigDecimal("10.00"));
+        OperacaoRequestDTO vendeTudo = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, new BigDecimal("10"), new BigDecimal("10.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vendeTudo)))
                 .andExpect(status().isCreated());
 
-        OperacaoRequestDTO compra2 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 5, new BigDecimal("20.00"));
+        OperacaoRequestDTO compra2 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("5"), new BigDecimal("20.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(compra2)))
                 .andExpect(status().isCreated());
@@ -298,7 +298,33 @@ class OperacaoIntegrationTest {
         PosicaoDTO[] posicoes = objectMapper.readValue(resultado.getResponse().getContentAsString(), PosicaoDTO[].class);
 
         assertEquals(1, posicoes.length);
-        assertEquals(5, posicoes[0].quantidade());
+        assertEquals(0, posicoes[0].quantidade().compareTo(new BigDecimal("5")));
         assertEquals(0, posicoes[0].precoMedio().compareTo(new BigDecimal("20.00")));
+    }
+
+    @Test
+    void deveRegistrarCompraFracionariaERefletirNaPosicao() throws Exception {
+        cadastrarUsuario("fracionario@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcao("BOVA11");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("fracionario@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("0.5"), new BigDecimal("100.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isCreated());
+
+        OperacaoRequestDTO vendaMaiorQueFracao = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, new BigDecimal("0.7"), new BigDecimal("100.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vendaMaiorQueFracao)))
+                .andExpect(status().isUnprocessableEntity());
+
+        MvcResult resultado = mockMvc.perform(get("/carteiras/me").session(sessao))
+                .andExpect(status().isOk())
+                .andReturn();
+        PosicaoDTO[] posicoes = objectMapper.readValue(resultado.getResponse().getContentAsString(), PosicaoDTO[].class);
+
+        assertEquals(1, posicoes.length);
+        assertEquals(0, posicoes[0].quantidade().compareTo(new BigDecimal("0.5")));
     }
 }

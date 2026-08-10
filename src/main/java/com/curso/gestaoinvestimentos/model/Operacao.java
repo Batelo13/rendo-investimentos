@@ -39,7 +39,7 @@ public class Operacao {
     private TipoOperacao tipo;
 
     @Column(nullable = false)
-    private Integer quantidade;
+    private BigDecimal quantidade;
 
     @Column(nullable = false)
     private BigDecimal precoUnitario;
@@ -99,11 +99,11 @@ public class Operacao {
         this.tipo = tipo;
     }
 
-    public Integer getQuantidade() {
+    public BigDecimal getQuantidade() {
         return quantidade;
     }
 
-    public void setQuantidade(Integer quantidade) {
+    public void setQuantidade(BigDecimal quantidade) {
         this.quantidade = quantidade;
     }
 

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record OperacaoResponseDTO(
         Long id,
         TipoOperacao tipo,
-        Integer quantidade,
+        BigDecimal quantidade,
         BigDecimal precoUnitario,
         LocalDateTime dataHora,
         StatusOperacao status,
