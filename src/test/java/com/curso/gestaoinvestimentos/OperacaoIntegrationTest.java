@@ -331,4 +331,55 @@ class OperacaoIntegrationTest {
         assertEquals(1, posicoes.length);
         assertEquals(0, posicoes[0].quantidade().compareTo(new BigDecimal("0.5")));
     }
+
+    @Test
+    void adminReconstroiCachePosicaoAposDivergencia() throws Exception {
+        Usuario dono = cadastrarUsuario("cachedono@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admincache@example.com", "senha1234", Role.ADMIN);
+        Acao acao = cadastrarAcao("CACH3");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessaoDono = logar("cachedono@example.com", "senha1234");
+        MockHttpSession sessaoAdmin = logar("admincache@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("50.00"));
+        mockMvc.perform(post("/operacoes").session(sessaoDono).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isCreated());
+
+        MvcResult antes = mockMvc.perform(get("/carteiras/me").session(sessaoDono))
+                .andExpect(status().isOk())
+                .andReturn();
+        PosicaoDTO[] posicoesAntes = objectMapper.readValue(antes.getResponse().getContentAsString(), PosicaoDTO[].class);
+        assertEquals(1, posicoesAntes.length);
+
+        // Simula divergencia: apaga o cache direto pelo repository, por fora do
+        // fluxo normal de escrita (que so acontece via registrar/cancelar).
+        posicaoAtualRepository.deleteAll();
+
+        MvcResult depoisDeApagar = mockMvc.perform(get("/carteiras/me").session(sessaoDono))
+                .andExpect(status().isOk())
+                .andReturn();
+        PosicaoDTO[] posicoesApagadas = objectMapper.readValue(depoisDeApagar.getResponse().getContentAsString(), PosicaoDTO[].class);
+        assertEquals(0, posicoesApagadas.length);
+
+        mockMvc.perform(patch("/carteiras/" + dono.getId() + "/reconstruir").session(sessaoAdmin))
+                .andExpect(status().isOk());
+
+        MvcResult depoisDeReconstruir = mockMvc.perform(get("/carteiras/me").session(sessaoDono))
+                .andExpect(status().isOk())
+                .andReturn();
+        PosicaoDTO[] posicoesRestauradas = objectMapper.readValue(depoisDeReconstruir.getResponse().getContentAsString(), PosicaoDTO[].class);
+        assertEquals(1, posicoesRestauradas.length);
+        assertEquals(0, posicoesRestauradas[0].quantidade().compareTo(new BigDecimal("10")));
+    }
+
+    @Test
+    void usuarioComumNaoConsegueReconstruirCache() throws Exception {
+        Usuario alvo = cadastrarUsuario("alvocache@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("comumcache@example.com", "senha1234", Role.USER);
+        MockHttpSession sessaoComum = logar("comumcache@example.com", "senha1234");
+
+        mockMvc.perform(patch("/carteiras/" + alvo.getId() + "/reconstruir").session(sessaoComum))
+                .andExpect(status().isForbidden());
+    }
 }
