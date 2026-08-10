@@ -269,4 +269,36 @@ class OperacaoIntegrationTest {
         mockMvc.perform(patch("/operacoes/" + operacaoId + "/cancelar").session(sessaoAdmin))
                 .andExpect(status().isUnprocessableEntity());
     }
+
+    @Test
+    void zerarPosicaoEComprarDeNovoReiniciaPrecoMedio() throws Exception {
+        cadastrarUsuario("recomeco@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcao("WEGE3");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("recomeco@example.com", "senha1234");
+
+        OperacaoRequestDTO compra1 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 10, new BigDecimal("10.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra1)))
+                .andExpect(status().isCreated());
+
+        OperacaoRequestDTO vendeTudo = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.VENDA, 10, new BigDecimal("10.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(vendeTudo)))
+                .andExpect(status().isCreated());
+
+        OperacaoRequestDTO compra2 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, 5, new BigDecimal("20.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra2)))
+                .andExpect(status().isCreated());
+
+        MvcResult resultado = mockMvc.perform(get("/carteiras/me").session(sessao))
+                .andExpect(status().isOk())
+                .andReturn();
+        PosicaoDTO[] posicoes = objectMapper.readValue(resultado.getResponse().getContentAsString(), PosicaoDTO[].class);
+
+        assertEquals(1, posicoes.length);
+        assertEquals(5, posicoes[0].quantidade());
+        assertEquals(0, posicoes[0].precoMedio().compareTo(new BigDecimal("20.00")));
+    }
 }
