@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Landing page publica (secao 22 do escopo: paginas publicas) + os
                         // assets estaticos que ela carrega (CSS/imagens).
-                        .requestMatchers(HttpMethod.GET, "/", "/css/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/usuarios").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/usuarios/*/bloquear", "/usuarios/*/desbloquear").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/carteiras/me", "/carteiras/me/operacoes", "/carteiras/me/saldo").authenticated()
@@ -41,11 +41,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/operacoes/*/cancelar").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
+                // Pagina de login propria (templates/login.html) no lugar da pagina
+                // padrao gerada pelo Spring Security. URL de processamento do POST
+                // continua sendo /login (mesmo comportamento de antes -- os testes que
+                // ja faziam post("/login") nao mudam).
+                .formLogin(form -> form.loginPage("/login").permitAll())
                 .logout(Customizer.withDefaults())
-                // Ainda somos uma API testada via curl/JSON: sem pagina de login propria,
+                // Ainda somos uma API testada via curl/JSON pra maior parte das rotas:
                 // preferimos 401 a um redirect HTML para /login em recurso protegido.
-                // GET /login continua acessivel normalmente para quem quiser ver a tela padrao.
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 // H2 console roda dentro de um <frame>; sem isso o navegador bloqueia.
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendo — Entrar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Baloo+2:wght@700;800&display=swap">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+<main class="login-page">
+    <div class="login-container" id="container">
+
+        <!-- Cadastro -->
+        <div class="form-container sign-up">
+            <form id="cadastro-form" novalidate>
+                <div th:replace="~{fragments/logo :: logo}"></div>
+                <h1>Criar conta</h1>
+                <span>Comece a simular sua carteira de ações</span>
+
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input type="text" name="nome" placeholder="Nome" required>
+                </div>
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+                    <input type="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <input type="password" name="senha" placeholder="Senha (mínimo 8 caracteres)" minlength="8" required>
+                </div>
+
+                <p id="cadastro-mensagem" class="form-mensagem" role="alert"></p>
+                <button type="submit">Criar conta</button>
+            </form>
+        </div>
+
+        <!-- Login -->
+        <div class="form-container sign-in">
+            <form th:action="@{/login}" method="post">
+                <div th:replace="~{fragments/logo :: logo}"></div>
+                <h1>Entrar</h1>
+                <span>Acesse sua carteira de investimentos</span>
+                <p id="login-mensagem" class="form-mensagem" role="alert"></p>
+                <p th:if="${param.error}" class="form-mensagem erro">Email ou senha inválidos.</p>
+                <p th:if="${param.logout}" class="form-mensagem sucesso">Sessão encerrada.</p>
+
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+                    <input type="email" id="login-email" name="username" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <input type="password" name="password" placeholder="Senha" required>
+                </div>
+
+                <a class="link-discreto" href="#">Esqueceu sua senha?</a>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+
+        <!-- Painel deslizante -->
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <svg class="toggle-watermark" viewBox="0 0 68 62" aria-hidden="true">
+                        <rect x="8" y="2" width="22" height="9" rx="1.5" transform="rotate(-16 19 6.5)"/>
+                        <circle cx="38" cy="13.75" r="6.75"/>
+                        <circle cx="55" cy="13.75" r="6.75"/>
+                        <rect x="1" y="10.5" width="65" height="50" rx="4"/>
+                        <circle cx="55" cy="35.5" r="6.5"/>
+                    </svg>
+                    <h1>Bem-vindo de volta!</h1>
+                    <p>Acompanhe sua carteira e suas operações de compra e venda</p>
+                    <button type="button" class="ghost" id="btn-login">Entrar</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <svg class="toggle-watermark" viewBox="0 0 68 62" aria-hidden="true">
+                        <rect x="8" y="2" width="22" height="9" rx="1.5" transform="rotate(-16 19 6.5)"/>
+                        <circle cx="38" cy="13.75" r="6.75"/>
+                        <circle cx="55" cy="13.75" r="6.75"/>
+                        <rect x="1" y="10.5" width="65" height="50" rx="4"/>
+                        <circle cx="55" cy="35.5" r="6.5"/>
+                    </svg>
+                    <h1>Olá, investidor!</h1>
+                    <p>Crie sua conta e comece a simular sua carteira de ações</p>
+                    <button type="button" class="ghost" id="btn-cadastro">Criar conta</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+<script th:src="@{/js/login.js}"></script>
+</body>
+</html>
