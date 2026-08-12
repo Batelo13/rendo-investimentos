@@ -34,7 +34,7 @@
 
 .sidebar-foot { margin-top: auto; padding: 8px; }
 
-.btn-sair {
+.btn-sair, .btn-tema {
     width: 100%;
     background-color: transparent;
     border: 1px solid var(--rendo-color-border);
@@ -47,6 +47,10 @@
     transition: border-color 0.15s ease, color 0.15s ease;
 }
 .btn-sair:hover { border-color: var(--rendo-color-danger); color: var(--rendo-color-text); }
+
+.btn-tema { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.btn-tema:hover { border-color: var(--rendo-color-accent); color: var(--rendo-color-text); }
+.btn-tema svg { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* Main */
 .main { padding: 24px 32px 48px; min-width: 0; }
@@ -75,7 +79,7 @@
 .panel { background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); border-radius: var(--rendo-radius-md); padding: 20px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .panel-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
 .count-badge { display: inline-flex; align-items: center; vertical-align: middle; font-size: 12px; font-weight: 700; color: var(--rendo-color-accent); background: rgba(95,225,176,0.1); border: 1px solid rgba(95,225,176,0.25); padding: 2px 9px; border-radius: 999px; margin-left: 8px; white-space: nowrap; }
 
@@ -104,15 +108,15 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
 }
 .btn:hover { border-color: var(--rendo-color-text-muted); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background-color: var(--rendo-color-primary); border-color: transparent; }
-.btn-primary:hover { filter: brightness(1.12); border-color: transparent; }
+.btn-primary { background-color: var(--rendo-color-primary); border-color: transparent; color: var(--rendo-color-on-accent); }
+.btn-primary:hover { background-color: var(--rendo-color-primary); filter: brightness(1.12); border-color: transparent; }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 .btn-icon { padding: 6px 10px; font-size: 13px; }
 
-.btn-buy { background-color: var(--rendo-color-accent); border-color: transparent; color: var(--rendo-color-bg); }
-.btn-buy:hover { filter: brightness(1.08); border-color: transparent; }
-.btn-sell { background-color: var(--rendo-color-danger); border-color: transparent; color: var(--rendo-color-bg); }
-.btn-sell:hover { filter: brightness(1.08); border-color: transparent; }
+.btn-buy { background-color: var(--rendo-color-accent); border-color: transparent; color: var(--rendo-color-on-accent); }
+.btn-buy:hover { background-color: var(--rendo-color-accent); filter: brightness(1.08); border-color: transparent; }
+.btn-sell { background-color: var(--rendo-color-danger); border-color: transparent; color: var(--rendo-color-on-accent); }
+.btn-sell:hover { background-color: var(--rendo-color-danger); filter: brightness(1.08); border-color: transparent; }
 .btn-buy:disabled, .btn-sell:disabled { background-color: transparent; border-color: var(--rendo-color-border); color: var(--rendo-color-text-muted); }
 
 /* Table */
@@ -153,6 +157,12 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
 .mini-row .m-qtd { font-size: 12.5px; color: var(--rendo-color-text-muted); width: 90px; text-align: right; }
 .mini-row .m-preco-medio { font-size: 12.5px; color: var(--rendo-color-text-muted); width: 120px; text-align: right; }
 .mini-row .m-valor { font-weight: 700; text-shadow: 0 0 12px rgba(237, 235, 245, 0.25); }
+
+/* Rendimento chart */
+#rendimentoChartWrap { width: 100%; }
+#rendimentoChart { width: 100%; height: 160px; display: block; }
+.rendimento-zero { stroke: var(--rendo-color-border); stroke-width: 1; stroke-dasharray: 4 4; }
+.rendimento-linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 
 /* Search + empty */
 .search-result { margin-top: 14px; }

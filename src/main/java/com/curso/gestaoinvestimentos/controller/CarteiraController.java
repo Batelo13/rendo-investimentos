@@ -2,6 +2,7 @@ package com.curso.gestaoinvestimentos.controller;
 
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
+import com.curso.gestaoinvestimentos.dto.RendimentoPontoDTO;
 import com.curso.gestaoinvestimentos.dto.SaldoDTO;
 import com.curso.gestaoinvestimentos.service.CarteiraService;
 import com.curso.gestaoinvestimentos.service.OperacaoService;
@@ -35,6 +36,11 @@ public class CarteiraController {
     @GetMapping("/me/saldo")
     public SaldoDTO saldoProprio(Principal principal) {
         return carteiraService.buscarSaldoPropria(principal.getName());
+    }
+
+    @GetMapping("/me/rendimento-historico")
+    public List<RendimentoPontoDTO> rendimentoProprio(Principal principal) {
+        return carteiraService.buscarRendimentoPropria(principal.getName());
     }
 
     @GetMapping("/{usuarioId}")

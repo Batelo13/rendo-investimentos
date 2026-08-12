@@ -2,13 +2,16 @@ package com.curso.gestaoinvestimentos.service;
 
 import com.curso.gestaoinvestimentos.dto.AcaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.AcaoResponseDTO;
+import com.curso.gestaoinvestimentos.dto.HistoricoCotacaoResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.integration.CotacaoProvider;
 import com.curso.gestaoinvestimentos.integration.DadosCotacaoResponse;
 import com.curso.gestaoinvestimentos.model.Acao;
+import com.curso.gestaoinvestimentos.model.HistoricoCotacao;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.curso.gestaoinvestimentos.repository.AcaoRepository;
+import com.curso.gestaoinvestimentos.repository.HistoricoCotacaoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,10 +20,12 @@ import java.util.List;
 public class AcaoService {
 
     private final AcaoRepository repository;
+    private final HistoricoCotacaoRepository historicoRepository;
     private final List<CotacaoProvider> providers;
 
-    public AcaoService(AcaoRepository repository, List<CotacaoProvider> providers) {
+    public AcaoService(AcaoRepository repository, HistoricoCotacaoRepository historicoRepository, List<CotacaoProvider> providers) {
         this.repository = repository;
+        this.historicoRepository = historicoRepository;
         this.providers = providers;
     }
 
@@ -40,6 +45,7 @@ public class AcaoService {
         acao.setDataHoraCotacao(dadosCotacao.dataHoraCotacao());
 
         Acao salva = repository.save(acao);
+        registrarHistorico(salva, dadosCotacao);
         return toResponseDTO(salva);
     }
 
@@ -70,7 +76,25 @@ public class AcaoService {
         acao.setDataHoraCotacao(dadosCotacao.dataHoraCotacao());
 
         Acao salva = repository.save(acao);
+        registrarHistorico(salva, dadosCotacao);
         return toResponseDTO(salva);
+    }
+
+    public List<HistoricoCotacaoResponseDTO> historico(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RecursoNaoEncontradoException("Acao nao encontrada com id " + id);
+        }
+        return historicoRepository.findByAcaoIdOrderByCapturadoEmDesc(id).stream()
+                .map(h -> new HistoricoCotacaoResponseDTO(h.getPreco(), h.getCapturadoEm()))
+                .toList();
+    }
+
+    private void registrarHistorico(Acao acao, DadosCotacaoResponse dadosCotacao) {
+        HistoricoCotacao historico = new HistoricoCotacao();
+        historico.setAcao(acao);
+        historico.setPreco(dadosCotacao.cotacaoAtual());
+        historico.setCapturadoEm(dadosCotacao.dataHoraCotacao());
+        historicoRepository.save(historico);
     }
 
     /**

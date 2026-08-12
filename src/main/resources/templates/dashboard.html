@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            if (localStorage.getItem('rendo-theme') === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <title>Rendo — Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Baloo+2:wght@700;800&display=swap">
@@ -10,8 +17,10 @@
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/loading.css}">
 </head>
 <body>
+<div th:replace="~{fragments/loading :: loading(startHidden=false)}"></div>
 <div class="app">
     <aside class="sidebar" id="sidebar">
         <div th:replace="~{fragments/logo :: logo}"></div>
@@ -25,6 +34,11 @@
         </nav>
 
         <div class="sidebar-foot">
+            <button type="button" class="btn-tema" id="btnTema" aria-label="Mudar tema">
+                <svg class="icone-sol hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+                <span>Tema</span>
+            </button>
             <form th:action="@{/logout}" method="post">
                 <button type="submit" class="btn-sair">Sair</button>
             </form>
@@ -75,6 +89,13 @@
                         <strong class="result-value" id="statRealizado">—</strong>
                         <span class="result-hint">Resultado já consolidado nas vendas</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><h2>Rendimento</h2></div>
+                <div id="rendimentoChartWrap">
+                    <svg id="rendimentoChart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
                 </div>
             </div>
 
@@ -233,6 +254,8 @@
 
 <div class="toasts" id="toasts"></div>
 
+<script th:src="@{/js/loading.js}"></script>
+<script th:src="@{/js/theme.js}"></script>
 <script th:src="@{/js/dashboard.js}"></script>
 </body>
 </html>

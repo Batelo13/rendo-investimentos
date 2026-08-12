@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            if (localStorage.getItem('rendo-theme') === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <title>Rendo — Entrar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Baloo+2:wght@700;800&display=swap">
@@ -10,8 +17,10 @@
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" th:href="@{/css/loading.css}">
 </head>
 <body>
+<div th:replace="~{fragments/loading :: loading(startHidden=true)}"></div>
 <main class="login-page">
     <div class="login-container" id="container">
 
@@ -77,6 +86,11 @@
                     </svg>
                     <h1>Bem-vindo de volta!</h1>
                     <p>Acompanhe sua carteira e suas operações de compra e venda</p>
+                    <ul class="toggle-highlights">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Simule sem risco</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cotações em tempo real</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Histórico completo de operações</li>
+                    </ul>
                     <button type="button" class="ghost" id="btn-login">Entrar</button>
                 </div>
                 <div class="toggle-panel toggle-right">
@@ -89,6 +103,11 @@
                     </svg>
                     <h1>Olá, investidor!</h1>
                     <p>Crie sua conta e comece a simular sua carteira de ações</p>
+                    <ul class="toggle-highlights">
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>R$ 100.000 fictícios pra começar</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Ações do Brasil e dos EUA</li>
+                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sem cartão, sem burocracia</li>
+                    </ul>
                     <button type="button" class="ghost" id="btn-cadastro">Criar conta</button>
                 </div>
             </div>
@@ -96,6 +115,7 @@
 
     </div>
 </main>
+<script th:src="@{/js/loading.js}"></script>
 <script th:src="@{/js/login.js}"></script>
 </body>
 </html>

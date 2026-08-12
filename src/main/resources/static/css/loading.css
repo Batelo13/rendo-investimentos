@@ -1,0 +1,38 @@
+/*
+ * Overlay de loading (splash inicial + feedback de submit login/cadastro).
+ * Anima so o icone da carteira -- sem exagero de shadows/gradientes, mesma
+ * diretriz do brief visual original.
+ */
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rendo-color-bg);
+    transition: opacity 0.25s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-wallet {
+    width: 68px;
+    height: 62px;
+    animation: loading-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(0.9);
+        opacity: 0.6;
+    }
+}

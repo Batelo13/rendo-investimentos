@@ -1,6 +1,7 @@
 const container = document.getElementById('container');
 const btnCadastro = document.getElementById('btn-cadastro');
 const btnLogin = document.getElementById('btn-login');
+const loadingOverlay = document.getElementById('loadingOverlay');
 
 btnCadastro.addEventListener('click', () => container.classList.add('active'));
 btnLogin.addEventListener('click', () => container.classList.remove('active'));
@@ -50,3 +51,36 @@ cadastroForm.addEventListener('submit', async (evento) => {
         cadastroMensagem.classList.add('erro');
     }
 });
+
+// Login e um form nativo -- o browser navega pra fora da pagina ao submeter,
+// entao nao ha "fim" client-side pra esconder o overlay de novo (ou a
+// navegacao troca a pagina, ou o Spring Security recarrega o login com erro).
+document.querySelector('.sign-in form').addEventListener('submit', () => {
+    loadingOverlay?.classList.remove('hidden');
+});
+
+// Validacao em tempo real -- so feedback visual (cor da borda), a validacao
+// de verdade continua sendo a do backend. So mostra estado depois que o
+// campo foi tocado, pra nao nascer "invalido" numa pagina recem-carregada.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const validadores = {
+    nome: (v) => v.trim().length >= 2,
+    email: (v) => EMAIL_REGEX.test(v.trim()),
+    senha: (v) => v.length >= 8,
+};
+
+function ligarValidacaoAoVivo(input, checar) {
+    const grupo = input.closest('.input-group');
+    if (!checar || !grupo) return;
+
+    input.addEventListener('input', () => {
+        const valido = checar(input.value);
+        grupo.classList.toggle('valido', valido);
+        grupo.classList.toggle('invalido', !valido);
+    });
+}
+
+ligarValidacaoAoVivo(cadastroForm.nome, validadores.nome);
+ligarValidacaoAoVivo(cadastroForm.email, validadores.email);
+ligarValidacaoAoVivo(cadastroForm.senha, validadores.senha);
+if (loginEmailInput) ligarValidacaoAoVivo(loginEmailInput, validadores.email);

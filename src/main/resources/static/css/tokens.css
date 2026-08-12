@@ -25,11 +25,34 @@
 
     --rendo-color-border: #34333f;
 
+    /* Fixa (nao muda por tema) -- pra texto/grafismo sobre um fundo que e
+       sempre uma cor de marca (botao preenchido, painel deslizante do
+       login), nunca um neutro que acompanha o tema. Ver tema claro/escuro. */
+    --rendo-color-on-accent: #EDEBF5;
+
     --rendo-font-body: 'Inter', sans-serif;
     --rendo-font-logo: 'Baloo 2', sans-serif;
 
     --rendo-radius-sm: 8px;
     --rendo-radius-md: 10px;
+}
+
+/*
+ * Tema claro -- so os neutros (bg/surface/text/border) mudam; primary/
+ * accent/warning/danger sao a identidade da marca e ficam fixos nos dois
+ * temas. Ativado via data-theme="light" na <html> (ver theme.js).
+ */
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --rendo-color-bg: #F3F2F8;
+    --rendo-color-surface: #FFFFFF;
+    --rendo-color-surface-alt: #EDEBF5;
+
+    --rendo-color-text: #1B1A24;
+    --rendo-color-text-muted: #6B6980;
+
+    --rendo-color-border: #DEDCE8;
 }
 
 /*

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Overlay de loading reutilizavel. startHidden=false (index/dashboard): fica
+  visivel por padrao no HTML como splash de carregamento inicial, e
+  loading.js remove a classe "hidden" ao terminar de carregar. startHidden=true
+  (login): comeca escondido -- so aparece quando login.js reusa #loadingOverlay
+  pra dar feedback durante o submit de login/cadastro.
+-->
+<div th:fragment="loading(startHidden)" id="loadingOverlay" class="loading-overlay" th:classappend="${startHidden} ? 'hidden' : ''">
+    <svg class="loading-wallet" viewBox="0 0 68 62" role="img" aria-label="Carregando">
+        <rect x="8" y="2" width="22" height="9" rx="1.5" fill="#5FE1B0" transform="rotate(-16 19 6.5)"/>
+        <circle cx="38" cy="13.75" r="6.75" fill="#5FE1B0"/>
+        <circle cx="55" cy="13.75" r="6.75" fill="#5FE1B0"/>
+        <rect x="1" y="10.5" width="65" height="50" rx="4" fill="#242530" stroke="#5FE1B0" stroke-width="1.2"/>
+        <circle cx="55" cy="35.5" r="6.5" fill="#5FE1B0"/>
+    </svg>
+</div>
+</body>
+</html>

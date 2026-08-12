@@ -16,6 +16,7 @@ const state = {
     acoes: [],
     operacoes: [],
     corretoras: [],
+    rendimento: [],
 };
 
 /* ----------------------------- HTTP ------------------------------ */
@@ -146,6 +147,8 @@ function renderVisaoGeral() {
     $("#statNaoRealizado").innerHTML = fmtResultado(naoRealizado, "BRL");
     $("#statRealizado").innerHTML = fmtResultado(realizado, "BRL");
 
+    renderRendimentoChart();
+
     const dash = $("#dashPosicoes");
     const recentes = state.posicoes.slice(0, 6);
     if (!recentes.length) {
@@ -163,6 +166,46 @@ function renderVisaoGeral() {
             <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}</span>
         </div>`;
     }).join("");
+}
+
+function renderRendimentoChart() {
+    const wrap = $("#rendimentoChartWrap");
+    const svg = $("#rendimentoChart");
+    const pontos = state.rendimento;
+
+    wrap.querySelector(".empty")?.remove();
+
+    if (pontos.length < 2) {
+        svg.classList.add("hidden");
+        wrap.insertAdjacentHTML("beforeend",
+            `<div class="empty">Ainda não há pontos suficientes pro gráfico. Compre uma ação e atualize a cotação pra começar a ver o rendimento.</div>`);
+        return;
+    }
+    svg.classList.remove("hidden");
+
+    const W = 600, H = 160, PAD = 8;
+    const tempos = pontos.map((p) => new Date(p.timestamp).getTime());
+    const valores = pontos.map((p) => Number(p.rendimento));
+
+    const tMin = Math.min(...tempos), tMax = Math.max(...tempos);
+    const tRange = tMax - tMin;
+    const vMin = Math.min(0, ...valores), vMax = Math.max(0, ...valores);
+    const vRange = (vMax - vMin) || 1;
+
+    const coords = pontos.map((_, i) => {
+        const x = tRange > 0 ? PAD + ((tempos[i] - tMin) / tRange) * (W - 2 * PAD) : (W / (pontos.length - 1)) * i;
+        const y = H - PAD - ((valores[i] - vMin) / vRange) * (H - 2 * PAD);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+
+    const ultimo = valores[valores.length - 1];
+    const cor = ultimo >= 0 ? "var(--rendo-color-accent)" : "var(--rendo-color-danger)";
+    const yZero = H - PAD - ((0 - vMin) / vRange) * (H - 2 * PAD);
+
+    svg.innerHTML = `
+        <line x1="0" y1="${yZero.toFixed(1)}" x2="${W}" y2="${yZero.toFixed(1)}" class="rendimento-zero"></line>
+        <polyline points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
+    `;
 }
 
 function renderAcoes() {
@@ -295,18 +338,20 @@ function renderTudo() {
 /* --------------------------- Carregar ------------------------------ */
 async function carregarTudo() {
     try {
-        const [saldo, posicoes, acoes, operacoes, corretoras] = await Promise.all([
+        const [saldo, posicoes, acoes, operacoes, corretoras, rendimento] = await Promise.all([
             api("/carteiras/me/saldo"),
             api("/carteiras/me"),
             api("/acoes"),
             api("/carteiras/me/operacoes"),
             api("/corretoras"),
+            api("/carteiras/me/rendimento-historico"),
         ]);
         state.saldo = saldo;
         state.posicoes = posicoes || [];
         state.acoes = acoes || [];
         state.operacoes = operacoes || [];
         state.corretoras = corretoras || [];
+        state.rendimento = rendimento || [];
         renderTudo();
     } catch (e) {
         toast("Falha ao carregar dados", e.message, "err");

@@ -2,6 +2,7 @@ package com.curso.gestaoinvestimentos.controller;
 
 import com.curso.gestaoinvestimentos.dto.AcaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.AcaoResponseDTO;
+import com.curso.gestaoinvestimentos.dto.HistoricoCotacaoResponseDTO;
 import com.curso.gestaoinvestimentos.service.AcaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -45,5 +46,10 @@ public class AcaoController {
     @PutMapping("/{id}/atualizar-cotacao")
     public AcaoResponseDTO atualizarCotacao(@PathVariable Long id) {
         return service.atualizarCotacao(id);
+    }
+
+    @GetMapping("/{id}/historico")
+    public List<HistoricoCotacaoResponseDTO> historico(@PathVariable Long id) {
+        return service.historico(id);
     }
 }
