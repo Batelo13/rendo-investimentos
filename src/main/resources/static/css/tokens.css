@@ -4,6 +4,12 @@
  * esses tokens. Valores definidos em docs/superpowers/specs/2026-08-10-identidade-visual-design.md
  */
 :root {
+    /* Diz ao navegador que a pagina e escura de proposito -- sem isso, popups
+       nativos (option do <select>, scrollbar) podem renderizar com o tema
+       claro padrao do SO mesmo com color/background-color do author CSS
+       aplicados corretamente ao elemento fechado. */
+    color-scheme: dark;
+
     --rendo-color-primary: #4C4B63;
     --rendo-color-accent: #5FE1B0;
 
@@ -19,11 +25,34 @@
 
     --rendo-color-border: #34333f;
 
+    /* Fixa (nao muda por tema) -- pra texto/grafismo sobre um fundo que e
+       sempre uma cor de marca (botao preenchido, painel deslizante do
+       login), nunca um neutro que acompanha o tema. Ver tema claro/escuro. */
+    --rendo-color-on-accent: #EDEBF5;
+
     --rendo-font-body: 'Inter', sans-serif;
     --rendo-font-logo: 'Baloo 2', sans-serif;
 
     --rendo-radius-sm: 8px;
     --rendo-radius-md: 10px;
+}
+
+/*
+ * Tema claro -- so os neutros (bg/surface/text/border) mudam; primary/
+ * accent/warning/danger sao a identidade da marca e ficam fixos nos dois
+ * temas. Ativado via data-theme="light" na <html> (ver theme.js).
+ */
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --rendo-color-bg: #F3F2F8;
+    --rendo-color-surface: #FFFFFF;
+    --rendo-color-surface-alt: #EDEBF5;
+
+    --rendo-color-text: #1B1A24;
+    --rendo-color-text-muted: #6B6980;
+
+    --rendo-color-border: #DEDCE8;
 }
 
 /*
@@ -50,4 +79,13 @@
     --bs-body-font-family: var(--rendo-font-body);
     --bs-link-color: var(--rendo-color-accent);
     --bs-link-hover-color: var(--rendo-color-accent);
+
+    /* Componente Table do Bootstrap usa variaveis proprias por celula
+       (--bs-table-color/--bs-table-bg), separadas de --bs-body-color/
+       --bs-body-bg -- sem isso, --bs-table-color caia no default do
+       Bootstrap (--bs-emphasis-color, preto no tema claro dele) e toda
+       celula <td> ficava com texto preto sobre fundo quase preto. */
+    --bs-emphasis-color: var(--rendo-color-text);
+    --bs-table-color: var(--rendo-color-text);
+    --bs-table-bg: transparent;
 }

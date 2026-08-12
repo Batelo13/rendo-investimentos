@@ -2,16 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <script>
+        (function () {
+            if (localStorage.getItem('rendo-theme') === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
     <title>Rendo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Baloo+2:wght@700;800&display=swap">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/loading.css}">
 </head>
 <body>
+<div th:replace="~{fragments/loading :: loading(startHidden=false)}"></div>
 <header style="padding: 24px 32px;">
     <div th:replace="~{fragments/logo :: logo}"></div>
 </header>
+<script th:src="@{/js/loading.js}"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.curso.gestaoinvestimentos.service;
 
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
+import com.curso.gestaoinvestimentos.dto.RendimentoPontoDTO;
 import com.curso.gestaoinvestimentos.dto.SaldoDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.model.Acao;
@@ -28,15 +29,17 @@ public class CarteiraService {
     private final OperacaoRepository operacaoRepository;
     private final UsuarioRepository usuarioRepository;
     private final PosicaoCacheService posicaoCacheService;
+    private final RendimentoService rendimentoService;
 
     public CarteiraService(CarteiraRepository carteiraRepository, PosicaoAtualRepository posicaoAtualRepository,
                             OperacaoRepository operacaoRepository, UsuarioRepository usuarioRepository,
-                            PosicaoCacheService posicaoCacheService) {
+                            PosicaoCacheService posicaoCacheService, RendimentoService rendimentoService) {
         this.carteiraRepository = carteiraRepository;
         this.posicaoAtualRepository = posicaoAtualRepository;
         this.operacaoRepository = operacaoRepository;
         this.usuarioRepository = usuarioRepository;
         this.posicaoCacheService = posicaoCacheService;
+        this.rendimentoService = rendimentoService;
     }
 
     public List<PosicaoDTO> buscarPosicaoPropria(String emailUsuarioAutenticado) {
@@ -95,5 +98,14 @@ public class CarteiraService {
         BigDecimal saldoDisponivel = SaldoCalculator.calcular(carteira.getSaldoInicial(), historico);
 
         return new SaldoDTO(carteira.getSaldoInicial(), saldoDisponivel);
+    }
+
+    public List<RendimentoPontoDTO> buscarRendimentoPropria(String emailUsuarioAutenticado) {
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuarioAutenticado)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado: " + emailUsuarioAutenticado));
+        Carteira carteira = carteiraRepository.findByUsuarioId(usuario.getId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuario.getId()));
+
+        return rendimentoService.calcularSerie(carteira.getId());
     }
 }
