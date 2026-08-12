@@ -37,3 +37,6 @@ graphify-out/
 
 ### Superpowers brainstorming companion ###
 .superpowers/
+
+### Segredos locais (nunca commitar) ###
+.env
