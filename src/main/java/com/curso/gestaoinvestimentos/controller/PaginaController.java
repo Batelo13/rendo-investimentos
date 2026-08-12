@@ -15,4 +15,9 @@ public class PaginaController {
     public String login() {
         return "login";
     }
+
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "dashboard";
+    }
 }

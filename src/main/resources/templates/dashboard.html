@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rendo — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Baloo+2:wght@700;800&display=swap">
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/tokens.css}">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar" id="sidebar">
+        <div th:replace="~{fragments/logo :: logo}"></div>
+
+        <nav class="nav">
+            <button class="nav-item active" data-view="visao-geral">Visão geral</button>
+            <button class="nav-item" data-view="acoes">Ações</button>
+            <button class="nav-item" data-view="posicoes">Minhas posições</button>
+            <button class="nav-item" data-view="operacoes">Operações</button>
+            <button class="nav-item" data-view="corretoras">Corretoras</button>
+        </nav>
+
+        <div class="sidebar-foot">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn-sair">Sair</button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <button class="hamburger" id="menuToggle" aria-label="Menu">☰</button>
+            <div class="topbar-title">
+                <h1 id="viewTitle">Visão geral</h1>
+                <p id="viewSubtitle">Resumo da sua carteira</p>
+            </div>
+            <button class="btn" id="refreshAll">⟳ Atualizar</button>
+        </header>
+
+        <!-- ===================== VISÃO GERAL ===================== -->
+        <section class="view" id="view-visao-geral">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Saldo disponível</span>
+                    <strong class="stat-value" id="statSaldoDisponivel">—</strong>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Saldo inicial</span>
+                    <strong class="stat-value" id="statSaldoInicial">—</strong>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Posições em carteira</span>
+                    <strong class="stat-value" id="statPosicoes">—</strong>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Corretoras cadastradas</span>
+                    <strong class="stat-value" id="statCorretoras">—</strong>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><h2>Resultado da carteira</h2></div>
+                <div class="result-grid">
+                    <div class="result-box">
+                        <span class="result-label">Lucro/Prejuízo não realizado</span>
+                        <strong class="result-value" id="statNaoRealizado">—</strong>
+                        <span class="result-hint">Posições ainda em carteira (cotação atual vs. preço médio)</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">Lucro/Prejuízo realizado</span>
+                        <strong class="result-value" id="statRealizado">—</strong>
+                        <span class="result-hint">Resultado já consolidado nas vendas</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Minhas posições</h2>
+                    <button class="btn btn-sm" data-goto="posicoes">Ver todas →</button>
+                </div>
+                <div id="dashPosicoes" class="mini-list"></div>
+            </div>
+        </section>
+
+        <!-- ===================== AÇÕES ===================== -->
+        <section class="view hidden" id="view-acoes">
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-head"><h2>Cadastrar ação</h2></div>
+                    <form id="formAcao" class="form">
+                        <label class="field">
+                            <span>Ticker</span>
+                            <input name="ticker" placeholder="Ex.: PETR4 ou AAPL" autocomplete="off" required />
+                        </label>
+                        <label class="field">
+                            <span>Mercado</span>
+                            <select name="mercado" required>
+                                <option value="BRASIL">Brasil (B3)</option>
+                                <option value="EUA">Estados Unidos</option>
+                            </select>
+                        </label>
+                        <button class="btn btn-primary" type="submit" id="btnSalvarAcao">Cadastrar ação</button>
+                        <p class="form-hint">Nome da empresa e cotação são buscados automaticamente nas APIs externas.</p>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head"><h2>Buscar ação</h2></div>
+                    <form id="formBuscaAcao" class="form-inline">
+                        <input id="buscaTicker" placeholder="Buscar por ticker (ex.: PETR4)" autocomplete="off" />
+                        <button class="btn" type="submit">Buscar</button>
+                    </form>
+                    <div id="buscaAcaoResultado" class="search-result"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Catálogo de ações <span class="count-badge" id="countAcoes">0</span></h2>
+                    <input class="filter-input" id="filterAcoes" placeholder="Filtrar…" />
+                </div>
+                <div class="table-wrap">
+                    <table class="table" id="tableAcoes">
+                        <thead>
+                        <tr>
+                            <th>Ticker</th><th>Empresa</th><th>Mercado</th>
+                            <th class="num">Cotação</th><th class="acoes-col">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="empty hidden" id="emptyAcoes">Nenhuma ação cadastrada ainda.</div>
+            </div>
+        </section>
+
+        <!-- ===================== MINHAS POSIÇÕES ===================== -->
+        <section class="view hidden" id="view-posicoes">
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Minhas posições <span class="count-badge" id="countPosicoes">0</span></h2>
+                    <input class="filter-input" id="filterPosicoes" placeholder="Filtrar…" />
+                </div>
+                <div class="table-wrap">
+                    <table class="table" id="tablePosicoes">
+                        <thead>
+                        <tr>
+                            <th>Ticker</th><th>Corretora</th>
+                            <th class="num">Qtd</th><th class="num">Preço médio</th>
+                            <th class="num">Valor investido</th><th class="num">Valor atual</th>
+                            <th class="num">Resultado</th><th class="acoes-col">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="empty hidden" id="emptyPosicoes">Você ainda não tem nenhuma posição. Compre uma ação na aba <b>Ações</b> para começar.</div>
+            </div>
+        </section>
+
+        <!-- ===================== OPERAÇÕES ===================== -->
+        <section class="view hidden" id="view-operacoes">
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Histórico de operações <span class="count-badge" id="countOperacoes">0</span></h2>
+                    <input class="filter-input" id="filterOperacoes" placeholder="Filtrar por ticker…" />
+                </div>
+                <div class="table-wrap">
+                    <table class="table" id="tableOperacoes">
+                        <thead>
+                        <tr>
+                            <th>Data/Hora</th><th>Ticker</th><th>Corretora</th><th>Tipo</th>
+                            <th class="num">Qtd</th><th class="num">Preço</th><th>Status</th>
+                            <th class="num">Resultado</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="empty hidden" id="emptyOperacoes">Nenhuma operação registrada ainda.</div>
+            </div>
+        </section>
+
+        <!-- ===================== CORRETORAS ===================== -->
+        <section class="view hidden" id="view-corretoras">
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-head"><h2>Cadastrar corretora</h2></div>
+                    <form id="formCorretora" class="form">
+                        <label class="field">
+                            <span>CNPJ</span>
+                            <input name="cnpj" placeholder="14 dígitos (somente números)" inputmode="numeric" maxlength="18" required />
+                        </label>
+                        <button class="btn btn-primary" type="submit" id="btnSalvarCorretora">Cadastrar corretora</button>
+                        <p class="form-hint">Razão social, endereço e validação CVM são resolvidos automaticamente a partir do CNPJ.</p>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-head"><h2>Buscar corretora</h2></div>
+                    <form id="formBuscaCorretora" class="form-inline">
+                        <input id="buscaCnpj" placeholder="Buscar por CNPJ" inputmode="numeric" autocomplete="off" />
+                        <button class="btn" type="submit">Buscar</button>
+                    </form>
+                    <div id="buscaCorretoraResultado" class="search-result"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Corretoras cadastradas <span class="count-badge" id="countCorretoras">0</span></h2>
+                    <input class="filter-input" id="filterCorretoras" placeholder="Filtrar…" />
+                </div>
+                <div id="cardsCorretoras" class="cards"></div>
+                <div class="empty hidden" id="emptyCorretoras">Nenhuma corretora cadastrada ainda.</div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Modal -->
+<div class="rendo-modal-backdrop hidden" id="modal">
+    <div class="rendo-modal">
+        <button class="rendo-modal-close" id="modalClose">✕</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

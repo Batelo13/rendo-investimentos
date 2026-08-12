@@ -4,6 +4,12 @@
  * esses tokens. Valores definidos em docs/superpowers/specs/2026-08-10-identidade-visual-design.md
  */
 :root {
+    /* Diz ao navegador que a pagina e escura de proposito -- sem isso, popups
+       nativos (option do <select>, scrollbar) podem renderizar com o tema
+       claro padrao do SO mesmo com color/background-color do author CSS
+       aplicados corretamente ao elemento fechado. */
+    color-scheme: dark;
+
     --rendo-color-primary: #4C4B63;
     --rendo-color-accent: #5FE1B0;
 
@@ -50,4 +56,13 @@
     --bs-body-font-family: var(--rendo-font-body);
     --bs-link-color: var(--rendo-color-accent);
     --bs-link-hover-color: var(--rendo-color-accent);
+
+    /* Componente Table do Bootstrap usa variaveis proprias por celula
+       (--bs-table-color/--bs-table-bg), separadas de --bs-body-color/
+       --bs-body-bg -- sem isso, --bs-table-color caia no default do
+       Bootstrap (--bs-emphasis-color, preto no tema claro dele) e toda
+       celula <td> ficava com texto preto sobre fundo quase preto. */
+    --bs-emphasis-color: var(--rendo-color-text);
+    --bs-table-color: var(--rendo-color-text);
+    --bs-table-bg: transparent;
 }
