@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -148,10 +149,17 @@ class UsuarioAuthIntegrationTest {
         MockHttpSession sessao = (MockHttpSession) loginResult.getRequest().getSession(false);
 
         mockMvc.perform(post("/logout").session(sessao))
-                .andExpect(status().isFound());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/login?logout"));
 
         mockMvc.perform(get("/usuarios/" + usuario.getId()).session(sessao))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void telaDeLoginAposLogoutNaoExigeAutenticacao() throws Exception {
+        mockMvc.perform(get("/login?logout"))
+                .andExpect(status().isOk());
     }
 
     private MockHttpSession logar(String email, String senhaPlana) throws Exception {

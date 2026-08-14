@@ -56,7 +56,11 @@ public class SecurityConfig {
                 // continua sendo /login (mesmo comportamento de antes -- os testes que
                 // ja faziam post("/login") nao mudam).
                 .formLogin(form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/dashboard", true))
-                .logout(Customizer.withDefaults())
+                // permitAll(): sem isso, o redirect padrao de logout ("/login?logout")
+                // nao fica na lista de URLs liberadas (essa lista compara a URL inteira,
+                // incluindo query string, contra "/login" -- "/login?logout" nao bate) e
+                // cai no anyRequest().authenticated(), devolvendo 401 em vez da tela de login.
+                .logout(logout -> logout.permitAll())
                 // Ainda somos uma API testada via curl/JSON pra maior parte das rotas:
                 // preferimos 401 a um redirect HTML para /login em recurso protegido.
                 // Excecao: paginas server-side (ex.: /dashboard) sao acessadas por um
