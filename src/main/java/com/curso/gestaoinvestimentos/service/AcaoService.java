@@ -5,8 +5,10 @@ import com.curso.gestaoinvestimentos.dto.AcaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.HistoricoCotacaoResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.integration.CotacaoProvider;
 import com.curso.gestaoinvestimentos.integration.DadosCotacaoResponse;
+import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.HistoricoCotacao;
 import com.curso.gestaoinvestimentos.model.Mercado;
@@ -14,6 +16,8 @@ import com.curso.gestaoinvestimentos.repository.AcaoRepository;
 import com.curso.gestaoinvestimentos.repository.HistoricoCotacaoRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -22,11 +26,14 @@ public class AcaoService {
     private final AcaoRepository repository;
     private final HistoricoCotacaoRepository historicoRepository;
     private final List<CotacaoProvider> providers;
+    private final TwelveDataCambioClient cambioClient;
 
-    public AcaoService(AcaoRepository repository, HistoricoCotacaoRepository historicoRepository, List<CotacaoProvider> providers) {
+    public AcaoService(AcaoRepository repository, HistoricoCotacaoRepository historicoRepository,
+                        List<CotacaoProvider> providers, TwelveDataCambioClient cambioClient) {
         this.repository = repository;
         this.historicoRepository = historicoRepository;
         this.providers = providers;
+        this.cambioClient = cambioClient;
     }
 
     public AcaoResponseDTO criar(AcaoRequestDTO dto) {
@@ -50,8 +57,11 @@ public class AcaoService {
     }
 
     public List<AcaoResponseDTO> listar() {
-        return repository.findAll().stream()
-                .map(this::toResponseDTO)
+        List<Acao> acoes = repository.findAll();
+        boolean temAcaoEua = acoes.stream().anyMatch(a -> a.getMercado() == Mercado.EUA);
+        BigDecimal taxaCambio = temAcaoEua ? buscarTaxaCambioSeguro() : null;
+        return acoes.stream()
+                .map(a -> toResponseDTO(a, taxaCambio))
                 .toList();
     }
 
@@ -111,7 +121,29 @@ public class AcaoService {
         return provider.buscarCotacao(ticker);
     }
 
+    /**
+     * Conversao pra reais e so um dado de exibicao complementar -- se a
+     * Twelve Data estiver fora do ar, a acao (e a cotacao original) continuam
+     * sendo retornadas normalmente, so sem o valor convertido.
+     */
+    private BigDecimal buscarTaxaCambioSeguro() {
+        try {
+            return cambioClient.buscarTaxaUsdParaBrl();
+        } catch (ServicoExternoIndisponivelException ex) {
+            return null;
+        }
+    }
+
     private AcaoResponseDTO toResponseDTO(Acao acao) {
+        BigDecimal taxaCambio = acao.getMercado() == Mercado.EUA ? buscarTaxaCambioSeguro() : null;
+        return toResponseDTO(acao, taxaCambio);
+    }
+
+    private AcaoResponseDTO toResponseDTO(Acao acao, BigDecimal taxaCambio) {
+        BigDecimal cotacaoAtualBRL = null;
+        if (acao.getMercado() == Mercado.EUA && acao.getCotacaoAtual() != null && taxaCambio != null) {
+            cotacaoAtualBRL = acao.getCotacaoAtual().multiply(taxaCambio).setScale(2, RoundingMode.HALF_UP);
+        }
         return new AcaoResponseDTO(
                 acao.getId(),
                 acao.getTicker(),
@@ -119,6 +151,7 @@ public class AcaoService {
                 acao.getMercado(),
                 acao.getMoeda(),
                 acao.getCotacaoAtual(),
+                cotacaoAtualBRL,
                 acao.getDataHoraCotacao()
         );
     }
