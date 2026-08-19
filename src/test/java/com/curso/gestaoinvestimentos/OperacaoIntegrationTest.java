@@ -474,4 +474,24 @@ class OperacaoIntegrationTest {
         // 100000 - (10 * 100 * 5.00) = 100000 - 5000 = 95000
         assertEquals(0, saldo.saldoDisponivel().compareTo(new BigDecimal("95000.00")));
     }
+
+    @Test
+    void compraDeAcaoEuaRejeitaQuandoCustoConvertidoExcedeSaldoMasCustoBrutoNao() throws Exception {
+        cadastrarUsuario("investidor.eua.saldo@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcaoEua("MSFT");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("investidor.eua.saldo@example.com", "senha1234");
+
+        when(cambioClient.buscarTaxaUsdParaBrl()).thenReturn(new BigDecimal("2.00"));
+
+        // custo bruto: 100 * 900 = 90000 (caberia no saldo de 100000 sem conversao)
+        // custo convertido: 90000 * 2 = 180000 (excede o saldo de 100000 -- so rejeita
+        // se custoCompra estiver de fato multiplicando pela taxa de cambio)
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("100"), new BigDecimal("900.00"));
+        mockMvc.perform(post("/operacoes")
+                        .session(sessao)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isUnprocessableEntity());
+    }
 }
