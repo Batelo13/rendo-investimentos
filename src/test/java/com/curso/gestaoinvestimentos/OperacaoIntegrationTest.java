@@ -17,6 +17,7 @@ import com.curso.gestaoinvestimentos.repository.CorretoraRepository;
 import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
 import com.curso.gestaoinvestimentos.repository.PosicaoAtualRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import com.curso.gestaoinvestimentos.util.CpfTestFixtures;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -78,6 +79,7 @@ class OperacaoIntegrationTest {
         Usuario usuario = new Usuario();
         usuario.setNome("Usuario de Teste");
         usuario.setEmail(email);
+        usuario.setCpf(CpfTestFixtures.proximoCpfValido());
         usuario.setSenha(passwordEncoder.encode(senhaPlana));
         usuario.setRole(role);
         usuario.setAtivo(true);
