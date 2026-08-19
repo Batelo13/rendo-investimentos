@@ -12,6 +12,7 @@ public record AcaoResponseDTO(
         Mercado mercado,
         String moeda,
         BigDecimal cotacaoAtual,
+        BigDecimal cotacaoAtualBRL,
         LocalDateTime dataHoraCotacao
 ) {
 }

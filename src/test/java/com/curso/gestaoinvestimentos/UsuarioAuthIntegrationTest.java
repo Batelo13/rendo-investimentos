@@ -5,6 +5,7 @@ import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import com.curso.gestaoinvestimentos.util.CpfTestFixtures;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -59,6 +61,7 @@ class UsuarioAuthIntegrationTest {
         Usuario usuario = new Usuario();
         usuario.setNome("Usuario de Teste");
         usuario.setEmail(email);
+        usuario.setCpf(CpfTestFixtures.proximoCpfValido());
         usuario.setSenha(passwordEncoder.encode(senhaPlana));
         usuario.setRole(role);
         usuario.setAtivo(true);
@@ -68,7 +71,8 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void deveCadastrarUsuarioPublicamenteSemAutenticacao() throws Exception {
-        UsuarioRequestDTO dto = new UsuarioRequestDTO("Maria Silva", "maria@example.com", "senha1234");
+        String cpf = CpfTestFixtures.proximoCpfValido();
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Maria Silva", "maria@example.com", cpf, "senha1234");
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -76,9 +80,40 @@ class UsuarioAuthIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.nome").value("Maria Silva"))
                 .andExpect(jsonPath("$.email").value("maria@example.com"))
+                .andExpect(jsonPath("$.cpf").value(cpf))
                 .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(jsonPath("$.ativo").value(true))
                 .andExpect(jsonPath("$.senha").doesNotExist());
+    }
+
+    @Test
+    void deveRejeitarCadastroComCpfInvalido() throws Exception {
+        UsuarioRequestDTO dto = new UsuarioRequestDTO(
+                "Joao Invalido", "joao.invalido@example.com", "11144477736", "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRejeitarCadastroComCpfDuplicado() throws Exception {
+        String cpf = CpfTestFixtures.proximoCpfValido();
+        UsuarioRequestDTO primeiro = new UsuarioRequestDTO(
+                "Primeiro Usuario", "primeiro.cpf@example.com", cpf, "senha1234");
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(primeiro)))
+                .andExpect(status().isCreated());
+
+        UsuarioRequestDTO segundo = new UsuarioRequestDTO(
+                "Segundo Usuario", "segundo.cpf@example.com", cpf, "senha1234");
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(segundo)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Ja existe um usuario cadastrado com o CPF " + cpf));
     }
 
     @Test
@@ -148,10 +183,17 @@ class UsuarioAuthIntegrationTest {
         MockHttpSession sessao = (MockHttpSession) loginResult.getRequest().getSession(false);
 
         mockMvc.perform(post("/logout").session(sessao))
-                .andExpect(status().isFound());
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/login?logout"));
 
         mockMvc.perform(get("/usuarios/" + usuario.getId()).session(sessao))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void telaDeLoginAposLogoutNaoExigeAutenticacao() throws Exception {
+        mockMvc.perform(get("/login?logout"))
+                .andExpect(status().isOk());
     }
 
     private MockHttpSession logar(String email, String senhaPlana) throws Exception {

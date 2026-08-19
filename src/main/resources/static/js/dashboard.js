@@ -91,6 +91,24 @@ function fmtResultado(valor, moeda) {
     return `<span class="pl ${cls}">${sinal}${esc(fmtMoeda(Math.abs(n), moeda))}</span>`;
 }
 
+/**
+ * Deriva a taxa de cambio implicita do campo ja convertido que a API manda
+ * pra acoes EUA (cotacaoAtualBRL) -- evita um endpoint dedicado de cambio,
+ * a mesma taxa serve pra converter qualquer outro valor daquela acao
+ * (preco medio, valor investido, valor de uma operacao) no frontend.
+ */
+function taxaCambioPorTicker(ticker) {
+    const a = state.acoes.find((x) => x.ticker === ticker);
+    if (!a || a.moeda !== "USD" || a.cotacaoAtualBRL == null || !a.cotacaoAtual) return null;
+    return Number(a.cotacaoAtualBRL) / Number(a.cotacaoAtual);
+}
+
+function fmtConvertido(valorNaMoedaOriginal, ticker) {
+    const taxa = taxaCambioPorTicker(ticker);
+    if (taxa == null || valorNaMoedaOriginal == null) return "";
+    return `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(valorNaMoedaOriginal) * taxa, "BRL"))}</span>`;
+}
+
 /* --------------------------- Toasts ------------------------------ */
 function toast(titulo, msg = "", tipo = "ok") {
     const el = document.createElement("div");
@@ -138,11 +156,18 @@ function renderVisaoGeral() {
 
     let naoRealizado = 0;
     for (const p of state.posicoes) {
-        if (p.valorAtual != null && p.valorInvestido != null) naoRealizado += Number(p.valorAtual) - Number(p.valorInvestido);
+        if (p.valorAtual == null || p.valorInvestido == null) continue;
+        const moeda = moedaPorTicker(p.acaoTicker);
+        let taxa = 1;
+        if (moeda === "USD") {
+            taxa = taxaCambioPorTicker(p.acaoTicker);
+            if (taxa == null) continue; // taxa indisponivel -- exclui em vez de tratar como 1:1
+        }
+        naoRealizado += (Number(p.valorAtual) - Number(p.valorInvestido)) * taxa;
     }
     const realizado = state.operacoes
         .filter((o) => o.tipo === "VENDA" && o.status === "ATIVA")
-        .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0), 0);
+        .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0) * Number(o.taxaCambio || 1), 0);
 
     $("#statNaoRealizado").innerHTML = fmtResultado(naoRealizado, "BRL");
     $("#statRealizado").innerHTML = fmtResultado(realizado, "BRL");
@@ -163,7 +188,7 @@ function renderVisaoGeral() {
             <span class="m-corretora">${esc(p.corretoraNome)}</span>
             <span class="m-qtd">${esc(fmtNumero(p.quantidade))} un.</span>
             <span class="m-preco-medio">PM ${esc(fmtMoeda(p.precoMedio, moeda))}</span>
-            <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}</span>
+            <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</span>
         </div>`;
     }).join("");
 }
@@ -222,7 +247,7 @@ function renderAcoes() {
             <td>${esc(a.ticker)}</td>
             <td>${esc(a.nomeEmpresa || "—")}</td>
             <td>${mercadoTag(a.mercado)}</td>
-            <td class="num">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}</td>
+            <td class="num">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</td>
             <td class="acoes-col">
                 <button class="btn btn-buy btn-icon" data-buy="${a.id}">Comprar</button>
                 <button class="btn btn-icon" title="Atualizar cotação" data-refresh-acao="${a.id}">⟳</button>
@@ -252,10 +277,10 @@ function renderPosicoes() {
             <td>${esc(p.acaoTicker)}</td>
             <td>${esc(p.corretoraNome)}</td>
             <td class="num">${esc(fmtNumero(p.quantidade))}</td>
-            <td class="num">${esc(fmtMoeda(p.precoMedio, moeda))}</td>
-            <td class="num">${esc(fmtMoeda(p.valorInvestido, moeda))}</td>
-            <td class="num">${esc(fmtMoeda(p.valorAtual, moeda))}</td>
-            <td class="num">${fmtResultado(resultado, moeda)}</td>
+            <td class="num">${esc(fmtMoeda(p.precoMedio, moeda))}${fmtConvertido(p.precoMedio, p.acaoTicker)}</td>
+            <td class="num">${esc(fmtMoeda(p.valorInvestido, moeda))}${fmtConvertido(p.valorInvestido, p.acaoTicker)}</td>
+            <td class="num">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</td>
+            <td class="num">${fmtResultado(resultado, moeda)}${fmtConvertido(resultado, p.acaoTicker)}</td>
             <td class="acoes-col"><button class="btn btn-sell btn-icon" data-sell="${i}">Vender</button></td>
         </tr>`;
     }).join("");
@@ -279,6 +304,17 @@ function renderOperacoes() {
 
     tbody.innerHTML = lista.map((o) => {
         const moeda = moedaPorTicker(o.acaoTicker);
+        // Usa a taxa de cambio gravada na propria operacao (a taxa real, historica,
+        // travada no momento da negociacao) -- NAO a taxa de agora. O dinheiro que
+        // realmente entrou/saiu do saldo usou essa taxa historica (SaldoCalculator),
+        // entao a exibicao precisa bater com isso, nao com a cotacao atual do cambio.
+        const taxaHistorica = o.taxaCambio != null && Number(o.taxaCambio) !== 1 ? Number(o.taxaCambio) : null;
+        const convertidoPreco = taxaHistorica != null
+            ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(o.precoUnitario) * taxaHistorica, "BRL"))}</span>`
+            : "";
+        const convertidoResultado = taxaHistorica != null
+            ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(o.lucroPrejuizoRealizado || 0) * taxaHistorica, "BRL"))}</span>`
+            : "";
         return `
         <tr>
             <td>${esc(fmtData(o.dataHora))}</td>
@@ -286,9 +322,9 @@ function renderOperacoes() {
             <td>${esc(o.corretoraNome)}</td>
             <td>${tipoTag(o.tipo)}</td>
             <td class="num">${esc(fmtNumero(o.quantidade))}</td>
-            <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}</td>
+            <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}${convertidoPreco}</td>
             <td>${o.status === "CANCELADA" ? '<span class="tag">Cancelada</span>' : '<span class="tag tag-cvm">Ativa</span>'}</td>
-            <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) : '<span class="pl pl-zero">—</span>'}</td>
+            <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) + convertidoResultado : '<span class="pl pl-zero">—</span>'}</td>
         </tr>`;
     }).join("");
 
@@ -370,7 +406,7 @@ function detalheAcaoHTML(a) {
         <h2>${esc(a.ticker)} ${mercadoTag(a.mercado)}</h2>
         <p class="sub">${esc(a.nomeEmpresa || "Empresa não informada")}</p>
         <div class="detail-grid">
-            <div class="detail-item"><span class="k">Cotação atual</span><span class="v">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}</span></div>
+            <div class="detail-item"><span class="k">Cotação atual</span><span class="v">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</span></div>
             <div class="detail-item"><span class="k">Atualizada em</span><span class="v">${esc(fmtData(a.dataHoraCotacao))}</span></div>
         </div>
         <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap">
@@ -471,10 +507,10 @@ function ligarResumoOperacao(acao, posicao) {
         const box = $("#opResumo");
         if (!qtd || qtd <= 0 || !preco) { box.innerHTML = ""; return; }
         const total = qtd * preco;
-        let html = `<div class="op-resumo-row"><span>Valor total</span><b>${esc(fmtMoeda(total, moeda))}</b></div>`;
+        let html = `<div class="op-resumo-row"><span>Valor total</span><b>${esc(fmtMoeda(total, moeda))}${fmtConvertido(total, acao.ticker)}</b></div>`;
         if (posicao) {
             const resultado = (preco - Number(posicao.precoMedio)) * qtd;
-            html += `<div class="op-resumo-row"><span>Resultado estimado</span>${fmtResultado(resultado, moeda)}</div>`;
+            html += `<div class="op-resumo-row"><span>Resultado estimado</span>${fmtResultado(resultado, moeda)}${fmtConvertido(resultado, acao.ticker)}</div>`;
         }
         box.innerHTML = html;
     };
