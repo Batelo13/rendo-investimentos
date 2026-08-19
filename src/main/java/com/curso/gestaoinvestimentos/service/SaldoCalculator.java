@@ -12,6 +12,11 @@ import java.util.List;
  * PosicaoCalculator: Operacao e a fonte da verdade, saldo e um valor
  * derivado, nunca guardado separadamente -- cancelar uma compra "devolve" o
  * saldo automaticamente, so por ela sair do historico ATIVA usado aqui.
+ *
+ * taxaCambio e sempre 1 pra acoes BRASIL e a taxa USD->BRL vigente no
+ * momento de cada operacao pra acoes EUA (gravada na propria Operacao,
+ * nunca recalculada com a taxa "de agora" -- mesma garantia de historico
+ * imutavel/deterministico ja usada pro preco).
  */
 public class SaldoCalculator {
 
@@ -19,7 +24,9 @@ public class SaldoCalculator {
         BigDecimal saldo = saldoInicial;
 
         for (Operacao operacao : operacoesEmOrdemCronologica) {
-            BigDecimal valor = operacao.getPrecoUnitario().multiply(operacao.getQuantidade());
+            BigDecimal valor = operacao.getPrecoUnitario()
+                    .multiply(operacao.getQuantidade())
+                    .multiply(operacao.getTaxaCambio());
             if (operacao.getTipo() == TipoOperacao.COMPRA) {
                 saldo = saldo.subtract(valor);
             } else {
