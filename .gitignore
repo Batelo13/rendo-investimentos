@@ -38,5 +38,8 @@ graphify-out/
 ### Superpowers brainstorming companion ###
 .superpowers/
 
+### Claude Code (config/skills locais) ###
+.claude/
+
 ### Segredos locais (nunca commitar) ###
 .env
