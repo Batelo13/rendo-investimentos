@@ -91,6 +91,24 @@ function fmtResultado(valor, moeda) {
     return `<span class="pl ${cls}">${sinal}${esc(fmtMoeda(Math.abs(n), moeda))}</span>`;
 }
 
+/**
+ * Deriva a taxa de cambio implicita do campo ja convertido que a API manda
+ * pra acoes EUA (cotacaoAtualBRL) -- evita um endpoint dedicado de cambio,
+ * a mesma taxa serve pra converter qualquer outro valor daquela acao
+ * (preco medio, valor investido, valor de uma operacao) no frontend.
+ */
+function taxaCambioPorTicker(ticker) {
+    const a = state.acoes.find((x) => x.ticker === ticker);
+    if (!a || a.moeda !== "USD" || a.cotacaoAtualBRL == null || !a.cotacaoAtual) return null;
+    return Number(a.cotacaoAtualBRL) / Number(a.cotacaoAtual);
+}
+
+function fmtConvertido(valorNaMoedaOriginal, ticker) {
+    const taxa = taxaCambioPorTicker(ticker);
+    if (taxa == null || valorNaMoedaOriginal == null) return "";
+    return `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(valorNaMoedaOriginal) * taxa, "BRL"))}</span>`;
+}
+
 /* --------------------------- Toasts ------------------------------ */
 function toast(titulo, msg = "", tipo = "ok") {
     const el = document.createElement("div");
