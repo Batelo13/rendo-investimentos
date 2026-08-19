@@ -45,6 +45,9 @@ public class Operacao {
     private BigDecimal precoUnitario;
 
     @Column(nullable = false)
+    private BigDecimal taxaCambio;
+
+    @Column(nullable = false)
     private LocalDateTime dataHora;
 
     private BigDecimal precoMedioNaVenda;
@@ -113,6 +116,14 @@ public class Operacao {
 
     public void setPrecoUnitario(BigDecimal precoUnitario) {
         this.precoUnitario = precoUnitario;
+    }
+
+    public BigDecimal getTaxaCambio() {
+        return taxaCambio;
+    }
+
+    public void setTaxaCambio(BigDecimal taxaCambio) {
+        this.taxaCambio = taxaCambio;
     }
 
     public LocalDateTime getDataHora() {
