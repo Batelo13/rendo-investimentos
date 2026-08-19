@@ -167,13 +167,7 @@ function renderVisaoGeral() {
     }
     const realizado = state.operacoes
         .filter((o) => o.tipo === "VENDA" && o.status === "ATIVA")
-        .reduce((s, o) => {
-            const valor = Number(o.lucroPrejuizoRealizado || 0);
-            const moeda = moedaPorTicker(o.acaoTicker);
-            if (moeda !== "USD") return s + valor;
-            const taxa = taxaCambioPorTicker(o.acaoTicker);
-            return taxa == null ? s : s + valor * taxa;
-        }, 0);
+        .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0) * Number(o.taxaCambio || 1), 0);
 
     $("#statNaoRealizado").innerHTML = fmtResultado(naoRealizado, "BRL");
     $("#statRealizado").innerHTML = fmtResultado(realizado, "BRL");
@@ -310,6 +304,17 @@ function renderOperacoes() {
 
     tbody.innerHTML = lista.map((o) => {
         const moeda = moedaPorTicker(o.acaoTicker);
+        // Usa a taxa de cambio gravada na propria operacao (a taxa real, historica,
+        // travada no momento da negociacao) -- NAO a taxa de agora. O dinheiro que
+        // realmente entrou/saiu do saldo usou essa taxa historica (SaldoCalculator),
+        // entao a exibicao precisa bater com isso, nao com a cotacao atual do cambio.
+        const taxaHistorica = o.taxaCambio != null && Number(o.taxaCambio) !== 1 ? Number(o.taxaCambio) : null;
+        const convertidoPreco = taxaHistorica != null
+            ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(o.precoUnitario) * taxaHistorica, "BRL"))}</span>`
+            : "";
+        const convertidoResultado = taxaHistorica != null
+            ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(o.lucroPrejuizoRealizado || 0) * taxaHistorica, "BRL"))}</span>`
+            : "";
         return `
         <tr>
             <td>${esc(fmtData(o.dataHora))}</td>
@@ -317,9 +322,9 @@ function renderOperacoes() {
             <td>${esc(o.corretoraNome)}</td>
             <td>${tipoTag(o.tipo)}</td>
             <td class="num">${esc(fmtNumero(o.quantidade))}</td>
-            <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}${fmtConvertido(o.precoUnitario, o.acaoTicker)}</td>
+            <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}${convertidoPreco}</td>
             <td>${o.status === "CANCELADA" ? '<span class="tag">Cancelada</span>' : '<span class="tag tag-cvm">Ativa</span>'}</td>
-            <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) + fmtConvertido(o.lucroPrejuizoRealizado, o.acaoTicker) : '<span class="pl pl-zero">—</span>'}</td>
+            <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) + convertidoResultado : '<span class="pl pl-zero">—</span>'}</td>
         </tr>`;
     }).join("");
 

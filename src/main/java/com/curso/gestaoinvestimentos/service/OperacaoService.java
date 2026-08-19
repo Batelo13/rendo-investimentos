@@ -182,6 +182,7 @@ public class OperacaoService {
                 operacao.getTipo(),
                 operacao.getQuantidade(),
                 operacao.getPrecoUnitario(),
+                operacao.getTaxaCambio(),
                 operacao.getDataHora(),
                 operacao.getStatus(),
                 operacao.getAcao().getTicker(),

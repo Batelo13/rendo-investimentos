@@ -11,6 +11,7 @@ public record OperacaoResponseDTO(
         TipoOperacao tipo,
         BigDecimal quantidade,
         BigDecimal precoUnitario,
+        BigDecimal taxaCambio,
         LocalDateTime dataHora,
         StatusOperacao status,
         String acaoTicker,
