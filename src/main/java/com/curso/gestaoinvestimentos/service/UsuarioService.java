@@ -41,10 +41,14 @@ public class UsuarioService {
         repository.findByEmail(dto.email()).ifPresent(existente -> {
             throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + dto.email());
         });
+        repository.findByCpf(dto.cpf()).ifPresent(existente -> {
+            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o CPF " + dto.cpf());
+        });
 
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
+        usuario.setCpf(dto.cpf());
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
         // Campos controlados pelo sistema, nunca pelo cliente:
@@ -102,6 +106,7 @@ public class UsuarioService {
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
+                usuario.getCpf(),
                 usuario.getRole(),
                 usuario.getAtivo(),
                 usuario.getDataCadastro()
