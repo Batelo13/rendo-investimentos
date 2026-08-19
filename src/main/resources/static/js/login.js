@@ -3,6 +3,8 @@ const btnCadastro = document.getElementById('btn-cadastro');
 const btnLogin = document.getElementById('btn-login');
 const loadingOverlay = document.getElementById('loadingOverlay');
 
+const onlyDigits = (s) => (s || '').replace(/\D/g, '');
+
 btnCadastro.addEventListener('click', () => container.classList.add('active'));
 btnLogin.addEventListener('click', () => container.classList.remove('active'));
 
@@ -24,6 +26,7 @@ cadastroForm.addEventListener('submit', async (evento) => {
     const dto = {
         nome: cadastroForm.nome.value,
         email: cadastroForm.email.value,
+        cpf: onlyDigits(cadastroForm.cpf.value),
         senha: cadastroForm.senha.value,
     };
 
@@ -66,6 +69,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const validadores = {
     nome: (v) => v.trim().length >= 2,
     email: (v) => EMAIL_REGEX.test(v.trim()),
+    cpf: (v) => onlyDigits(v).length === 11,
     senha: (v) => v.length >= 8,
 };
 
@@ -82,5 +86,6 @@ function ligarValidacaoAoVivo(input, checar) {
 
 ligarValidacaoAoVivo(cadastroForm.nome, validadores.nome);
 ligarValidacaoAoVivo(cadastroForm.email, validadores.email);
+ligarValidacaoAoVivo(cadastroForm.cpf, validadores.cpf);
 ligarValidacaoAoVivo(cadastroForm.senha, validadores.senha);
 if (loginEmailInput) ligarValidacaoAoVivo(loginEmailInput, validadores.email);
