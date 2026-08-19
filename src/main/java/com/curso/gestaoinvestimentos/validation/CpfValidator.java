@@ -28,7 +28,7 @@ public class CpfValidator implements ConstraintValidator<CPF, String> {
         return cpf.chars().distinct().count() == 1;
     }
 
-    private int calcularDigitoVerificador(int[] digitos, int quantidade) {
+    public static int calcularDigitoVerificador(int[] digitos, int quantidade) {
         int soma = 0;
         for (int i = 0; i < quantidade; i++) {
             soma += digitos[i] * (quantidade + 1 - i);

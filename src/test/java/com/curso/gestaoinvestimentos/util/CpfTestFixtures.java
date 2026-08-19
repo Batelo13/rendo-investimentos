@@ -1,6 +1,7 @@
 package com.curso.gestaoinvestimentos.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import com.curso.gestaoinvestimentos.validation.CpfValidator;
 
 /**
  * Gera CPFs sinteticos (nao pertencem a nenhuma pessoa real) com digito
@@ -24,22 +25,13 @@ public class CpfTestFixtures {
         for (int i = 0; i < 9; i++) {
             digitos[i] = base.charAt(i) - '0';
         }
-        digitos[9] = calcularDigitoVerificador(digitos, 9);
-        digitos[10] = calcularDigitoVerificador(digitos, 10);
+        digitos[9] = CpfValidator.calcularDigitoVerificador(digitos, 9);
+        digitos[10] = CpfValidator.calcularDigitoVerificador(digitos, 10);
 
         StringBuilder sb = new StringBuilder();
         for (int digito : digitos) {
             sb.append(digito);
         }
         return sb.toString();
-    }
-
-    private static int calcularDigitoVerificador(int[] digitos, int quantidade) {
-        int soma = 0;
-        for (int i = 0; i < quantidade; i++) {
-            soma += digitos[i] * (quantidade + 1 - i);
-        }
-        int resto = soma % 11;
-        return resto < 2 ? 0 : 11 - resto;
     }
 }
