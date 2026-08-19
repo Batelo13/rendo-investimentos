@@ -4,6 +4,7 @@ import com.curso.gestaoinvestimentos.dto.OperacaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
 import com.curso.gestaoinvestimentos.dto.SaldoDTO;
+import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -34,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -64,6 +67,8 @@ class OperacaoIntegrationTest {
     private OperacaoRepository operacaoRepository;
     @Autowired
     private PosicaoAtualRepository posicaoAtualRepository;
+    @MockitoBean
+    private TwelveDataCambioClient cambioClient;
 
     @AfterEach
     void limparBanco() {
@@ -105,6 +110,16 @@ class OperacaoIntegrationTest {
         acao.setMercado(Mercado.BRASIL);
         acao.setMoeda("BRL");
         acao.setCotacaoAtual(new BigDecimal("120.00"));
+        return acaoRepository.save(acao);
+    }
+
+    private Acao cadastrarAcaoEua(String ticker) {
+        Acao acao = new Acao();
+        acao.setTicker(ticker);
+        acao.setNomeEmpresa("Empresa " + ticker);
+        acao.setMercado(Mercado.EUA);
+        acao.setMoeda("USD");
+        acao.setCotacaoAtual(new BigDecimal("100.00"));
         return acaoRepository.save(acao);
     }
 
@@ -433,5 +448,30 @@ class OperacaoIntegrationTest {
         SaldoDTO saldoApósVenda = objectMapper.readValue(apósVenda.getResponse().getContentAsString(), SaldoDTO.class);
         // 100000 - 1000 + 1200 = 100200
         assertEquals(0, saldoApósVenda.saldoDisponivel().compareTo(new BigDecimal("100200.00")));
+    }
+
+    @Test
+    void compraDeAcaoEuaGravaTaxaDeCambioEDescontaSaldoConvertido() throws Exception {
+        cadastrarUsuario("investidor.eua@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcaoEua("AAPL");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("investidor.eua@example.com", "senha1234");
+
+        when(cambioClient.buscarTaxaUsdParaBrl()).thenReturn(new BigDecimal("5.00"));
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
+        mockMvc.perform(post("/operacoes")
+                        .session(sessao)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isCreated());
+
+        MvcResult resultado = mockMvc.perform(get("/carteiras/me/saldo").session(sessao))
+                .andExpect(status().isOk())
+                .andReturn();
+        SaldoDTO saldo = objectMapper.readValue(resultado.getResponse().getContentAsString(), SaldoDTO.class);
+
+        // 100000 - (10 * 100 * 5.00) = 100000 - 5000 = 95000
+        assertEquals(0, saldo.saldoDisponivel().compareTo(new BigDecimal("95000.00")));
     }
 }
