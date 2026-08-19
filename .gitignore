@@ -43,3 +43,6 @@ graphify-out/
 
 ### Segredos locais (nunca commitar) ###
 .env
+
+### Git worktrees isolados (superpowers) ###
+.worktrees/
