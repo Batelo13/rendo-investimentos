@@ -187,6 +187,7 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
 .pl-pos { color: var(--rendo-color-accent); text-shadow: 0 0 12px rgba(95, 225, 176, 0.35); }
 .pl-neg { color: var(--rendo-color-danger); text-shadow: 0 0 12px rgba(240, 113, 103, 0.35); }
 .pl-zero { color: var(--rendo-color-text-muted); }
+.valor-convertido { display: block; font-size: 11.5px; font-weight: 400; color: var(--rendo-color-text-muted); margin-top: 2px; }
 
 /* Modal
    Nomes prefixados com "rendo-" de proposito: ".modal" e ".modal-backdrop"

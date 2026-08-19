@@ -4,9 +4,11 @@ import com.curso.gestaoinvestimentos.dto.OperacaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.RegraDeNegocioException;
+import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
+import com.curso.gestaoinvestimentos.model.Mercado;
 import com.curso.gestaoinvestimentos.model.Operacao;
 import com.curso.gestaoinvestimentos.model.StatusOperacao;
 import com.curso.gestaoinvestimentos.model.TipoOperacao;
@@ -33,16 +35,19 @@ public class OperacaoService {
     private final CorretoraRepository corretoraRepository;
     private final UsuarioRepository usuarioRepository;
     private final PosicaoCacheService posicaoCacheService;
+    private final TwelveDataCambioClient cambioClient;
 
     public OperacaoService(OperacaoRepository operacaoRepository, CarteiraRepository carteiraRepository,
                             AcaoRepository acaoRepository, CorretoraRepository corretoraRepository,
-                            UsuarioRepository usuarioRepository, PosicaoCacheService posicaoCacheService) {
+                            UsuarioRepository usuarioRepository, PosicaoCacheService posicaoCacheService,
+                            TwelveDataCambioClient cambioClient) {
         this.operacaoRepository = operacaoRepository;
         this.carteiraRepository = carteiraRepository;
         this.acaoRepository = acaoRepository;
         this.corretoraRepository = corretoraRepository;
         this.usuarioRepository = usuarioRepository;
         this.posicaoCacheService = posicaoCacheService;
+        this.cambioClient = cambioClient;
     }
 
     @Transactional
@@ -60,11 +65,15 @@ public class OperacaoService {
             throw new RegraDeNegocioException("Corretora " + corretora.getNomeFantasia() + " nao e validada na CVM");
         }
 
+        BigDecimal taxaCambio = acao.getMercado() == Mercado.EUA
+                ? cambioClient.buscarTaxaUsdParaBrl()
+                : BigDecimal.ONE;
+
         if (dto.tipo() == TipoOperacao.COMPRA) {
             List<Operacao> historicoCarteira = operacaoRepository.findByCarteiraIdAndStatusOrderByDataHoraAsc(
                     carteira.getId(), StatusOperacao.ATIVA);
             BigDecimal saldoDisponivel = SaldoCalculator.calcular(carteira.getSaldoInicial(), historicoCarteira);
-            BigDecimal custoCompra = dto.precoUnitario().multiply(dto.quantidade());
+            BigDecimal custoCompra = dto.precoUnitario().multiply(dto.quantidade()).multiply(taxaCambio);
             if (custoCompra.compareTo(saldoDisponivel) > 0) {
                 throw new RegraDeNegocioException(
                         "Saldo em conta insuficiente: disponivel R$ " + saldoDisponivel
@@ -83,6 +92,7 @@ public class OperacaoService {
         operacao.setTipo(dto.tipo());
         operacao.setQuantidade(dto.quantidade());
         operacao.setPrecoUnitario(dto.precoUnitario());
+        operacao.setTaxaCambio(taxaCambio);
         operacao.setDataHora(LocalDateTime.now());
         operacao.setStatus(StatusOperacao.ATIVA);
 
@@ -172,6 +182,7 @@ public class OperacaoService {
                 operacao.getTipo(),
                 operacao.getQuantidade(),
                 operacao.getPrecoUnitario(),
+                operacao.getTaxaCambio(),
                 operacao.getDataHora(),
                 operacao.getStatus(),
                 operacao.getAcao().getTicker(),
