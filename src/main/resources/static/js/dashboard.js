@@ -157,12 +157,23 @@ function renderVisaoGeral() {
     let naoRealizado = 0;
     for (const p of state.posicoes) {
         if (p.valorAtual == null || p.valorInvestido == null) continue;
-        const taxa = taxaCambioPorTicker(p.acaoTicker) ?? 1;
+        const moeda = moedaPorTicker(p.acaoTicker);
+        let taxa = 1;
+        if (moeda === "USD") {
+            taxa = taxaCambioPorTicker(p.acaoTicker);
+            if (taxa == null) continue; // taxa indisponivel -- exclui em vez de tratar como 1:1
+        }
         naoRealizado += (Number(p.valorAtual) - Number(p.valorInvestido)) * taxa;
     }
     const realizado = state.operacoes
         .filter((o) => o.tipo === "VENDA" && o.status === "ATIVA")
-        .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0), 0);
+        .reduce((s, o) => {
+            const valor = Number(o.lucroPrejuizoRealizado || 0);
+            const moeda = moedaPorTicker(o.acaoTicker);
+            if (moeda !== "USD") return s + valor;
+            const taxa = taxaCambioPorTicker(o.acaoTicker);
+            return taxa == null ? s : s + valor * taxa;
+        }, 0);
 
     $("#statNaoRealizado").innerHTML = fmtResultado(naoRealizado, "BRL");
     $("#statRealizado").innerHTML = fmtResultado(realizado, "BRL");
@@ -306,9 +317,9 @@ function renderOperacoes() {
             <td>${esc(o.corretoraNome)}</td>
             <td>${tipoTag(o.tipo)}</td>
             <td class="num">${esc(fmtNumero(o.quantidade))}</td>
-            <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}</td>
+            <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}${fmtConvertido(o.precoUnitario, o.acaoTicker)}</td>
             <td>${o.status === "CANCELADA" ? '<span class="tag">Cancelada</span>' : '<span class="tag tag-cvm">Ativa</span>'}</td>
-            <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) : '<span class="pl pl-zero">—</span>'}</td>
+            <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) + fmtConvertido(o.lucroPrejuizoRealizado, o.acaoTicker) : '<span class="pl pl-zero">—</span>'}</td>
         </tr>`;
     }).join("");
 
