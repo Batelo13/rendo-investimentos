@@ -43,3 +43,9 @@ graphify-out/
 
 ### Segredos locais (nunca commitar) ###
 .env
+
+### Git worktrees isolados (superpowers) ###
+.worktrees/
+
+### Node (sweetalert2 vendorizado a partir daqui, node_modules nao e commitado) ###
+node_modules/
