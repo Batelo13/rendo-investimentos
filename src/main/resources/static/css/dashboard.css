@@ -214,6 +214,16 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
 .toast.ok { border-left: 3px solid var(--rendo-color-accent); }
 .toast.err { border-left: 3px solid var(--rendo-color-danger); }
 .toast.info { border-left: 3px solid var(--rendo-color-text-muted); }
+
+/* ------------------------ SweetAlert2 (confirmacao) ---------------------- */
+.swal2-popup { background: var(--rendo-color-surface); color: var(--rendo-color-text); border-radius: var(--rendo-radius-md); }
+.swal2-title { color: var(--rendo-color-text); }
+.swal2-html-container { color: var(--rendo-color-text-muted); }
+.swal-resumo .op-resumo-row { margin-top: 8px; }
+.swal-resumo .op-resumo-row:first-child { margin-top: 0; }
+.swal2-confirm { background: var(--rendo-color-accent) !important; color: var(--rendo-color-bg) !important; box-shadow: none !important; }
+.swal2-cancel { background: transparent !important; color: var(--rendo-color-text-muted) !important; border: 1px solid var(--rendo-color-border) !important; box-shadow: none !important; }
+
 @keyframes rendo-toast-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 
 /* Spinner */

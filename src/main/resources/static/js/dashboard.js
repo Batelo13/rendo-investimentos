@@ -536,6 +536,16 @@ async function submitOperacao(e, acao) {
     if (!quantidade || quantidade <= 0) return toast("Validação", "Informe uma quantidade válida.", "err");
     if (!precoUnitario || precoUnitario <= 0) return toast("Validação", "Informe um preço unitário válido.", "err");
 
+    const resumoHtml = $("#opResumo").innerHTML;
+    const { isConfirmed } = await Swal.fire({
+        title: tipo === "COMPRA" ? "Confirmar compra" : "Confirmar venda",
+        html: `<div class="swal-resumo">${resumoHtml}</div>`,
+        showCancelButton: true,
+        confirmButtonText: tipo === "COMPRA" ? "Confirmar compra" : "Confirmar venda",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+
     setLoading(btn, true, tipo === "COMPRA" ? "Comprando…" : "Vendendo…");
     try {
         await api("/operacoes", {
