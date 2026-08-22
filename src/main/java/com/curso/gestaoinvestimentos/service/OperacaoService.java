@@ -4,7 +4,7 @@ import com.curso.gestaoinvestimentos.dto.OperacaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.RegraDeNegocioException;
-import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
+import com.curso.gestaoinvestimentos.integration.DolarApiCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
@@ -37,12 +37,12 @@ public class OperacaoService {
     private final CorretoraRepository corretoraRepository;
     private final UsuarioRepository usuarioRepository;
     private final PosicaoCacheService posicaoCacheService;
-    private final TwelveDataCambioClient cambioClient;
+    private final DolarApiCambioClient cambioClient;
 
     public OperacaoService(OperacaoRepository operacaoRepository, CarteiraRepository carteiraRepository,
                             AcaoRepository acaoRepository, CorretoraRepository corretoraRepository,
                             UsuarioRepository usuarioRepository, PosicaoCacheService posicaoCacheService,
-                            TwelveDataCambioClient cambioClient) {
+                            DolarApiCambioClient cambioClient) {
         this.operacaoRepository = operacaoRepository;
         this.carteiraRepository = carteiraRepository;
         this.acaoRepository = acaoRepository;

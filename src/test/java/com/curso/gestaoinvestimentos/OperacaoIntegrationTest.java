@@ -4,7 +4,7 @@ import com.curso.gestaoinvestimentos.dto.OperacaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.PosicaoDTO;
 import com.curso.gestaoinvestimentos.dto.SaldoDTO;
-import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
+import com.curso.gestaoinvestimentos.integration.DolarApiCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Carteira;
 import com.curso.gestaoinvestimentos.model.Corretora;
@@ -68,7 +68,7 @@ class OperacaoIntegrationTest {
     @Autowired
     private PosicaoAtualRepository posicaoAtualRepository;
     @MockitoBean
-    private TwelveDataCambioClient cambioClient;
+    private DolarApiCambioClient cambioClient;
 
     @AfterEach
     void limparBanco() {

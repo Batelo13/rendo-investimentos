@@ -140,6 +140,9 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
 .tag-buy { color: var(--rendo-color-accent); background: rgba(95,225,176,0.1); border-color: rgba(95,225,176,0.3); }
 .tag-sell { color: var(--rendo-color-danger); background: rgba(240,113,103,0.1); border-color: rgba(240,113,103,0.3); }
 
+.acao-ticker-col { display: flex; align-items: center; gap: 8px; }
+.acao-logo { border-radius: 4px; object-fit: contain; background: var(--rendo-color-bg); flex-shrink: 0; }
+
 /* Cards (corretoras) */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .ccard { background-color: var(--rendo-color-bg); border: 1px solid var(--rendo-color-border); border-radius: var(--rendo-radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: border-color 0.15s ease; }
@@ -210,12 +213,12 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
 
 /* Toasts */
 .toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 80; max-width: 340px; }
-.toast { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border-radius: var(--rendo-radius-sm); background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); animation: rendo-toast-in 0.2s ease; }
-.toast .t-body { font-size: 13.5px; line-height: 1.45; }
-.toast .t-body b { display: block; margin-bottom: 2px; font-size: 14px; }
-.toast.ok { border-left: 3px solid var(--rendo-color-accent); }
-.toast.err { border-left: 3px solid var(--rendo-color-danger); }
-.toast.info { border-left: 3px solid var(--rendo-color-text-muted); }
+.rendo-toast { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border-radius: var(--rendo-radius-sm); background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); animation: rendo-toast-in 0.2s ease; }
+.rendo-toast .t-body { font-size: 13.5px; line-height: 1.45; }
+.rendo-toast .t-body b { display: block; margin-bottom: 2px; font-size: 14px; }
+.rendo-toast.ok { border-left: 3px solid var(--rendo-color-accent); }
+.rendo-toast.err { border-left: 3px solid var(--rendo-color-danger); }
+.rendo-toast.info { border-left: 3px solid var(--rendo-color-text-muted); }
 
 /* ------------------------ SweetAlert2 (confirmacao) ---------------------- */
 .swal2-popup { background: var(--rendo-color-surface); color: var(--rendo-color-text); border-radius: var(--rendo-radius-md); }

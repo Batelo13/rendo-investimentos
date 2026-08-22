@@ -35,6 +35,8 @@ public class Acao {
 
     private LocalDateTime dataHoraCotacao;
 
+    private String logoUrl;
+
     public Long getId() {
         return id;
     }
@@ -89,5 +91,13 @@ public class Acao {
 
     public void setDataHoraCotacao(LocalDateTime dataHoraCotacao) {
         this.dataHoraCotacao = dataHoraCotacao;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 }

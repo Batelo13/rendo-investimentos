@@ -83,6 +83,11 @@ function mercadoTag(m) {
     return m === "EUA" ? `<span class="tag">🇺🇸 EUA</span>` : `<span class="tag">🇧🇷 Brasil</span>`;
 }
 
+function acaoLogoHTML(a, size = 24) {
+    if (!a.logoUrl) return "";
+    return `<img class="acao-logo" src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`;
+}
+
 function fmtResultado(valor, moeda) {
     if (valor == null) return '<span class="pl pl-zero">—</span>';
     const n = Number(valor);
@@ -113,7 +118,7 @@ function fmtConvertido(valorNaMoedaOriginal, ticker) {
 /* --------------------------- Toasts ------------------------------ */
 function toast(titulo, msg = "", tipo = "ok") {
     const el = document.createElement("div");
-    el.className = `toast ${tipo}`;
+    el.className = `rendo-toast ${tipo}`;
     const corpo = document.createElement("div");
     corpo.className = "t-body";
     const b = document.createElement("b");
@@ -245,7 +250,7 @@ function renderAcoes() {
 
     tbody.innerHTML = lista.map((a) => `
         <tr>
-            <td>${esc(a.ticker)}</td>
+            <td class="acao-ticker-col">${acaoLogoHTML(a)}${esc(a.ticker)}</td>
             <td>${esc(a.nomeEmpresa || "—")}</td>
             <td>${mercadoTag(a.mercado)}</td>
             <td class="num">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</td>
@@ -424,7 +429,7 @@ function fecharModal() { $("#modal").classList.add("hidden"); }
 
 function detalheAcaoHTML(a) {
     return `
-        <h2>${esc(a.ticker)} ${mercadoTag(a.mercado)}</h2>
+        <h2>${acaoLogoHTML(a, 32)}${esc(a.ticker)} ${mercadoTag(a.mercado)}</h2>
         <p class="sub">${esc(a.nomeEmpresa || "Empresa não informada")}</p>
         <div class="detail-grid">
             <div class="detail-item"><span class="k">Cotação atual</span><span class="v">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</span></div>

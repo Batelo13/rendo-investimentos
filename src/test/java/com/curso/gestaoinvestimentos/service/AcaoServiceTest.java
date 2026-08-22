@@ -3,7 +3,7 @@ package com.curso.gestaoinvestimentos.service;
 import com.curso.gestaoinvestimentos.dto.AcaoResponseDTO;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.integration.CotacaoProvider;
-import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
+import com.curso.gestaoinvestimentos.integration.DolarApiCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.curso.gestaoinvestimentos.repository.AcaoRepository;
@@ -36,7 +36,7 @@ class AcaoServiceTest {
     @Mock
     private CotacaoProvider cotacaoProvider;
     @Mock
-    private TwelveDataCambioClient cambioClient;
+    private DolarApiCambioClient cambioClient;
 
     private AcaoService service;
 
