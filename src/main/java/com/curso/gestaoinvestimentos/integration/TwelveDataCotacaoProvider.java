@@ -4,6 +4,7 @@ import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -40,16 +41,17 @@ public class TwelveDataCotacaoProvider implements CotacaoProvider {
     }
 
     @Override
+    @CircuitBreaker(name = "cotacaoEua", fallbackMethod = "buscarCotacaoFallback")
     public DadosCotacaoResponse buscarCotacao(String ticker) {
         try {
-            RespostaTwelveData resposta = restClient.get()
+            RespostaTwelveData resposta = RetryExterno.tentar(3, 300, () -> restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/quote")
                             .queryParam("symbol", ticker)
                             .queryParam("apikey", apiKey)
                             .build())
                     .retrieve()
-                    .body(RespostaTwelveData.class);
+                    .body(RespostaTwelveData.class));
 
             if (resposta == null || resposta.close() == null) {
                 throw new RecursoNaoEncontradoException("Ticker nao encontrado na Twelve Data: " + ticker);
@@ -70,6 +72,10 @@ public class TwelveDataCotacaoProvider implements CotacaoProvider {
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar a cotacao na Twelve Data");
         }
+    }
+
+    private DadosCotacaoResponse buscarCotacaoFallback(String ticker, Throwable t) {
+        throw new ServicoExternoIndisponivelException("Twelve Data indisponivel no momento (circuit breaker aberto)");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

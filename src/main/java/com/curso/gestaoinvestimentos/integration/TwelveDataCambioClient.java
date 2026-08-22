@@ -2,6 +2,7 @@ package com.curso.gestaoinvestimentos.integration;
 
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -37,16 +38,17 @@ public class TwelveDataCambioClient {
                 .build();
     }
 
+    @CircuitBreaker(name = "cambio", fallbackMethod = "buscarTaxaUsdParaBrlFallback")
     public BigDecimal buscarTaxaUsdParaBrl() {
         try {
-            RespostaExchangeRate resposta = restClient.get()
+            RespostaExchangeRate resposta = RetryExterno.tentar(3, 300, () -> restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/exchange_rate")
                             .queryParam("symbol", "USD/BRL")
                             .queryParam("apikey", apiKey)
                             .build())
                     .retrieve()
-                    .body(RespostaExchangeRate.class);
+                    .body(RespostaExchangeRate.class));
 
             if (resposta == null || resposta.rate() == null) {
                 throw new ServicoExternoIndisponivelException("Nao foi possivel obter a cotacao USD/BRL na Twelve Data");
@@ -61,6 +63,10 @@ public class TwelveDataCambioClient {
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar a cotacao USD/BRL na Twelve Data");
         }
+    }
+
+    private BigDecimal buscarTaxaUsdParaBrlFallback(Throwable t) {
+        throw new ServicoExternoIndisponivelException("Twelve Data indisponivel no momento (circuit breaker aberto)");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

@@ -4,6 +4,7 @@ import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -42,15 +43,16 @@ public class BrapiCotacaoProvider implements CotacaoProvider {
     }
 
     @Override
+    @CircuitBreaker(name = "cotacaoBrasil", fallbackMethod = "buscarCotacaoFallback")
     public DadosCotacaoResponse buscarCotacao(String ticker) {
         try {
-            RespostaBrapi resposta = restClient.get()
+            RespostaBrapi resposta = RetryExterno.tentar(3, 300, () -> restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/quote/{ticker}")
                             .queryParamIfPresent("token", Optional.ofNullable(token).filter(t -> !t.isBlank()))
                             .build(ticker))
                     .retrieve()
-                    .body(RespostaBrapi.class);
+                    .body(RespostaBrapi.class));
 
             if (resposta == null || resposta.results() == null || resposta.results().isEmpty()) {
                 throw new RecursoNaoEncontradoException("Ticker nao encontrado na brapi: " + ticker);
@@ -75,6 +77,10 @@ public class BrapiCotacaoProvider implements CotacaoProvider {
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar a cotacao na brapi");
         }
+    }
+
+    private DadosCotacaoResponse buscarCotacaoFallback(String ticker, Throwable t) {
+        throw new ServicoExternoIndisponivelException("brapi indisponivel no momento (circuit breaker aberto)");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

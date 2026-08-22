@@ -3,6 +3,8 @@ package com.curso.gestaoinvestimentos.integration;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -26,12 +28,14 @@ public class BrasilApiCnpjClient implements CnpjClient {
     }
 
     @Override
+    @Cacheable("cnpj")
+    @CircuitBreaker(name = "cnpj", fallbackMethod = "buscarFallback")
     public DadosCnpjResponse buscar(String cnpj) {
         try {
-            RespostaBrasilApi resposta = restClient.get()
+            RespostaBrasilApi resposta = RetryExterno.tentar(3, 300, () -> restClient.get()
                     .uri("/{cnpj}", cnpj)
                     .retrieve()
-                    .body(RespostaBrasilApi.class);
+                    .body(RespostaBrasilApi.class));
 
             if (resposta == null) {
                 throw new RecursoNaoEncontradoException("CNPJ nao encontrado: " + cnpj);
@@ -55,6 +59,10 @@ public class BrasilApiCnpjClient implements CnpjClient {
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar o CNPJ na BrasilAPI");
         }
+    }
+
+    private DadosCnpjResponse buscarFallback(String cnpj, Throwable t) {
+        throw new ServicoExternoIndisponivelException("BrasilAPI indisponivel no momento (circuit breaker aberto)");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
