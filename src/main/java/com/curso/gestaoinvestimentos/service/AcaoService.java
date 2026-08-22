@@ -14,6 +14,8 @@ import com.curso.gestaoinvestimentos.model.HistoricoCotacao;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.curso.gestaoinvestimentos.repository.AcaoRepository;
 import com.curso.gestaoinvestimentos.repository.HistoricoCotacaoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -56,13 +58,11 @@ public class AcaoService {
         return toResponseDTO(salva);
     }
 
-    public List<AcaoResponseDTO> listar() {
-        List<Acao> acoes = repository.findAll();
+    public Page<AcaoResponseDTO> listar(Pageable pageable) {
+        Page<Acao> acoes = repository.findAll(pageable);
         boolean temAcaoEua = acoes.stream().anyMatch(a -> a.getMercado() == Mercado.EUA);
         BigDecimal taxaCambio = temAcaoEua ? buscarTaxaCambioSeguro() : null;
-        return acoes.stream()
-                .map(a -> toResponseDTO(a, taxaCambio))
-                .toList();
+        return acoes.map(a -> toResponseDTO(a, taxaCambio));
     }
 
     public AcaoResponseDTO buscarPorId(Long id) {

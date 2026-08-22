@@ -4,6 +4,9 @@ import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioResponseDTO;
 import com.curso.gestaoinvestimentos.service.UsuarioService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +31,8 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<UsuarioResponseDTO> listar() {
-        return service.listar();
+    public Page<UsuarioResponseDTO> listar(@PageableDefault(size = 20) Pageable pageable) {
+        return service.listar(pageable);
     }
 
     @GetMapping("/{id}")

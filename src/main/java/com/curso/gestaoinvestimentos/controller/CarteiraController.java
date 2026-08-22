@@ -6,6 +6,9 @@ import com.curso.gestaoinvestimentos.dto.RendimentoPontoDTO;
 import com.curso.gestaoinvestimentos.dto.SaldoDTO;
 import com.curso.gestaoinvestimentos.service.CarteiraService;
 import com.curso.gestaoinvestimentos.service.OperacaoService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -29,8 +32,8 @@ public class CarteiraController {
     }
 
     @GetMapping("/me/operacoes")
-    public List<OperacaoResponseDTO> operacoesProprias(Principal principal) {
-        return operacaoService.listarProprias(principal.getName());
+    public Page<OperacaoResponseDTO> operacoesProprias(Principal principal, @PageableDefault(size = 20) Pageable pageable) {
+        return operacaoService.listarProprias(principal.getName(), pageable);
     }
 
     @GetMapping("/me/saldo")
@@ -49,8 +52,8 @@ public class CarteiraController {
     }
 
     @GetMapping("/{usuarioId}/operacoes")
-    public List<OperacaoResponseDTO> operacoesPorUsuario(@PathVariable Long usuarioId) {
-        return operacaoService.listarComoAdmin(usuarioId);
+    public Page<OperacaoResponseDTO> operacoesPorUsuario(@PathVariable Long usuarioId, @PageableDefault(size = 20) Pageable pageable) {
+        return operacaoService.listarComoAdmin(usuarioId, pageable);
     }
 
     @PatchMapping("/{usuarioId}/reconstruir")
