@@ -3,6 +3,8 @@ package com.curso.gestaoinvestimentos.integration;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -25,12 +27,14 @@ public class ViaCepClient implements CepClient {
     }
 
     @Override
+    @Cacheable("cep")
+    @CircuitBreaker(name = "cep", fallbackMethod = "buscarFallback")
     public DadosCepResponse buscar(String cep) {
         try {
-            RespostaViaCep resposta = restClient.get()
+            RespostaViaCep resposta = RetryExterno.tentar(3, 300, () -> restClient.get()
                     .uri("/{cep}/json/", cep)
                     .retrieve()
-                    .body(RespostaViaCep.class);
+                    .body(RespostaViaCep.class));
 
             if (resposta == null || Boolean.TRUE.equals(resposta.erro())) {
                 throw new RecursoNaoEncontradoException("CEP nao encontrado: " + cep);
@@ -48,6 +52,10 @@ public class ViaCepClient implements CepClient {
         } catch (RestClientException ex) {
             throw new ServicoExternoIndisponivelException("Nao foi possivel consultar o CEP no ViaCEP");
         }
+    }
+
+    private DadosCepResponse buscarFallback(String cep, Throwable t) {
+        throw new ServicoExternoIndisponivelException("ViaCEP indisponivel no momento (circuit breaker aberto)");
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
