@@ -10,6 +10,8 @@ import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,10 +69,8 @@ public class UsuarioService {
         return toResponseDTO(salvo);
     }
 
-    public List<UsuarioResponseDTO> listar() {
-        return repository.findAll().stream()
-                .map(this::toResponseDTO)
-                .toList();
+    public Page<UsuarioResponseDTO> listar(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponseDTO);
     }
 
     public UsuarioResponseDTO buscarPorId(Long id) {

@@ -5,6 +5,9 @@ import com.curso.gestaoinvestimentos.dto.AcaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.HistoricoCotacaoResponseDTO;
 import com.curso.gestaoinvestimentos.service.AcaoService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +32,8 @@ public class AcaoController {
     }
 
     @GetMapping
-    public List<AcaoResponseDTO> listar() {
-        return service.listar();
+    public Page<AcaoResponseDTO> listar(@PageableDefault(size = 20) Pageable pageable) {
+        return service.listar(pageable);
     }
 
     @GetMapping("/{id}")

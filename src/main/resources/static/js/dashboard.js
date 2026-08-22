@@ -15,6 +15,7 @@ const state = {
     posicoes: [],
     acoes: [],
     operacoes: [],
+    operacoesPagina: { numero: 0, totalPages: 1 },
     corretoras: [],
     rendimento: [],
 };
@@ -331,6 +332,18 @@ function renderOperacoes() {
     if (state.operacoes.length && !lista.length) {
         tbody.innerHTML = `<tr><td colspan="8" class="empty">Nenhum resultado para o filtro.</td></tr>`;
     }
+
+    const pag = state.operacoesPagina;
+    $("#labelPaginaOperacoes").textContent = `Página ${pag.numero + 1} de ${Math.max(pag.totalPages, 1)}`;
+    $("#btnOperacoesAnterior").disabled = pag.numero <= 0;
+    $("#btnOperacoesProxima").disabled = pag.numero >= pag.totalPages - 1;
+}
+
+async function mudarPaginaOperacoes(delta) {
+    const alvo = state.operacoesPagina.numero + delta;
+    if (alvo < 0 || alvo >= state.operacoesPagina.totalPages) return;
+    await carregarOperacoes(alvo);
+    renderOperacoes();
 }
 
 function renderCorretoras() {
@@ -372,22 +385,30 @@ function renderTudo() {
 }
 
 /* --------------------------- Carregar ------------------------------ */
+async function carregarOperacoes(pagina = 0) {
+    const resp = await api(`/carteiras/me/operacoes?page=${pagina}&size=20`);
+    state.operacoes = resp.content || [];
+    state.operacoesPagina = { numero: resp.number ?? pagina, totalPages: resp.totalPages ?? 1 };
+}
+
 async function carregarTudo() {
     try {
-        const [saldo, posicoes, acoes, operacoes, corretoras, rendimento] = await Promise.all([
+        // Ações e corretoras pedem uma página grande porque o dashboard as usa
+        // como cache completo (dropdown do modal de compra, lookup de moeda por
+        // ticker, botões de detalhe) -- não é só a tabela do catálogo.
+        const [saldo, posicoes, acoes, corretoras, rendimento] = await Promise.all([
             api("/carteiras/me/saldo"),
             api("/carteiras/me"),
-            api("/acoes"),
-            api("/carteiras/me/operacoes"),
-            api("/corretoras"),
+            api("/acoes?size=1000"),
+            api("/corretoras?size=1000"),
             api("/carteiras/me/rendimento-historico"),
         ]);
         state.saldo = saldo;
         state.posicoes = posicoes || [];
-        state.acoes = acoes || [];
-        state.operacoes = operacoes || [];
-        state.corretoras = corretoras || [];
+        state.acoes = acoes.content || [];
+        state.corretoras = corretoras.content || [];
         state.rendimento = rendimento || [];
+        await carregarOperacoes(state.operacoesPagina.numero);
         renderTudo();
     } catch (e) {
         toast("Falha ao carregar dados", e.message, "err");
@@ -666,6 +687,9 @@ function bind() {
     $("#filterPosicoes").addEventListener("input", renderPosicoes);
     $("#filterOperacoes").addEventListener("input", renderOperacoes);
     $("#filterCorretoras").addEventListener("input", renderCorretoras);
+
+    $("#btnOperacoesAnterior").addEventListener("click", () => mudarPaginaOperacoes(-1));
+    $("#btnOperacoesProxima").addEventListener("click", () => mudarPaginaOperacoes(1));
 
     $("#modalClose").addEventListener("click", fecharModal);
     $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") fecharModal(); });

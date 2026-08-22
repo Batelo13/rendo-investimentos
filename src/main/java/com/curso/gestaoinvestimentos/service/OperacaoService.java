@@ -18,6 +18,8 @@ import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.CorretoraRepository;
 import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,17 +112,17 @@ public class OperacaoService {
         return toResponseDTO(salva);
     }
 
-    public List<OperacaoResponseDTO> listarProprias(String emailUsuarioAutenticado) {
+    public Page<OperacaoResponseDTO> listarProprias(String emailUsuarioAutenticado, Pageable pageable) {
         Usuario usuario = buscarUsuarioPorEmail(emailUsuarioAutenticado);
         Carteira carteira = carteiraRepository.findByUsuarioId(usuario.getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuario.getId()));
-        return listarPorCarteira(carteira);
+        return listarPorCarteira(carteira, pageable);
     }
 
-    public List<OperacaoResponseDTO> listarComoAdmin(Long usuarioId) {
+    public Page<OperacaoResponseDTO> listarComoAdmin(Long usuarioId, Pageable pageable) {
         Carteira carteira = carteiraRepository.findByUsuarioId(usuarioId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuarioId));
-        return listarPorCarteira(carteira);
+        return listarPorCarteira(carteira, pageable);
     }
 
     @Transactional
@@ -158,10 +160,9 @@ public class OperacaoService {
         return toResponseDTO(salva);
     }
 
-    private List<OperacaoResponseDTO> listarPorCarteira(Carteira carteira) {
-        return operacaoRepository.findByCarteiraIdOrderByDataHoraDesc(carteira.getId()).stream()
-                .map(this::toResponseDTO)
-                .toList();
+    private Page<OperacaoResponseDTO> listarPorCarteira(Carteira carteira, Pageable pageable) {
+        return operacaoRepository.findByCarteiraIdOrderByDataHoraDesc(carteira.getId(), pageable)
+                .map(this::toResponseDTO);
     }
 
     private Usuario buscarUsuarioPorEmail(String email) {

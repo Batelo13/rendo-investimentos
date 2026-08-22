@@ -12,6 +12,8 @@ import com.curso.gestaoinvestimentos.integration.DadosCepResponse;
 import com.curso.gestaoinvestimentos.integration.DadosCnpjResponse;
 import com.curso.gestaoinvestimentos.model.Corretora;
 import com.curso.gestaoinvestimentos.repository.CorretoraRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -79,10 +81,8 @@ public class CorretoraService {
         return toResponseDTO(salva);
     }
 
-    public List<CorretoraResponseDTO> listar() {
-        return repository.findAll().stream()
-                .map(this::toResponseDTO)
-                .toList();
+    public Page<CorretoraResponseDTO> listar(Pageable pageable) {
+        return repository.findAll(pageable).map(this::toResponseDTO);
     }
 
     public CorretoraResponseDTO buscarPorId(Long id) {
