@@ -18,7 +18,13 @@ const state = {
     operacoesPagina: { numero: 0, totalPages: 1 },
     corretoras: [],
     rendimento: [],
+    periodoChart: "TUDO",
 };
+
+// Pontos do grafico no espaco do viewBox (preenchido a cada render), usado
+// pelo tooltip on-hover pra achar o ponto mais proximo do mouse sem
+// recalcular a projecao a cada movimento.
+let pontosChartAtual = [];
 
 /* ----------------------------- HTTP ------------------------------ */
 async function api(path, options = {}) {
@@ -51,6 +57,15 @@ function moedaPorTicker(ticker) {
     return acao ? acao.moeda : "BRL";
 }
 
+function nomeEmpresaPorTicker(ticker) {
+    const acao = state.acoes.find((a) => a.ticker === ticker);
+    return acao ? acao.nomeEmpresa : null;
+}
+
+function acaoPorTicker(ticker) {
+    return state.acoes.find((a) => a.ticker === ticker) || null;
+}
+
 function fmtMoeda(valor, moeda) {
     if (valor == null) return "—";
     const cur = moeda === "USD" ? "USD" : "BRL";
@@ -80,12 +95,23 @@ function fmtCnpj(c) {
 }
 
 function mercadoTag(m) {
-    return m === "EUA" ? `<span class="tag">🇺🇸 EUA</span>` : `<span class="tag">🇧🇷 Brasil</span>`;
+    return m === "EUA" ? `<span class="tag">US EUA</span>` : `<span class="tag">BR Brasil</span>`;
 }
 
 function acaoLogoHTML(a, size = 24) {
     if (!a.logoUrl) return "";
     return `<img class="acao-logo" src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`;
+}
+
+/* ---------------------------- Icones (SVG) ---------------------------- */
+function icone(nome, size = 14) {
+    const paths = {
+        refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+        expand: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
+        badgeCheck: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+        mapPin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+    };
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="${size}" height="${size}" style="vertical-align:-2px">${paths[nome] || ""}</svg>`;
 }
 
 function fmtResultado(valor, moeda) {
@@ -188,33 +214,56 @@ function renderVisaoGeral() {
     }
     dash.innerHTML = recentes.map((p) => {
         const moeda = moedaPorTicker(p.acaoTicker);
+        const acao = acaoPorTicker(p.acaoTicker);
+        const resultado = p.valorAtual != null ? Number(p.valorAtual) - Number(p.valorInvestido) : null;
         return `
         <div class="mini-row">
-            <span class="m-ticker">${esc(p.acaoTicker)}</span>
+            <span class="m-ativo">
+                ${acao ? acaoLogoHTML(acao, 22) : ""}
+                <span class="m-ativo-info">
+                    <span class="m-ticker">${esc(p.acaoTicker)}</span>
+                    ${acao && acao.nomeEmpresa ? `<span class="m-empresa">${esc(acao.nomeEmpresa)}</span>` : ""}
+                </span>
+            </span>
             <span class="m-corretora">${esc(p.corretoraNome)}</span>
             <span class="m-qtd">${esc(fmtNumero(p.quantidade))} un.</span>
-            <span class="m-preco-medio">PM ${esc(fmtMoeda(p.precoMedio, moeda))}</span>
+            <span class="m-preco-medio">${esc(fmtMoeda(p.precoMedio, moeda))}</span>
+            <span class="m-resultado">${fmtResultado(resultado, moeda)}</span>
             <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</span>
         </div>`;
     }).join("");
 }
 
+const PERIODO_DIAS = { "1D": 1, "1M": 30, "3M": 90, "6M": 180, "1A": 365, TUDO: null };
+
+function filtrarPontosPorPeriodo(pontos, periodo) {
+    const dias = PERIODO_DIAS[periodo];
+    if (!dias) return pontos;
+    const corte = Date.now() - dias * 24 * 60 * 60 * 1000;
+    return pontos.filter((p) => new Date(p.timestamp).getTime() >= corte);
+}
+
 function renderRendimentoChart() {
     const wrap = $("#rendimentoChartWrap");
     const svg = $("#rendimentoChart");
-    const pontos = state.rendimento;
-
     wrap.querySelector(".empty")?.remove();
+    wrap.querySelector(".chart-skeleton")?.remove();
+
+    const pontos = filtrarPontosPorPeriodo(state.rendimento, state.periodoChart);
+    pontosChartAtual = [];
 
     if (pontos.length < 2) {
         svg.classList.add("hidden");
-        wrap.insertAdjacentHTML("beforeend",
-            `<div class="empty">Ainda não há pontos suficientes pro gráfico. Compre uma ação e atualize a cotação pra começar a ver o rendimento.</div>`);
+        $("#chartTooltip").classList.remove("show");
+        const msg = state.rendimento.length < 2
+            ? "Ainda não há pontos suficientes pro gráfico. Compre uma ação e atualize a cotação pra começar a ver o rendimento."
+            : "Sem dados suficientes nesse período.";
+        wrap.insertAdjacentHTML("beforeend", `<div class="empty">${msg}</div>`);
         return;
     }
     svg.classList.remove("hidden");
 
-    const W = 600, H = 160, PAD = 8;
+    const W = 600, H = 220, PAD_X = 8, PAD_Y = 16;
     const tempos = pontos.map((p) => new Date(p.timestamp).getTime());
     const valores = pontos.map((p) => Number(p.rendimento));
 
@@ -223,20 +272,80 @@ function renderRendimentoChart() {
     const vMin = Math.min(0, ...valores), vMax = Math.max(0, ...valores);
     const vRange = (vMax - vMin) || 1;
 
-    const coords = pontos.map((_, i) => {
-        const x = tRange > 0 ? PAD + ((tempos[i] - tMin) / tRange) * (W - 2 * PAD) : (W / (pontos.length - 1)) * i;
-        const y = H - PAD - ((valores[i] - vMin) / vRange) * (H - 2 * PAD);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
+    const xDe = (i) => tRange > 0 ? PAD_X + ((tempos[i] - tMin) / tRange) * (W - 2 * PAD_X) : (W / (pontos.length - 1)) * i;
+    const yDe = (v) => H - PAD_Y - ((v - vMin) / vRange) * (H - 2 * PAD_Y);
+
+    pontosChartAtual = pontos.map((p, i) => ({ x: xDe(i), y: yDe(valores[i]), valor: valores[i], data: p.timestamp }));
+    const coords = pontosChartAtual.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`);
 
     const ultimo = valores[valores.length - 1];
-    const cor = ultimo >= 0 ? "var(--rendo-color-accent)" : "var(--rendo-color-danger)";
-    const yZero = H - PAD - ((0 - vMin) / vRange) * (H - 2 * PAD);
+    const cor = ultimo >= 0 ? "var(--success)" : "var(--danger)";
+    const yZero = yDe(0);
+
+    // Grid horizontal discreto: 3 linhas guia (25/50/75% da altura util).
+    const grid = [0.25, 0.5, 0.75].map((f) => {
+        const y = (PAD_Y + (H - 2 * PAD_Y) * f).toFixed(1);
+        return `<line x1="0" y1="${y}" x2="${W}" y2="${y}" class="rendimento-grid"></line>`;
+    }).join("");
+
+    const areaId = "rendimentoAreaGrad";
+    const area = `M${coords[0]} L${coords.join(" L")} L${pontosChartAtual[pontosChartAtual.length - 1].x.toFixed(1)},${H} L${pontosChartAtual[0].x.toFixed(1)},${H} Z`;
 
     svg.innerHTML = `
+        <defs>
+            <linearGradient id="${areaId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${cor}" stop-opacity="0.5"></stop>
+                <stop offset="100%" stop-color="${cor}" stop-opacity="0"></stop>
+            </linearGradient>
+        </defs>
+        ${grid}
         <line x1="0" y1="${yZero.toFixed(1)}" x2="${W}" y2="${yZero.toFixed(1)}" class="rendimento-zero"></line>
+        <path d="${area}" class="rendimento-area" fill="url(#${areaId})"></path>
         <polyline points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
+        <circle class="rendimento-ponto-hover hidden" id="rendimentoPontoHover" style="stroke:${cor}" cx="0" cy="0"></circle>
     `;
+}
+
+function moverTooltipChart(clientX, clientY) {
+    if (!pontosChartAtual.length) return;
+    const svg = $("#rendimentoChart");
+    const wrap = $("#rendimentoChartWrap");
+    const tooltip = $("#chartTooltip");
+    const svgRect = svg.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    if (clientX < svgRect.left || clientX > svgRect.right) { esconderTooltipChart(); return; }
+
+    const escalaX = svgRect.width / 600;
+    const xAlvo = (clientX - svgRect.left) / escalaX;
+    let maisProximo = pontosChartAtual[0];
+    for (const p of pontosChartAtual) {
+        if (Math.abs(p.x - xAlvo) < Math.abs(maisProximo.x - xAlvo)) maisProximo = p;
+    }
+
+    const ponto = $("#rendimentoPontoHover");
+    if (ponto) {
+        ponto.setAttribute("cx", maisProximo.x.toFixed(1));
+        ponto.setAttribute("cy", maisProximo.y.toFixed(1));
+        ponto.classList.remove("hidden");
+    }
+
+    const pxX = (svgRect.left - wrapRect.left) + maisProximo.x * escalaX;
+    const pxY = (svgRect.top - wrapRect.top) + maisProximo.y;
+    tooltip.style.left = `${pxX}px`;
+    tooltip.style.top = `${pxY}px`;
+    tooltip.innerHTML = `<span class="tt-data">${esc(fmtData(maisProximo.data))}</span><span class="tt-valor">${esc(fmtMoeda(maisProximo.valor, "BRL"))}</span>`;
+    tooltip.classList.add("show");
+}
+
+function esconderTooltipChart() {
+    $("#chartTooltip")?.classList.remove("show");
+    $("#rendimentoPontoHover")?.classList.add("hidden");
+}
+
+function mudarPeriodoChart(periodo) {
+    state.periodoChart = periodo;
+    $$(".chart-periodo").forEach((b) => b.classList.toggle("active", b.dataset.periodo === periodo));
+    renderRendimentoChart();
 }
 
 function renderAcoes() {
@@ -256,8 +365,8 @@ function renderAcoes() {
             <td class="num">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</td>
             <td class="acoes-col">
                 <button class="btn btn-buy btn-icon" data-buy="${a.id}">Comprar</button>
-                <button class="btn btn-icon" title="Atualizar cotação" data-refresh-acao="${a.id}">⟳</button>
-                <button class="btn btn-icon" title="Detalhes" data-detail-acao="${a.id}">⤢</button>
+                <button class="btn btn-ghost btn-icon" title="Atualizar cotação" data-refresh-acao="${a.id}">${icone("refresh")}</button>
+                <button class="btn btn-ghost btn-icon" title="Detalhes" data-detail-acao="${a.id}">${icone("expand")}</button>
             </td>
         </tr>`).join("");
 
@@ -370,10 +479,10 @@ function renderCorretoras() {
                     <h3>${esc(c.nomeFantasia || c.razaoSocial || "—")}</h3>
                     ${c.nomeFantasia && c.razaoSocial ? `<div class="fantasia">${esc(c.razaoSocial)}</div>` : ""}
                 </div>
-                ${c.validadaNaCvm ? '<span class="tag tag-cvm">✔ CVM</span>' : ""}
+                ${c.validadaNaCvm ? `<span class="tag tag-cvm">${icone("badgeCheck", 12)} CVM</span>` : ""}
             </div>
             <div class="row">${esc(fmtCnpj(c.cnpj))}</div>
-            <div class="row">📍 <b>${esc(c.cidade || "—")}${c.uf ? "/" + esc(c.uf) : ""}</b></div>
+            <div class="row">${icone("mapPin", 13)} <b>${esc(c.cidade || "—")}${c.uf ? "/" + esc(c.uf) : ""}</b></div>
         </div>`).join("");
 
     if (state.corretoras.length && !lista.length) {
@@ -396,7 +505,18 @@ async function carregarOperacoes(pagina = 0) {
     state.operacoesPagina = { numero: resp.number ?? pagina, totalPages: resp.totalPages ?? 1 };
 }
 
+function mostrarSkeletonChart() {
+    const wrap = $("#rendimentoChartWrap");
+    $("#rendimentoChart")?.classList.add("hidden");
+    esconderTooltipChart();
+    wrap.querySelector(".empty")?.remove();
+    if (!wrap.querySelector(".chart-skeleton")) {
+        wrap.insertAdjacentHTML("beforeend", `<div class="chart-skeleton"></div>`);
+    }
+}
+
 async function carregarTudo() {
+    mostrarSkeletonChart();
     try {
         // Ações e corretoras pedem uma página grande porque o dashboard as usa
         // como cache completo (dropdown do modal de compra, lookup de moeda por
@@ -437,14 +557,14 @@ function detalheAcaoHTML(a) {
         </div>
         <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap">
             <button class="btn btn-buy" data-buy="${a.id}">Comprar</button>
-            <button class="btn" data-refresh-acao="${a.id}">⟳ Atualizar cotação</button>
+            <button class="btn" data-refresh-acao="${a.id}">${icone("refresh")} Atualizar cotação</button>
         </div>`;
 }
 
 function detalheCorretoraHTML(c) {
     const endereco = [c.logradouro, c.numero, c.complemento].filter(Boolean).join(", ");
     return `
-        <h2>${esc(c.nomeFantasia || c.razaoSocial)} ${c.validadaNaCvm ? '<span class="tag tag-cvm">✔ CVM</span>' : ""}</h2>
+        <h2>${esc(c.nomeFantasia || c.razaoSocial)} ${c.validadaNaCvm ? `<span class="tag tag-cvm">${icone("badgeCheck", 12)} CVM</span>` : ""}</h2>
         <p class="sub">${esc(c.razaoSocial || "")}</p>
         <div class="detail-grid">
             <div class="detail-item"><span class="k">CNPJ</span><span class="v">${esc(fmtCnpj(c.cnpj))}</span></div>
@@ -617,7 +737,7 @@ async function buscarAcao(e) {
     box.innerHTML = `<div class="loading-row"><span class="spin"></span> Buscando…</div>`;
     try {
         const a = await api(`/acoes/ticker/${encodeURIComponent(ticker)}`);
-        box.innerHTML = `<div class="panel" style="background-color:var(--rendo-color-bg)">${detalheAcaoHTML(a)}</div>`;
+        box.innerHTML = `<div class="panel" style="background-color:var(--background)">${detalheAcaoHTML(a)}</div>`;
     } catch (err) {
         box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
     }
@@ -663,7 +783,7 @@ async function buscarCorretora(e) {
     box.innerHTML = `<div class="loading-row"><span class="spin"></span> Buscando…</div>`;
     try {
         const c = await api(`/corretoras/cnpj/${encodeURIComponent(cnpj)}`);
-        box.innerHTML = `<div class="panel" style="background-color:var(--rendo-color-bg)">${detalheCorretoraHTML(c)}</div>`;
+        box.innerHTML = `<div class="panel" style="background-color:var(--background)">${detalheCorretoraHTML(c)}</div>`;
     } catch (err) {
         box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
     }
@@ -695,6 +815,11 @@ function bind() {
 
     $("#btnOperacoesAnterior").addEventListener("click", () => mudarPaginaOperacoes(-1));
     $("#btnOperacoesProxima").addEventListener("click", () => mudarPaginaOperacoes(1));
+
+    $$(".chart-periodo").forEach((b) => b.addEventListener("click", () => mudarPeriodoChart(b.dataset.periodo)));
+    const chartWrap = $("#rendimentoChartWrap");
+    chartWrap.addEventListener("mousemove", (e) => moverTooltipChart(e.clientX, e.clientY));
+    chartWrap.addEventListener("mouseleave", esconderTooltipChart);
 
     $("#modalClose").addEventListener("click", fecharModal);
     $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") fecharModal(); });

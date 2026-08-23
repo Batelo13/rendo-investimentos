@@ -26,11 +26,26 @@
         <div th:replace="~{fragments/logo :: logo}"></div>
 
         <nav class="nav">
-            <button class="nav-item active" data-view="visao-geral">Visão geral</button>
-            <button class="nav-item" data-view="acoes">Ações</button>
-            <button class="nav-item" data-view="posicoes">Minhas posições</button>
-            <button class="nav-item" data-view="operacoes">Operações</button>
-            <button class="nav-item" data-view="corretoras">Corretoras</button>
+            <button class="nav-item active" data-view="visao-geral">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                <span>Visão geral</span>
+            </button>
+            <button class="nav-item" data-view="acoes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                <span>Ações</span>
+            </button>
+            <button class="nav-item" data-view="posicoes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span>Minhas posições</span>
+            </button>
+            <button class="nav-item" data-view="operacoes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+                <span>Operações</span>
+            </button>
+            <button class="nav-item" data-view="corretoras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
+                <span>Corretoras</span>
+            </button>
         </nav>
 
         <div class="sidebar-foot">
@@ -40,19 +55,26 @@
                 <span>Tema</span>
             </button>
             <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn-sair">Sair</button>
+                <button type="submit" class="btn-sair">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    <span>Sair</span>
+                </button>
             </form>
         </div>
     </aside>
 
     <main class="main">
         <header class="topbar">
-            <button class="hamburger" id="menuToggle" aria-label="Menu">☰</button>
+            <button class="hamburger" id="menuToggle" aria-label="Menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            </button>
             <div class="topbar-title">
                 <h1 id="viewTitle">Visão geral</h1>
-                <p id="viewSubtitle">Resumo da sua carteira</p>
+                <p id="viewSubtitle">Resumo da sua carteira e desempenho</p>
             </div>
-            <button class="btn" id="refreshAll">⟳ Atualizar</button>
+            <button class="btn btn-ghost btn-sm" id="refreshAll">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>Atualizar
+            </button>
         </header>
 
         <!-- ===================== VISÃO GERAL ===================== -->
@@ -74,35 +96,40 @@
                     <span class="stat-label">Corretoras cadastradas</span>
                     <strong class="stat-value" id="statCorretoras">—</strong>
                 </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-head"><h2>Resultado da carteira</h2></div>
-                <div class="result-grid">
-                    <div class="result-box">
-                        <span class="result-label">Lucro/Prejuízo não realizado</span>
-                        <strong class="result-value" id="statNaoRealizado">—</strong>
-                        <span class="result-hint">Posições ainda em carteira (cotação atual vs. preço médio)</span>
-                    </div>
-                    <div class="result-box">
-                        <span class="result-label">Lucro/Prejuízo realizado</span>
-                        <strong class="result-value" id="statRealizado">—</strong>
-                        <span class="result-hint">Resultado já consolidado nas vendas</span>
-                    </div>
+                <div class="stat-card">
+                    <span class="stat-label">Resultado não realizado</span>
+                    <strong class="stat-value" id="statNaoRealizado">—</strong>
+                    <span class="stat-hint">Posições em carteira</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Resultado realizado</span>
+                    <strong class="stat-value" id="statRealizado">—</strong>
+                    <span class="stat-hint">Já consolidado nas vendas</span>
                 </div>
             </div>
 
             <div class="panel">
-                <div class="panel-head"><h2>Rendimento</h2></div>
+                <div class="chart-head">
+                    <h2>Evolução patrimonial</h2>
+                    <div class="chart-periodos" id="chartPeriodos">
+                        <button class="chart-periodo" data-periodo="1D">1D</button>
+                        <button class="chart-periodo" data-periodo="1M">1M</button>
+                        <button class="chart-periodo" data-periodo="3M">3M</button>
+                        <button class="chart-periodo" data-periodo="6M">6M</button>
+                        <button class="chart-periodo" data-periodo="1A">1A</button>
+                        <button class="chart-periodo active" data-periodo="TUDO">Tudo</button>
+                    </div>
+                </div>
                 <div id="rendimentoChartWrap">
-                    <svg id="rendimentoChart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
+                    <svg id="rendimentoChart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+                    <div class="chart-tooltip" id="chartTooltip"></div>
                 </div>
             </div>
 
             <div class="panel">
                 <div class="panel-head">
                     <h2>Minhas posições</h2>
-                    <button class="btn btn-sm" data-goto="posicoes">Ver todas →</button>
+                    <button class="btn btn-ghost btn-sm" data-goto="posicoes">Ver todas →</button>
                 </div>
                 <div id="dashPosicoes" class="mini-list"></div>
             </div>
@@ -205,9 +232,13 @@
                 </div>
                 <div class="empty hidden" id="emptyOperacoes">Nenhuma operação registrada ainda.</div>
                 <div class="paginacao">
-                    <button class="btn btn-icon" id="btnOperacoesAnterior" title="Página anterior">←</button>
+                    <button class="btn btn-ghost btn-icon" id="btnOperacoesAnterior" title="Página anterior">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
                     <span id="labelPaginaOperacoes">Página 1 de 1</span>
-                    <button class="btn btn-icon" id="btnOperacoesProxima" title="Próxima página">→</button>
+                    <button class="btn btn-ghost btn-icon" id="btnOperacoesProxima" title="Próxima página">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
                 </div>
             </div>
         </section>
@@ -252,7 +283,9 @@
 <!-- Modal -->
 <div class="rendo-modal-backdrop hidden" id="modal">
     <div class="rendo-modal">
-        <button class="rendo-modal-close" id="modalClose">✕</button>
+        <button class="rendo-modal-close" id="modalClose">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
         <div id="modalContent"></div>
     </div>
 </div>

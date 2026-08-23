@@ -19,6 +19,6 @@
     font-family: var(--rendo-font-logo);
     font-weight: 800;
     font-size: 28px;
-    color: var(--rendo-color-text);
+    color: var(--text-primary);
     line-height: 1;
 }
