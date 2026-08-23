@@ -190,7 +190,13 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .paginacao { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; color: var(--text-secondary); font-size: 13px; }
 
 /* Table */
-.table-wrap { overflow-x: auto; }
+/* overflow-y:hidden explicito -- sem isso, o CSS forca overflow-y a virar
+   "auto" sozinho (regra da spec: quando overflow-x nao e "visible" e
+   overflow-y fica no default "visible", o browser converte o "visible" pra
+   "auto" tambem). Combinado com a tabela passando o container em fracao de
+   pixel (sub-pixel rounding), isso fazia o Chrome reservar uma faixa/trilha
+   de scrollbar vertical fantasma embaixo da ultima linha. */
+.table-wrap { overflow-x: auto; overflow-y: hidden; }
 /* --bs-table-bg redefinido aqui (nao so no tokens.css) porque a classe
    .table do Bootstrap ja redeclara essa variavel no proprio elemento
    <table> -- uma variavel redeclarada no elemento vence a herdada do
