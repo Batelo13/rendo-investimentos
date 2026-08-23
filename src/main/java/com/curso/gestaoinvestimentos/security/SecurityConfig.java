@@ -1,14 +1,17 @@
 package com.curso.gestaoinvestimentos.security;
 
+import com.curso.gestaoinvestimentos.security.oauth2.AppleAuthorizationRequestResolver;
+import com.curso.gestaoinvestimentos.security.oauth2.LoginSocialFailureHandler;
+import com.curso.gestaoinvestimentos.security.oauth2.RendoOidcUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
@@ -18,6 +21,7 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +33,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                     Optional<ClientRegistrationRepository> clientRegistrationRepository,
+                                                     RendoOidcUserService rendoOidcUserService,
+                                                     LoginSocialFailureHandler loginSocialFailureHandler) throws Exception {
         http
                 // CSRF desativado por enquanto: ainda nao existem formularios Thymeleaf
                 // para carregar o token automaticamente. Reativar na fase de frontend.
@@ -37,9 +44,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        // Fluxo de login social (so existe de fato quando ha provedor
+                        // configurado -- ver OAuth2ClientRegistrations): precisa ser publico
+                        // porque e o proprio caminho que leva o usuario a se autenticar.
+                        .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
                         // Landing page publica (secao 22 do escopo: paginas publicas) + os
                         // assets estaticos que ela carrega (CSS/imagens).
                         .requestMatchers(HttpMethod.GET, "/", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        // formLogin().permitAll() so libera "/login" com query string EXATA
+                        // (o "?error"/"?logout" que ele mesmo gera) -- qualquer outra query
+                        // string (ex.: "?criarConta=1" do fluxo de login social) cai no
+                        // anyRequest().authenticated() e devolve 401 sem essa regra explicita.
+                        .requestMatchers(HttpMethod.GET, "/login").permitAll()
                         // Dashboard mostra saldo/posicoes do usuario -- nao pode ser publica
                         // como "/", senao um visitante sem sessao veria a casca da pagina.
                         .requestMatchers(HttpMethod.GET, "/dashboard").authenticated()
@@ -69,6 +85,23 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(paginaOuApiEntryPoint()))
                 // H2 console roda dentro de um <frame>; sem isso o navegador bloqueia.
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+
+        // So ativa oauth2Login() quando ha pelo menos um provedor configurado
+        // (ver OAuth2ClientRegistrations) -- sem isso, chamar .oauth2Login() sem
+        // nenhum ClientRegistrationRepository derrubaria o boot da aplicacao.
+        clientRegistrationRepository.ifPresent(repository -> {
+            try {
+                http.oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .failureHandler(loginSocialFailureHandler)
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestResolver(new AppleAuthorizationRequestResolver(repository)))
+                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(rendoOidcUserService)));
+            } catch (Exception e) {
+                throw new IllegalStateException("Falha ao configurar oauth2Login", e);
+            }
+        });
 
         return http.build();
     }

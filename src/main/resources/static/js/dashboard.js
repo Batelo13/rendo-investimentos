@@ -110,6 +110,7 @@ function icone(nome, size = 14) {
         expand: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
         badgeCheck: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
         mapPin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+        kebab: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
     };
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="${size}" height="${size}" style="vertical-align:-2px">${paths[nome] || ""}</svg>`;
 }
@@ -217,7 +218,7 @@ function renderVisaoGeral() {
         dash.innerHTML = `<div class="empty">Nenhuma posição ainda. Vá em <b>Ações</b> para comprar.</div>`;
         return;
     }
-    dash.innerHTML = recentes.map((p) => {
+    dash.innerHTML = recentes.map((p, i) => {
         const moeda = moedaPorTicker(p.acaoTicker);
         const acao = acaoPorTicker(p.acaoTicker);
         const resultado = p.valorAtual != null ? Number(p.valorAtual) - Number(p.valorInvestido) : null;
@@ -230,13 +231,68 @@ function renderVisaoGeral() {
                     ${acao && acao.nomeEmpresa ? `<span class="m-empresa">${esc(acao.nomeEmpresa)}</span>` : ""}
                 </span>
             </span>
-            <span class="m-corretora">${esc(p.corretoraNome)}</span>
+            <span class="m-corretora">
+                <span class="m-corretora-badge">${esc((p.corretoraNome || "—").slice(0, 2).toUpperCase())}</span>
+                ${esc(p.corretoraNome)}
+            </span>
             <span class="m-qtd">${esc(fmtNumero(p.quantidade))} un.</span>
             <span class="m-preco-medio">${esc(fmtMoeda(p.precoMedio, moeda))}</span>
+            <span class="m-preco-atual">${acao && acao.cotacaoAtual != null ? esc(fmtMoeda(acao.cotacaoAtual, moeda)) : "—"}</span>
             <span class="m-resultado">${fmtResultado(resultado, moeda)}</span>
             <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</span>
+            <span class="m-kebab-wrap">
+                <button type="button" class="m-kebab" data-kebab="${i}" aria-label="Mais ações">${icone("kebab")}</button>
+                <div class="row-menu" id="rowMenu${i}">
+                    <button type="button" data-sell="${i}">Vender</button>
+                </div>
+            </span>
         </div>`;
     }).join("");
+
+    renderSparklineNaoRealizado();
+}
+
+// Reaproveita a MESMA serie ja buscada pro grafico principal (state.rendimento
+// = rendimento total realizado+nao-realizado ao longo do tempo) -- nao e uma
+// decomposicao exata de "so nao realizado", mas e dado real, nao inventado; o
+// rotulo do card ja deixa claro que e sobre a carteira como um todo.
+function renderSparklineNaoRealizado() {
+    const svg = $("#sparklineNaoRealizado");
+    if (!svg) return;
+    const pontos = state.rendimento.slice(-20);
+    if (pontos.length < 2) { svg.innerHTML = ""; return; }
+
+    const valores = pontos.map((p) => Number(p.rendimento));
+    const min = Math.min(...valores), max = Math.max(...valores);
+    const range = (max - min) || 1;
+    const coords = valores.map((v, i) => {
+        const x = (i / (valores.length - 1)) * 100;
+        const y = 26 - ((v - min) / range) * 24 - 1;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const cor = valores[valores.length - 1] >= valores[0] ? "var(--success)" : "var(--danger)";
+    svg.innerHTML = `<polyline points="${coords.join(" ")}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+}
+
+/* ------------------------------- IBOV ------------------------------- */
+// Widget decorativo da sidebar: dado real (brapi, mesmo provider ja usado
+// pras acoes brasileiras). Falha silenciosamente (widget some) em vez de
+// quebrar o dashboard -- e um extra, nao um dado essencial da carteira.
+async function carregarIbovespa() {
+    try {
+        const r = await fetch("/mercado/ibovespa");
+        if (!r.ok) throw new Error("ibovespa indisponivel");
+        const indice = await r.json();
+        $("#ibovNome").textContent = indice.nome;
+        $("#ibovPontos").textContent = fmtNumero(indice.pontos) + " pts";
+        const variacao = Number(indice.variacaoPercentual || 0);
+        const el = $("#ibovVariacao");
+        el.textContent = `${variacao >= 0 ? "+" : ""}${variacao.toFixed(2)}%`;
+        el.style.color = variacao >= 0 ? "var(--success)" : "var(--danger)";
+        $("#sidebarIbov").classList.remove("hidden");
+    } catch {
+        $("#sidebarIbov")?.classList.add("hidden");
+    }
 }
 
 const PERIODO_DIAS = { "1D": 1, "1M": 30, "3M": 90, "6M": 180, "1A": 365, TUDO: null };
@@ -307,6 +363,7 @@ function renderRendimentoChart() {
         ${grid}
         <line x1="0" y1="${yZero.toFixed(1)}" x2="${W}" y2="${yZero.toFixed(1)}" class="rendimento-zero"></line>
         <path d="${area}" class="rendimento-area" fill="url(#${areaId})"></path>
+        <line class="rendimento-guide hidden" id="rendimentoGuide" x1="0" y1="0" x2="0" y2="${H}"></line>
         <polyline points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
         <circle class="rendimento-ponto-hover hidden" id="rendimentoPontoHover" style="stroke:${cor}" cx="0" cy="0"></circle>
     `;
@@ -346,6 +403,12 @@ function moverTooltipChart(clientX, clientY) {
         ponto.setAttribute("cy", maisProximo.y.toFixed(1));
         ponto.classList.remove("hidden");
     }
+    const guia = $("#rendimentoGuide");
+    if (guia) {
+        guia.setAttribute("x1", maisProximo.x.toFixed(1));
+        guia.setAttribute("x2", maisProximo.x.toFixed(1));
+        guia.classList.remove("hidden");
+    }
 
     const pxX = (svgRect.left - wrapRect.left) + maisProximo.x * escalaX;
     const pxY = (svgRect.top - wrapRect.top) + maisProximo.y;
@@ -358,6 +421,7 @@ function moverTooltipChart(clientX, clientY) {
 function esconderTooltipChart() {
     $("#chartTooltip")?.classList.remove("show");
     $("#rendimentoPontoHover")?.classList.add("hidden");
+    $("#rendimentoGuide")?.classList.add("hidden");
 }
 
 function mudarPeriodoChart(periodo) {
@@ -556,6 +620,7 @@ async function carregarTudo() {
     } catch (e) {
         toast("Falha ao carregar dados", e.message, "err");
     }
+    carregarIbovespa(); // widget decorativo -- nao bloqueia nem falha o resto do dashboard
 }
 
 /* --------------------------- Detalhes ------------------------------ */
@@ -844,6 +909,16 @@ function bind() {
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModal(); });
 
     document.addEventListener("click", (e) => {
+        const kebab = e.target.closest("[data-kebab]");
+        if (kebab) {
+            const menu = $(`#rowMenu${kebab.dataset.kebab}`);
+            const jaAberto = menu.classList.contains("open");
+            $$(".row-menu.open").forEach((m) => m.classList.remove("open"));
+            if (!jaAberto) menu.classList.add("open");
+            return;
+        }
+        if (!e.target.closest(".row-menu")) $$(".row-menu.open").forEach((m) => m.classList.remove("open"));
+
         const buy = e.target.closest("[data-buy]");
         if (buy) { abrirCompraModal(Number(buy.dataset.buy)); return; }
 

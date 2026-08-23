@@ -60,6 +60,22 @@
                     <span>Sair</span>
                 </button>
             </form>
+
+            <!-- Populado via GET /mercado/ibovespa (dado real, brapi) -- some
+                 sozinho (fica hidden) se a chamada externa falhar. Sem
+                 sparkline: intervalo intraday do indice e recurso pago na
+                 brapi (plano free so devolve o fechamento diario) -- nao da
+                 pra desenhar uma linha real com o que a API gratuita expoe,
+                 e inventar o formato da linha violaria a regra de nao usar
+                 dado fabricado. -->
+            <div class="sidebar-ibov hidden" id="sidebarIbov">
+                <div class="sidebar-ibov-head">
+                    <span id="ibovNome">IBOV</span>
+                    <span class="sidebar-ibov-periodo">1D</span>
+                    <span id="ibovVariacao" class="sidebar-ibov-variacao"></span>
+                </div>
+                <strong id="ibovPontos">—</strong>
+            </div>
         </div>
     </aside>
 
@@ -81,40 +97,53 @@
         <section class="view" id="view-visao-geral">
             <div class="stats-grid">
                 <div class="stat-card stat-card-featured">
-                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></span>
+                    <span class="stat-icon stat-icon-brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg></span>
+                    <svg class="stat-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                     <span class="stat-label">Patrimônio total</span>
                     <strong class="stat-value" id="statPatrimonioTotal">—</strong>
-                    <span class="stat-hint">Saldo + posições em carteira</span>
+                    <span class="stat-hint" id="statPatrimonioHoje">Saldo + posições em carteira</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg></span>
+                    <span class="stat-icon stat-icon-brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg></span>
+                    <svg class="stat-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                     <span class="stat-label">Saldo disponível</span>
                     <strong class="stat-value" id="statSaldoDisponivel">—</strong>
+                    <span class="stat-hint">Disponível para investir</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon stat-icon-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
+                    <svg class="stat-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <span class="stat-label">Posições em carteira</span>
+                    <strong class="stat-value" id="statPosicoes">—</strong>
+                    <span class="stat-hint">Ações</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon stat-icon-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg></span>
+                    <svg class="stat-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <span class="stat-label">Corretoras cadastradas</span>
+                    <strong class="stat-value" id="statCorretoras">—</strong>
+                    <span class="stat-hint">Ativa(s)</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
                     <span class="stat-label">Saldo inicial</span>
                     <strong class="stat-value" id="statSaldoInicial">—</strong>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
-                    <span class="stat-label">Posições em carteira</span>
-                    <strong class="stat-value" id="statPosicoes">—</strong>
+            </div>
+
+            <div class="pl-grid">
+                <div class="pl-card">
+                    <span class="stat-label">Lucro/Prejuízo não realizado</span>
+                    <div class="pl-row">
+                        <div>
+                            <strong class="stat-value" id="statNaoRealizado">—</strong>
+                            <span class="stat-hint">Posições em carteira</span>
+                        </div>
+                        <svg id="sparklineNaoRealizado" class="pl-sparkline" viewBox="0 0 100 30" preserveAspectRatio="none"></svg>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg></span>
-                    <span class="stat-label">Corretoras cadastradas</span>
-                    <strong class="stat-value" id="statCorretoras">—</strong>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg></span>
-                    <span class="stat-label">Resultado não realizado</span>
-                    <strong class="stat-value" id="statNaoRealizado">—</strong>
-                    <span class="stat-hint">Posições em carteira</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-                    <span class="stat-label">Resultado realizado</span>
+                <div class="pl-card">
+                    <span class="stat-label">Lucro/Prejuízo realizado</span>
                     <strong class="stat-value" id="statRealizado">—</strong>
                     <span class="stat-hint">Já consolidado nas vendas</span>
                 </div>
@@ -144,6 +173,7 @@
                     <button class="btn btn-ghost btn-sm" data-goto="posicoes">Ver todas →</button>
                 </div>
                 <div id="dashPosicoes" class="mini-list"></div>
+                <p class="table-disclaimer" id="dashPosicoesDisclaimer">Os dados podem ter até 15 minutos de atraso.</p>
             </div>
         </section>
 
@@ -220,6 +250,7 @@
                     </table>
                 </div>
                 <div class="empty hidden" id="emptyPosicoes">Você ainda não tem nenhuma posição. Compre uma ação na aba <b>Ações</b> para começar.</div>
+                <p class="table-disclaimer">Os dados podem ter até 15 minutos de atraso.</p>
             </div>
         </section>
 
