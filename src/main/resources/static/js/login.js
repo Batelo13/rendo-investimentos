@@ -89,3 +89,28 @@ ligarValidacaoAoVivo(cadastroForm.email, validadores.email);
 ligarValidacaoAoVivo(cadastroForm.cpf, validadores.cpf);
 ligarValidacaoAoVivo(cadastroForm.senha, validadores.senha);
 if (loginEmailInput) ligarValidacaoAoVivo(loginEmailInput, validadores.email);
+
+// Login social sem conta existente: LoginSocialFailureHandler redireciona pra
+// cá com ?criarConta=1&nome=...&email=... -- so pre-preenche o cadastro (CPF e
+// senha continuam sendo digitados pelo usuario, nenhuma conta e criada aqui).
+(function preencherCadastroViaSocial() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('criarConta') !== '1') return;
+
+    container.classList.add('active');
+    if (params.get('nome')) cadastroForm.nome.value = params.get('nome');
+    if (params.get('email')) cadastroForm.email.value = params.get('email');
+    cadastroMensagem.textContent = 'Complete seu cadastro (CPF e senha) pra continuar.';
+    cadastroMensagem.className = 'form-mensagem info';
+})();
+
+// Mostrar/ocultar senha -- so alterna o type do input irmao, nao interfere
+// na validacao ao vivo (que escuta o evento 'input', nao 'click').
+document.querySelectorAll('.input-toggle-senha').forEach((botao) => {
+    botao.addEventListener('click', () => {
+        const input = botao.closest('.input-group').querySelector('input');
+        const mostrando = input.type === 'text';
+        input.type = mostrando ? 'password' : 'text';
+        botao.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+    });
+});

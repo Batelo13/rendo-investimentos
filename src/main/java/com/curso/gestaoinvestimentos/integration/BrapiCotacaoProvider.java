@@ -66,7 +66,8 @@ public class BrapiCotacaoProvider implements CotacaoProvider {
                     nome,
                     cotacao.currency(),
                     cotacao.regularMarketPrice(),
-                    OffsetDateTime.parse(cotacao.regularMarketTime()).toLocalDateTime()
+                    OffsetDateTime.parse(cotacao.regularMarketTime()).toLocalDateTime(),
+                    cotacao.logourl()
             );
         } catch (HttpClientErrorException ex) {
             if (ex.getStatusCode() == HttpStatusCode.valueOf(401)) {
@@ -94,7 +95,8 @@ public class BrapiCotacaoProvider implements CotacaoProvider {
             String longName,
             String currency,
             BigDecimal regularMarketPrice,
-            String regularMarketTime
+            String regularMarketTime,
+            String logourl
     ) {
     }
 }

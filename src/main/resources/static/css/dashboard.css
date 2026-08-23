@@ -1,195 +1,332 @@
 /*
- * Dashboard pos-login. Layout (sidebar + views + modal + toasts) inspirado no
- * projeto antigo do usuario (Carteira-de-Acao), mas com a paleta/tokens do
- * Rendo (mint + roxo ardosia, bordas 1px sutis) no lugar do indigo/violeta e
- * do glassmorphism do original -- mantem a identidade ja aprovada.
+ * Dashboard pos-login. Redesign 2026-08-23: densidade fintech (sidebar
+ * compacta, indicadores unificados, grafico protagonista) sobre a base de
+ * tokens do Rendo (mint como cor de marca -- lucro usa --success, nao
+ * --brand, ver secao "Lucro / Prejuizo"). Bordas 1px sutis, hierarquia por
+ * luminosidade entre background/surface/surface-elevated em vez de sombra.
  */
 
-.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.app { display: grid; grid-template-columns: 224px 1fr; min-height: 100vh; }
 
 /* Sidebar */
 .sidebar {
     position: sticky; top: 0; height: 100vh;
     display: flex; flex-direction: column;
-    padding: 24px 16px;
-    background-color: var(--rendo-color-surface);
-    border-right: 1px solid var(--rendo-color-border);
+    padding: var(--space-5) var(--space-3);
+    background-color: var(--sidebar);
+    border-right: 1px solid var(--border);
 }
-.sidebar .rendo-logo { padding: 0 8px 22px; }
+.sidebar .rendo-logo { padding: 0 var(--space-2) var(--space-5); }
 
-.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item {
+    position: relative;
     display: flex; align-items: center; gap: 10px;
-    padding: 11px 13px; border: 0; border-radius: var(--rendo-radius-sm); cursor: pointer;
-    background: transparent; color: var(--rendo-color-text-muted);
-    font-size: 14px; font-weight: 600; font-family: inherit;
-    text-align: left; transition: background-color 0.15s ease, color 0.15s ease;
+    padding: 9px 12px 9px 15px; border: 0; border-radius: var(--radius-sm); cursor: pointer;
+    background: transparent; color: var(--text-secondary);
+    font-size: 13.5px; font-weight: 500; font-family: inherit;
+    text-align: left; transition: background-color var(--transition-fast), color var(--transition-fast);
 }
-.nav-item:hover { background-color: rgba(237, 235, 245, 0.05); color: var(--rendo-color-text); }
+.nav-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.85; }
+.nav-item:hover { background-color: rgba(244, 246, 248, 0.04); color: var(--text-primary); }
 .nav-item.active {
-    background-color: rgba(95, 225, 176, 0.12);
-    color: var(--rendo-color-text);
-    box-shadow: inset 0 0 0 1px rgba(95, 225, 176, 0.3);
+    background-color: rgba(93, 226, 186, 0.08);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+.nav-item.active svg { opacity: 1; color: var(--brand); }
+/* Barra lateral discreta em vez de "botao bolha" pra indicar o item ativo. */
+.nav-item.active::before {
+    content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 16px; border-radius: 0 2px 2px 0; background: var(--brand);
 }
 
-.sidebar-foot { margin-top: auto; padding: 8px; }
+.sidebar-foot { margin-top: auto; padding: var(--space-2) 0 0; display: flex; flex-direction: column; gap: 2px; }
 
 .btn-sair, .btn-tema {
     width: 100%;
+    display: flex; align-items: center; gap: 10px;
     background-color: transparent;
-    border: 1px solid var(--rendo-color-border);
-    color: var(--rendo-color-text-muted);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 9px 18px;
-    border-radius: var(--rendo-radius-sm);
+    border: 0;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
-.btn-sair:hover { border-color: var(--rendo-color-danger); color: var(--rendo-color-text); }
-
-.btn-tema { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
-.btn-tema:hover { border-color: var(--rendo-color-accent); color: var(--rendo-color-text); }
-.btn-tema svg { width: 15px; height: 15px; flex-shrink: 0; }
+.btn-sair svg, .btn-tema svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+.btn-sair:hover { background-color: rgba(240, 100, 100, 0.08); color: var(--danger); }
+.btn-tema:hover { background-color: rgba(244, 246, 248, 0.04); color: var(--text-primary); }
 
 /* Main */
-.main { padding: 24px 32px 48px; min-width: 0; }
-.topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.main { padding: var(--space-6) var(--space-8) var(--space-8); min-width: 0; }
+.topbar { display: flex; align-items: flex-end; gap: 16px; margin-bottom: var(--space-6); }
 .topbar-title { flex: 1; min-width: 0; }
-.topbar-title h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-.topbar-title p { margin: 3px 0 0; font-size: 13px; color: var(--rendo-color-text-muted); }
-.hamburger { display: none; background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); color: var(--rendo-color-text); width: 40px; height: 40px; border-radius: var(--rendo-radius-sm); font-size: 18px; cursor: pointer; }
+.topbar-title h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
+.topbar-title p { margin: 4px 0 0; font-size: 13px; color: var(--text-secondary); }
+.hamburger { display: none; background-color: var(--surface); border: 1px solid var(--border); color: var(--text-primary); width: 38px; height: 38px; border-radius: var(--radius-sm); cursor: pointer; align-items: center; justify-content: center; }
+.hamburger svg { width: 18px; height: 18px; }
 
 /* Views */
-.view { display: flex; flex-direction: column; gap: 20px; animation: rendo-aparecer 0.3s ease; }
+.view { display: flex; flex-direction: column; gap: var(--space-5); animation: rendo-aparecer 0.3s ease; }
 .hidden { display: none !important; }
 @keyframes rendo-aparecer { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+/* Indicadores (Visao Geral) -- uma unica grade substitui os antigos
+   "stat cards" + o painel separado "Resultado da carteira": eram dois
+   blocos de card-dentro-de-card fazendo o mesmo trabalho (mostrar um
+   numero com um rotulo). Cada tile e do mesmo tamanho/peso visual; os
+   dois indicadores de resultado usam a mesma tipografia dos demais --
+   a cor por sinal vem do <span class="pl pl-pos/neg"> que fmtResultado()
+   ja injeta dentro do valor, sem precisar de uma classe extra no tile. */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-3); }
 .stat-card {
-    display: flex; flex-direction: column; gap: 6px;
-    padding: 20px 24px; border-radius: var(--rendo-radius-md);
-    background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border);
+    display: flex; flex-direction: column; gap: var(--space-1);
+    padding: var(--space-4); border-radius: var(--radius-md);
+    background-color: var(--surface); border: 1px solid var(--border);
 }
-.stat-label { font-size: 13px; color: var(--rendo-color-text-muted); }
-.stat-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; text-shadow: 0 0 12px rgba(237, 235, 245, 0.25); }
+.stat-card { position: relative; }
+.stat-card-featured { border-color: var(--brand); }
+.stat-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-sm);
+    display: grid; place-items: center; margin-bottom: 2px;
+    background-color: rgba(93, 226, 186, 0.12); color: var(--brand);
+}
+.stat-icon svg { width: 16px; height: 16px; }
+.stat-icon-blue { background-color: rgba(79, 140, 255, 0.14); color: #6EA1FF; }
+.stat-icon-purple { background-color: rgba(167, 118, 255, 0.14); color: #B392FF; }
+.stat-info { position: absolute; top: var(--space-4); right: var(--space-4); width: 14px; height: 14px; color: var(--text-secondary); opacity: 0.5; }
+.stat-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+.stat-value { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.stat-hint { font-size: 11px; color: var(--text-secondary); }
+
+/* Lucro/Prejuizo -- painel proprio (nao mais dentro do stats-grid), com
+   sparkline inline reaproveitando o mesmo state.rendimento ja carregado pro
+   grafico principal (nao e um dado novo/decomposto, so uma fatia menor da
+   mesma serie -- ver renderSparklineNaoRealizado em dashboard.js). */
+.pl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.pl-card {
+    display: flex; flex-direction: column; gap: var(--space-1);
+    padding: var(--space-4); border-radius: var(--radius-md);
+    background-color: var(--surface); border: 1px solid var(--border);
+}
+.pl-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.pl-sparkline { width: 68px; height: 26px; flex-shrink: 0; }
+
+/* Widget IBOV na sidebar -- dado real (GET /mercado/ibovespa), sem sparkline
+   (ver comentario no dashboard.html). */
+.sidebar-ibov {
+    margin-top: var(--space-3); padding: var(--space-3);
+    border-radius: var(--radius-md); background-color: var(--surface-elevated);
+    border: 1px solid var(--border);
+}
+.sidebar-ibov-head { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-secondary); margin-bottom: 4px; }
+.sidebar-ibov-head #ibovNome { font-weight: 700; color: var(--text-primary); }
+.sidebar-ibov-periodo { background: var(--background); border-radius: 4px; padding: 1px 5px; }
+.sidebar-ibov-variacao { margin-left: auto; font-weight: 600; }
+.sidebar-ibov #ibovPontos { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.table-disclaimer { font-size: 11px; color: var(--text-secondary); margin: var(--space-3) 0 0; text-align: center; }
 
 /* Panels */
-.panel { background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); border-radius: var(--rendo-radius-md); padding: 20px; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.panel { background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .panel-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
-.count-badge { display: inline-flex; align-items: center; vertical-align: middle; font-size: 12px; font-weight: 700; color: var(--rendo-color-accent); background: rgba(95,225,176,0.1); border: 1px solid rgba(95,225,176,0.25); padding: 2px 9px; border-radius: 999px; margin-left: 8px; white-space: nowrap; }
+.count-badge { display: inline-flex; align-items: center; vertical-align: middle; font-size: 12px; font-weight: 700; color: var(--brand); background: rgba(93,226,186,0.1); border: 1px solid rgba(93,226,186,0.25); padding: 2px 9px; border-radius: 999px; margin-left: 8px; white-space: nowrap; }
 
 /* Forms */
 .form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field > span { font-size: 12.5px; font-weight: 600; color: var(--rendo-color-text-muted); }
+.field > span { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
 input, select {
-    width: 100%; padding: 11px 13px; border-radius: var(--rendo-radius-sm);
-    background-color: var(--rendo-color-bg); border: 1px solid var(--rendo-color-border); color: var(--rendo-color-text);
+    width: 100%; padding: 11px 13px; border-radius: var(--radius-sm);
+    background-color: var(--background); border: 1px solid var(--border); color: var(--text-primary);
     font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-input::placeholder { color: var(--rendo-color-text-muted); }
-input:focus, select:focus { border-color: var(--rendo-color-accent); box-shadow: 0 0 0 3px rgba(95,225,176,0.15); }
-select option { background-color: var(--rendo-color-surface); color: var(--rendo-color-text); }
-.form-hint { margin: 2px 0 0; font-size: 12px; color: var(--rendo-color-text-muted); line-height: 1.5; }
+input::placeholder { color: var(--text-secondary); }
+input:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(93,226,186,0.15); }
+select option { background-color: var(--surface); color: var(--text-primary); }
+.form-hint { margin: 2px 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 .form-inline { display: flex; gap: 10px; }
 .form-inline input { flex: 1; }
-.filter-input { max-width: 200px; padding: 8px 12px; font-size: 13px; }
+/* min-width:0 -- um <input> flex child nao encolhe abaixo do seu tamanho
+   intrinseco por padrao (~170-200px), entao sem isso ele passava por cima
+   da borda direita do painel em telas mais estreitas em vez de encolher. */
+.filter-input { max-width: 200px; min-width: 0; flex: 1 1 160px; padding: 8px 12px; font-size: 13px; }
 
 /* Buttons */
 .btn {
-    padding: 10px 16px; border-radius: var(--rendo-radius-sm); cursor: pointer;
-    border: 1px solid var(--rendo-color-border); background-color: transparent; color: var(--rendo-color-text);
+    padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer;
+    border: 1px solid var(--border); background-color: transparent; color: var(--text-primary);
     font-size: 14px; font-weight: 600; font-family: inherit; transition: 0.15s ease; white-space: nowrap;
 }
-.btn:hover { border-color: var(--rendo-color-text-muted); }
+.btn:hover { border-color: var(--text-secondary); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background-color: var(--rendo-color-primary); border-color: transparent; color: var(--rendo-color-on-accent); }
-.btn-primary:hover { background-color: var(--rendo-color-primary); filter: brightness(1.12); border-color: transparent; }
+.btn-primary { background-color: var(--brand); border-color: transparent; color: var(--on-brand); }
+.btn-primary:hover { background-color: var(--brand); filter: brightness(1.12); border-color: transparent; }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 .btn-icon { padding: 6px 10px; font-size: 13px; }
 
-.btn-buy { background-color: var(--rendo-color-accent); border-color: transparent; color: var(--rendo-color-on-accent); }
-.btn-buy:hover { background-color: var(--rendo-color-accent); filter: brightness(1.08); border-color: transparent; }
-.btn-sell { background-color: var(--rendo-color-danger); border-color: transparent; color: var(--rendo-color-on-accent); }
-.btn-sell:hover { background-color: var(--rendo-color-danger); filter: brightness(1.08); border-color: transparent; }
-.btn-buy:disabled, .btn-sell:disabled { background-color: transparent; border-color: var(--rendo-color-border); color: var(--rendo-color-text-muted); }
+.btn-buy { background-color: var(--brand); border-color: transparent; color: var(--on-brand); }
+.btn-buy:hover { background-color: var(--brand); filter: brightness(1.08); border-color: transparent; }
+.btn-sell { background-color: var(--danger); border-color: transparent; color: var(--on-brand); }
+.btn-sell:hover { background-color: var(--danger); filter: brightness(1.08); border-color: transparent; }
+.btn-buy:disabled, .btn-sell:disabled { background-color: transparent; border-color: var(--border); color: var(--text-secondary); }
 
-.paginacao { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; color: var(--rendo-color-text-muted); font-size: 13px; }
+/* Ghost -- sem borda nem fundo, so texto + hover sutil. Pra acoes de baixa
+   enfase (icones de tabela, paginacao, "Ver todas"). */
+.btn-ghost { background-color: transparent; border-color: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background-color: rgba(244, 246, 248, 0.05); border-color: transparent; color: var(--text-primary); }
+/* Danger -- acao destrutiva real (nao confundir com .btn-sell, que e uma
+   acao de dominio "vender", nao uma exclusao). */
+.btn-danger { background-color: transparent; border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background-color: rgba(240, 100, 100, 0.08); border-color: var(--danger); }
+
+.paginacao { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; color: var(--text-secondary); font-size: 13px; }
 
 /* Table */
-.table-wrap { overflow-x: auto; }
+/* overflow-y:hidden explicito -- sem isso, o CSS forca overflow-y a virar
+   "auto" sozinho (regra da spec: quando overflow-x nao e "visible" e
+   overflow-y fica no default "visible", o browser converte o "visible" pra
+   "auto" tambem). Combinado com a tabela passando o container em fracao de
+   pixel (sub-pixel rounding), isso fazia o Chrome reservar uma faixa/trilha
+   de scrollbar vertical fantasma embaixo da ultima linha. */
+.table-wrap { overflow-x: auto; overflow-y: hidden; }
 /* --bs-table-bg redefinido aqui (nao so no tokens.css) porque a classe
    .table do Bootstrap ja redeclara essa variavel no proprio elemento
    <table> -- uma variavel redeclarada no elemento vence a herdada do
    :root, entao um override so em tokens.css nao chegava a fazer efeito. */
 .table { width: 100%; border-collapse: collapse; min-width: 640px; --bs-table-bg: transparent; }
-.table th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--rendo-color-text-muted); font-weight: 700; padding: 0 14px 12px; }
+.table th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); font-weight: 700; padding: 0 14px 12px; }
 .table th.num, .table td.num { text-align: right; }
-.table td { padding: 13px 14px; border-top: 1px solid var(--rendo-color-border); font-size: 14px; vertical-align: middle; }
+.table td { padding: 13px 14px; border-top: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
 .table tbody tr:hover { background-color: rgba(237, 235, 245, 0.03); }
 .acoes-col { white-space: nowrap; }
 .acoes-col .btn { margin-left: 4px; }
 
-.tag { display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--rendo-color-border); color: var(--rendo-color-text-muted); }
-.tag-cvm { color: var(--rendo-color-accent); background: rgba(95,225,176,0.1); border-color: rgba(95,225,176,0.3); }
-.tag-buy { color: var(--rendo-color-accent); background: rgba(95,225,176,0.1); border-color: rgba(95,225,176,0.3); }
-.tag-sell { color: var(--rendo-color-danger); background: rgba(240,113,103,0.1); border-color: rgba(240,113,103,0.3); }
+.tag { display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); }
+.tag-cvm { color: var(--brand); background: rgba(93,226,186,0.1); border-color: rgba(93,226,186,0.3); }
+.tag-buy { color: var(--brand); background: rgba(93,226,186,0.1); border-color: rgba(93,226,186,0.3); }
+.tag-sell { color: var(--danger); background: rgba(240,100,100,0.1); border-color: rgba(240,100,100,0.3); }
+
+.acao-ticker-col { display: flex; align-items: center; gap: 8px; }
+.acao-logo { border-radius: 4px; object-fit: contain; background: var(--background); flex-shrink: 0; }
 
 /* Cards (corretoras) */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-.ccard { background-color: var(--rendo-color-bg); border: 1px solid var(--rendo-color-border); border-radius: var(--rendo-radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: border-color 0.15s ease; }
-.ccard:hover { border-color: var(--rendo-color-text-muted); }
+.ccard { background-color: var(--background); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: border-color 0.15s ease; }
+.ccard:hover { border-color: var(--text-secondary); }
 .ccard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .ccard h3 { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.3; }
-.ccard .fantasia { font-size: 12.5px; color: var(--rendo-color-text-muted); }
-.ccard .row { font-size: 13px; color: var(--rendo-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ccard .row b { color: var(--rendo-color-text); font-weight: 600; }
+.ccard .fantasia { font-size: 12.5px; color: var(--text-secondary); }
+.ccard .row { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ccard .row b { color: var(--text-primary); font-weight: 600; }
 
-/* mini list (visao geral) */
+/* mini list (visao geral) -- mini-tabela financeira em grid (nao caixas
+   independentes por linha): colunas fixas, divisor de 1px entre linhas,
+   alinhamento numerico a direita. Colunas secundarias (corretora, preco
+   medio) somem em telas estreitas, ver responsive. */
 .mini-list { display: flex; flex-direction: column; }
-.mini-row { display: flex; align-items: center; gap: 14px; padding: 12px 6px; border-top: 1px solid var(--rendo-color-border); }
+.mini-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 60px 85px 85px 85px 95px 26px;
+    align-items: center; gap: var(--space-3);
+    padding: 11px 4px; border-top: 1px solid var(--border);
+}
 .mini-row:first-child { border-top: 0; }
-.mini-row .m-ticker { font-weight: 700; width: 72px; }
-.mini-row .m-corretora { flex: 1; color: var(--rendo-color-text-muted); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mini-row .m-qtd { font-size: 12.5px; color: var(--rendo-color-text-muted); width: 90px; text-align: right; }
-.mini-row .m-preco-medio { font-size: 12.5px; color: var(--rendo-color-text-muted); width: 120px; text-align: right; }
-.mini-row .m-valor { font-weight: 700; text-shadow: 0 0 12px rgba(237, 235, 245, 0.25); }
+.mini-row .m-ativo { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mini-row .m-ativo-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mini-row .m-ticker { font-weight: 700; font-size: 13.5px; }
+.mini-row .m-empresa { font-size: 11.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-row .m-corretora { display: flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-row .m-corretora-badge { flex-shrink: 0; background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-weight: 700; color: var(--text-primary); }
+.mini-row .m-qtd, .mini-row .m-preco-medio, .mini-row .m-preco-atual { font-size: 12.5px; color: var(--text-secondary); text-align: right; font-variant-numeric: tabular-nums; }
+.mini-row .m-resultado { text-align: right; font-size: 13px; }
+.mini-row .m-valor { font-weight: 700; font-size: 13.5px; text-align: right; font-variant-numeric: tabular-nums; }
 
-/* Rendimento chart */
-#rendimentoChartWrap { width: 100%; }
-#rendimentoChart { width: 100%; height: 160px; display: block; }
-.rendimento-zero { stroke: var(--rendo-color-border); stroke-width: 1; stroke-dasharray: 4 4; }
+.m-kebab-wrap { position: relative; justify-self: end; }
+.m-kebab {
+    width: 26px; height: 26px; display: grid; place-items: center;
+    background: transparent; border: 0; border-radius: var(--radius-sm);
+    color: var(--text-secondary); cursor: pointer;
+}
+.m-kebab:hover { background-color: var(--surface-elevated); color: var(--text-primary); }
+.m-kebab svg { width: 15px; height: 15px; }
+.row-menu {
+    position: absolute; right: 0; top: 30px; z-index: 20; min-width: 120px;
+    background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    box-shadow: 0 12px 24px -12px rgba(0,0,0,0.5); padding: 4px; display: none;
+}
+.row-menu.open { display: block; }
+.row-menu button {
+    width: 100%; text-align: left; background: transparent; border: 0; color: var(--text-primary);
+    font-size: 12.5px; font-family: inherit; padding: 7px 9px; border-radius: 5px; cursor: pointer;
+}
+.row-menu button:hover { background-color: var(--surface); }
+
+/* Evolucao patrimonial (grafico) -- protagonista do dashboard: mais alto
+   que antes, grid horizontal discreto, preenchimento sutil sob a linha,
+   tooltip proprio (sem lib de grafico, mesmo SVG feito na mao de antes). */
+.chart-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: var(--space-4); }
+.chart-periodos { display: flex; gap: 2px; background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px; }
+.chart-periodo {
+    border: 1px solid transparent; background: transparent; color: var(--text-secondary);
+    font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer;
+    padding: 4px 10px; border-radius: 5px; transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+.chart-periodo:hover { color: var(--text-primary); }
+.chart-periodo.active { border-color: var(--brand); color: var(--text-primary); }
+
+#rendimentoChartWrap { width: 100%; position: relative; padding: 0 0 20px 56px; }
+#rendimentoChart { width: 100%; height: 220px; display: block; overflow: visible; }
+.chart-axis-y { position: absolute; top: 0; left: 0; width: 48px; height: 220px; }
+.chart-axis-y span { position: absolute; left: 0; transform: translateY(-50%); font-size: 11px; color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chart-axis-x { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-secondary); }
+.rendimento-grid { stroke: var(--border); stroke-width: 1; opacity: 0.6; }
+.rendimento-zero { stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.7; }
 .rendimento-linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.rendimento-area { stroke: none; opacity: 0.14; }
+.rendimento-ponto-hover { fill: var(--surface); stroke-width: 2; r: 4; pointer-events: none; }
+.rendimento-guide { stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.5; pointer-events: none; }
+
+.chart-tooltip {
+    position: absolute; pointer-events: none; z-index: 5;
+    background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 7px 10px; font-size: 12px; line-height: 1.4; white-space: nowrap;
+    box-shadow: 0 12px 24px -12px rgba(0,0,0,0.5);
+    transform: translate(-50%, -100%); margin-top: -10px;
+    opacity: 0; transition: opacity var(--transition-fast);
+}
+.chart-tooltip.show { opacity: 1; }
+.chart-tooltip .tt-data { color: var(--text-secondary); }
+.chart-tooltip .tt-valor { display: block; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.chart-skeleton { height: 220px; border-radius: var(--radius-sm); background: linear-gradient(90deg, var(--surface) 25%, var(--surface-elevated) 37%, var(--surface) 63%); background-size: 400% 100%; animation: rendo-skeleton 1.4s ease infinite; }
+@keyframes rendo-skeleton { from { background-position: 100% 0; } to { background-position: 0 0; } }
 
 /* Search + empty */
 .search-result { margin-top: 14px; }
-.empty { text-align: center; padding: 32px; color: var(--rendo-color-text-muted); font-size: 14px; }
+.empty { text-align: center; padding: 32px; color: var(--text-secondary); font-size: 14px; }
 
 /* Detail rows (modal/busca) */
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 22px; }
 .detail-item { display: flex; flex-direction: column; gap: 3px; }
-.detail-item .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--rendo-color-text-muted); font-weight: 700; }
+.detail-item .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); font-weight: 700; }
 .detail-item .v { font-size: 14px; font-weight: 500; }
 .detail-full { grid-column: 1 / -1; }
 
-/* Resultado da carteira */
-.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.result-box { display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: var(--rendo-radius-sm); background-color: var(--rendo-color-bg); border: 1px solid var(--rendo-color-border); }
-.result-label { font-size: 12.5px; font-weight: 600; color: var(--rendo-color-text-muted); }
-.result-value { font-size: 22px; font-weight: 700; }
-.result-hint { font-size: 11.5px; color: var(--rendo-color-text-muted); }
-
-/* Lucro / Prejuizo */
-.pl { font-weight: 700; white-space: nowrap; }
-.pl-pos { color: var(--rendo-color-accent); text-shadow: 0 0 12px rgba(95, 225, 176, 0.35); }
-.pl-neg { color: var(--rendo-color-danger); text-shadow: 0 0 12px rgba(240, 113, 103, 0.35); }
-.pl-zero { color: var(--rendo-color-text-muted); }
-.valor-convertido { display: block; font-size: 11.5px; font-weight: 400; color: var(--rendo-color-text-muted); margin-top: 2px; }
+/* Lucro / Prejuizo -- sem glow: cor plana ja diferencia o sinal, sombra
+   de texto so acrescentava um efeito decorativo sem funcao. */
+.pl { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pl-pos { color: var(--success); }
+.pl-neg { color: var(--danger); }
+.pl-zero { color: var(--text-secondary); }
+.valor-convertido { display: block; font-size: 11.5px; font-weight: 400; color: var(--text-secondary); margin-top: 2px; }
 
 /* Modal
    Nomes prefixados com "rendo-" de proposito: ".modal" e ".modal-backdrop"
@@ -198,52 +335,65 @@ select option { background-color: var(--rendo-color-surface); color: var(--rendo
    um <div class="modal"> sem essa colisao ficava com display:none herdado
    (0x0 no layout) mesmo com a classe "hidden" removida. */
 .rendo-modal-backdrop { position: fixed; inset: 0; background: rgba(4,7,16,0.7); display: grid; place-items: center; padding: 20px; z-index: 60; animation: rendo-aparecer 0.2s; }
-.rendo-modal { position: relative; width: min(560px, 100%); max-height: 86vh; overflow: auto; background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); border-radius: var(--rendo-radius-md); padding: 26px; box-shadow: 0 30px 60px -24px rgba(0,0,0,0.55); }
-.rendo-modal-close { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: var(--rendo-radius-sm); border: 1px solid var(--rendo-color-border); background-color: transparent; color: var(--rendo-color-text); cursor: pointer; font-size: 14px; }
-.rendo-modal-close:hover { border-color: var(--rendo-color-text-muted); }
+.rendo-modal { position: relative; width: min(560px, 100%); max-height: 86vh; overflow: auto; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 26px; box-shadow: 0 30px 60px -24px rgba(0,0,0,0.55); }
+.rendo-modal-close { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border); background-color: transparent; color: var(--text-primary); cursor: pointer; font-size: 14px; }
+.rendo-modal-close:hover { border-color: var(--text-secondary); }
 .rendo-modal h2 { margin: 0 0 4px; font-size: 19px; }
-.rendo-modal .sub { color: var(--rendo-color-text-muted); margin: 0 0 18px; font-size: 13.5px; }
-.op-info { background-color: var(--rendo-color-bg); border: 1px solid var(--rendo-color-border); border-radius: var(--rendo-radius-sm); padding: 11px 14px; font-size: 13px; color: var(--rendo-color-text-muted); margin-bottom: 16px; }
-.op-info b { color: var(--rendo-color-text); }
-.op-resumo-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--rendo-radius-sm); background-color: var(--rendo-color-bg); border: 1px solid var(--rendo-color-border); font-size: 13.5px; color: var(--rendo-color-text-muted); margin-top: 8px; }
-.op-resumo-row b { font-size: 15px; color: var(--rendo-color-text); }
+.rendo-modal .sub { color: var(--text-secondary); margin: 0 0 18px; font-size: 13.5px; }
+.op-info { background-color: var(--background); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+.op-info b { color: var(--text-primary); }
+.op-resumo-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--radius-sm); background-color: var(--background); border: 1px solid var(--border); font-size: 13.5px; color: var(--text-secondary); margin-top: 8px; }
+.op-resumo-row b { font-size: 15px; color: var(--text-primary); }
 
 /* Toasts */
 .toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 80; max-width: 340px; }
-.toast { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border-radius: var(--rendo-radius-sm); background-color: var(--rendo-color-surface); border: 1px solid var(--rendo-color-border); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); animation: rendo-toast-in 0.2s ease; }
-.toast .t-body { font-size: 13.5px; line-height: 1.45; }
-.toast .t-body b { display: block; margin-bottom: 2px; font-size: 14px; }
-.toast.ok { border-left: 3px solid var(--rendo-color-accent); }
-.toast.err { border-left: 3px solid var(--rendo-color-danger); }
-.toast.info { border-left: 3px solid var(--rendo-color-text-muted); }
+.rendo-toast { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px; border-radius: var(--radius-sm); background-color: var(--surface); border: 1px solid var(--border); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); animation: rendo-toast-in 0.2s ease; }
+.rendo-toast .t-body { font-size: 13.5px; line-height: 1.45; }
+.rendo-toast .t-body b { display: block; margin-bottom: 2px; font-size: 14px; }
+.rendo-toast.ok { border-left: 3px solid var(--brand); }
+.rendo-toast.err { border-left: 3px solid var(--danger); }
+.rendo-toast.info { border-left: 3px solid var(--text-secondary); }
 
 /* ------------------------ SweetAlert2 (confirmacao) ---------------------- */
-.swal2-popup { background: var(--rendo-color-surface); color: var(--rendo-color-text); border-radius: var(--rendo-radius-md); }
-.swal2-title { color: var(--rendo-color-text); }
-.swal2-html-container { color: var(--rendo-color-text-muted); }
+.swal2-popup { background: var(--surface); color: var(--text-primary); border-radius: var(--radius-md); }
+.swal2-title { color: var(--text-primary); }
+.swal2-html-container { color: var(--text-secondary); }
 .swal-resumo .op-resumo-row { margin-top: 8px; }
 .swal-resumo .op-resumo-row:first-child { margin-top: 0; }
-.swal2-confirm { background: var(--rendo-color-accent) !important; color: var(--rendo-color-bg) !important; box-shadow: none !important; }
-.swal2-cancel { background: transparent !important; color: var(--rendo-color-text-muted) !important; border: 1px solid var(--rendo-color-border) !important; box-shadow: none !important; }
+.swal2-confirm { background: var(--brand) !important; color: var(--background) !important; box-shadow: none !important; }
+.swal2-cancel { background: transparent !important; color: var(--text-secondary) !important; border: 1px solid var(--border) !important; box-shadow: none !important; }
 
 @keyframes rendo-toast-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
 
 /* Spinner */
-.spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(237,235,245,0.35); border-top-color: var(--rendo-color-text); border-radius: 50%; animation: rendo-rot 0.7s linear infinite; vertical-align: -2px; }
+.spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(244,246,248,0.35); border-top-color: var(--text-primary); border-radius: 50%; animation: rendo-rot 0.7s linear infinite; vertical-align: -2px; }
 @keyframes rendo-rot { to { transform: rotate(360deg); } }
-.loading-row { text-align: center; padding: 28px; color: var(--rendo-color-text-muted); }
+.loading-row { text-align: center; padding: 28px; color: var(--text-secondary); }
 
 /* Responsive */
-@media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1366px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .mini-row { grid-template-columns: minmax(0, 1.6fr) 92px 100px 26px; }
+    .mini-row .m-corretora, .mini-row .m-qtd, .mini-row .m-preco-medio, .mini-row .m-preco-atual { display: none; }
+}
 @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; }
-    .sidebar { position: fixed; left: 0; top: 0; z-index: 70; width: 240px; transform: translateX(-100%); transition: transform 0.25s ease; }
+    .sidebar { position: fixed; left: 0; top: 0; z-index: 70; width: 224px; height: 100dvh; transform: translateX(-100%); transition: transform 0.25s ease; }
     .sidebar.open { transform: none; box-shadow: 0 0 60px rgba(0,0,0,0.6); }
-    .hamburger { display: grid; place-items: center; }
-    .grid-2 { grid-template-columns: 1fr; }
-    .main { padding: 18px 16px 40px; }
+    .hamburger { display: flex; }
+    .grid-2, .pl-grid { grid-template-columns: 1fr; }
+    .main { padding: var(--space-4) var(--space-4) var(--space-8); }
+    .chart-head { align-items: flex-start; }
+}
+@media (max-width: 640px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 520px) {
-    .stats-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+    .stat-card { padding: var(--space-3); }
     .detail-grid { grid-template-columns: 1fr; }
+    .mini-row { grid-template-columns: minmax(0, 1fr) 90px 26px; }
+    .mini-row .m-resultado { display: none; }
+    #rendimentoChart { height: 170px; }
 }

@@ -8,6 +8,7 @@ public record DadosCotacaoResponse(
         String nomeEmpresa,
         String moeda,
         BigDecimal cotacaoAtual,
-        LocalDateTime dataHoraCotacao
+        LocalDateTime dataHoraCotacao,
+        String logoUrl
 ) {
 }

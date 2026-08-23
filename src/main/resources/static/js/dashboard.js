@@ -18,7 +18,13 @@ const state = {
     operacoesPagina: { numero: 0, totalPages: 1 },
     corretoras: [],
     rendimento: [],
+    periodoChart: "TUDO",
 };
+
+// Pontos do grafico no espaco do viewBox (preenchido a cada render), usado
+// pelo tooltip on-hover pra achar o ponto mais proximo do mouse sem
+// recalcular a projecao a cada movimento.
+let pontosChartAtual = [];
 
 /* ----------------------------- HTTP ------------------------------ */
 async function api(path, options = {}) {
@@ -51,6 +57,15 @@ function moedaPorTicker(ticker) {
     return acao ? acao.moeda : "BRL";
 }
 
+function nomeEmpresaPorTicker(ticker) {
+    const acao = state.acoes.find((a) => a.ticker === ticker);
+    return acao ? acao.nomeEmpresa : null;
+}
+
+function acaoPorTicker(ticker) {
+    return state.acoes.find((a) => a.ticker === ticker) || null;
+}
+
 function fmtMoeda(valor, moeda) {
     if (valor == null) return "—";
     const cur = moeda === "USD" ? "USD" : "BRL";
@@ -80,7 +95,24 @@ function fmtCnpj(c) {
 }
 
 function mercadoTag(m) {
-    return m === "EUA" ? `<span class="tag">🇺🇸 EUA</span>` : `<span class="tag">🇧🇷 Brasil</span>`;
+    return m === "EUA" ? `<span class="tag">US EUA</span>` : `<span class="tag">BR Brasil</span>`;
+}
+
+function acaoLogoHTML(a, size = 24) {
+    if (!a.logoUrl) return "";
+    return `<img class="acao-logo" src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`;
+}
+
+/* ---------------------------- Icones (SVG) ---------------------------- */
+function icone(nome, size = 14) {
+    const paths = {
+        refresh: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+        expand: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/>',
+        badgeCheck: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+        mapPin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+        kebab: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
+    };
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="${size}" height="${size}" style="vertical-align:-2px">${paths[nome] || ""}</svg>`;
 }
 
 function fmtResultado(valor, moeda) {
@@ -113,7 +145,7 @@ function fmtConvertido(valorNaMoedaOriginal, ticker) {
 /* --------------------------- Toasts ------------------------------ */
 function toast(titulo, msg = "", tipo = "ok") {
     const el = document.createElement("div");
-    el.className = `toast ${tipo}`;
+    el.className = `rendo-toast ${tipo}`;
     const corpo = document.createElement("div");
     corpo.className = "t-body";
     const b = document.createElement("b");
@@ -156,6 +188,7 @@ function renderVisaoGeral() {
     $("#statCorretoras").textContent = state.corretoras.length;
 
     let naoRealizado = 0;
+    let valorPosicoesBRL = 0;
     for (const p of state.posicoes) {
         if (p.valorAtual == null || p.valorInvestido == null) continue;
         const moeda = moedaPorTicker(p.acaoTicker);
@@ -165,7 +198,11 @@ function renderVisaoGeral() {
             if (taxa == null) continue; // taxa indisponivel -- exclui em vez de tratar como 1:1
         }
         naoRealizado += (Number(p.valorAtual) - Number(p.valorInvestido)) * taxa;
+        valorPosicoesBRL += Number(p.valorAtual) * taxa;
     }
+    $("#statPatrimonioTotal").textContent = state.saldo
+        ? fmtMoeda(Number(state.saldo.saldoDisponivel) + valorPosicoesBRL, "BRL")
+        : "—";
     const realizado = state.operacoes
         .filter((o) => o.tipo === "VENDA" && o.status === "ATIVA")
         .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0) * Number(o.taxaCambio || 1), 0);
@@ -181,35 +218,114 @@ function renderVisaoGeral() {
         dash.innerHTML = `<div class="empty">Nenhuma posição ainda. Vá em <b>Ações</b> para comprar.</div>`;
         return;
     }
-    dash.innerHTML = recentes.map((p) => {
+    dash.innerHTML = recentes.map((p, i) => {
         const moeda = moedaPorTicker(p.acaoTicker);
+        const acao = acaoPorTicker(p.acaoTicker);
+        const resultado = p.valorAtual != null ? Number(p.valorAtual) - Number(p.valorInvestido) : null;
         return `
         <div class="mini-row">
-            <span class="m-ticker">${esc(p.acaoTicker)}</span>
-            <span class="m-corretora">${esc(p.corretoraNome)}</span>
+            <span class="m-ativo">
+                ${acao ? acaoLogoHTML(acao, 22) : ""}
+                <span class="m-ativo-info">
+                    <span class="m-ticker">${esc(p.acaoTicker)}</span>
+                    ${acao && acao.nomeEmpresa ? `<span class="m-empresa">${esc(acao.nomeEmpresa)}</span>` : ""}
+                </span>
+            </span>
+            <span class="m-corretora">
+                <span class="m-corretora-badge">${esc((p.corretoraNome || "—").slice(0, 2).toUpperCase())}</span>
+                ${esc(p.corretoraNome)}
+            </span>
             <span class="m-qtd">${esc(fmtNumero(p.quantidade))} un.</span>
-            <span class="m-preco-medio">PM ${esc(fmtMoeda(p.precoMedio, moeda))}</span>
+            <span class="m-preco-medio">${esc(fmtMoeda(p.precoMedio, moeda))}</span>
+            <span class="m-preco-atual">${acao && acao.cotacaoAtual != null ? esc(fmtMoeda(acao.cotacaoAtual, moeda)) : "—"}</span>
+            <span class="m-resultado">${fmtResultado(resultado, moeda)}</span>
             <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</span>
+            <span class="m-kebab-wrap">
+                <button type="button" class="m-kebab" data-kebab="${i}" aria-label="Mais ações">${icone("kebab")}</button>
+                <div class="row-menu" id="rowMenu${i}">
+                    <button type="button" data-sell="${i}">Vender</button>
+                </div>
+            </span>
         </div>`;
     }).join("");
+
+    renderSparklineNaoRealizado();
+}
+
+// Reaproveita a MESMA serie ja buscada pro grafico principal (state.rendimento
+// = rendimento total realizado+nao-realizado ao longo do tempo) -- nao e uma
+// decomposicao exata de "so nao realizado", mas e dado real, nao inventado; o
+// rotulo do card ja deixa claro que e sobre a carteira como um todo.
+function renderSparklineNaoRealizado() {
+    const svg = $("#sparklineNaoRealizado");
+    if (!svg) return;
+    const pontos = state.rendimento.slice(-20);
+    if (pontos.length < 2) { svg.innerHTML = ""; return; }
+
+    const valores = pontos.map((p) => Number(p.rendimento));
+    const min = Math.min(...valores), max = Math.max(...valores);
+    const range = (max - min) || 1;
+    const coords = valores.map((v, i) => {
+        const x = (i / (valores.length - 1)) * 100;
+        const y = 26 - ((v - min) / range) * 24 - 1;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const cor = valores[valores.length - 1] >= valores[0] ? "var(--success)" : "var(--danger)";
+    svg.innerHTML = `<polyline points="${coords.join(" ")}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+}
+
+/* ------------------------------- IBOV ------------------------------- */
+// Widget decorativo da sidebar: dado real (brapi, mesmo provider ja usado
+// pras acoes brasileiras). Falha silenciosamente (widget some) em vez de
+// quebrar o dashboard -- e um extra, nao um dado essencial da carteira.
+async function carregarIbovespa() {
+    try {
+        const r = await fetch("/mercado/ibovespa");
+        if (!r.ok) throw new Error("ibovespa indisponivel");
+        const indice = await r.json();
+        $("#ibovNome").textContent = indice.nome;
+        $("#ibovPontos").textContent = fmtNumero(indice.pontos) + " pts";
+        const variacao = Number(indice.variacaoPercentual || 0);
+        const el = $("#ibovVariacao");
+        el.textContent = `${variacao >= 0 ? "+" : ""}${variacao.toFixed(2)}%`;
+        el.style.color = variacao >= 0 ? "var(--success)" : "var(--danger)";
+        $("#sidebarIbov").classList.remove("hidden");
+    } catch {
+        $("#sidebarIbov")?.classList.add("hidden");
+    }
+}
+
+const PERIODO_DIAS = { "1D": 1, "1M": 30, "3M": 90, "6M": 180, "1A": 365, TUDO: null };
+
+function filtrarPontosPorPeriodo(pontos, periodo) {
+    const dias = PERIODO_DIAS[periodo];
+    if (!dias) return pontos;
+    const corte = Date.now() - dias * 24 * 60 * 60 * 1000;
+    return pontos.filter((p) => new Date(p.timestamp).getTime() >= corte);
 }
 
 function renderRendimentoChart() {
     const wrap = $("#rendimentoChartWrap");
     const svg = $("#rendimentoChart");
-    const pontos = state.rendimento;
-
     wrap.querySelector(".empty")?.remove();
+    wrap.querySelector(".chart-skeleton")?.remove();
+    wrap.querySelectorAll(".chart-axis-y, .chart-axis-x").forEach((el) => el.remove());
+
+    const pontos = filtrarPontosPorPeriodo(state.rendimento, state.periodoChart);
+    pontosChartAtual = [];
 
     if (pontos.length < 2) {
         svg.classList.add("hidden");
-        wrap.insertAdjacentHTML("beforeend",
-            `<div class="empty">Ainda não há pontos suficientes pro gráfico. Compre uma ação e atualize a cotação pra começar a ver o rendimento.</div>`);
+        $("#chartTooltip").classList.remove("show");
+        const msg = state.rendimento.length < 2
+            ? "Ainda não há pontos suficientes pro gráfico. Compre uma ação e atualize a cotação pra começar a ver o rendimento."
+            : "Sem dados suficientes nesse período.";
+        wrap.insertAdjacentHTML("beforeend", `<div class="empty">${msg}</div>`);
         return;
     }
     svg.classList.remove("hidden");
 
-    const W = 600, H = 160, PAD = 8;
+    const W = 600, H = 220, PAD_X = 8, PAD_Y = 16;
     const tempos = pontos.map((p) => new Date(p.timestamp).getTime());
     const valores = pontos.map((p) => Number(p.rendimento));
 
@@ -218,20 +334,100 @@ function renderRendimentoChart() {
     const vMin = Math.min(0, ...valores), vMax = Math.max(0, ...valores);
     const vRange = (vMax - vMin) || 1;
 
-    const coords = pontos.map((_, i) => {
-        const x = tRange > 0 ? PAD + ((tempos[i] - tMin) / tRange) * (W - 2 * PAD) : (W / (pontos.length - 1)) * i;
-        const y = H - PAD - ((valores[i] - vMin) / vRange) * (H - 2 * PAD);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
+    const xDe = (i) => tRange > 0 ? PAD_X + ((tempos[i] - tMin) / tRange) * (W - 2 * PAD_X) : (W / (pontos.length - 1)) * i;
+    const yDe = (v) => H - PAD_Y - ((v - vMin) / vRange) * (H - 2 * PAD_Y);
+
+    pontosChartAtual = pontos.map((p, i) => ({ x: xDe(i), y: yDe(valores[i]), valor: valores[i], data: p.timestamp }));
+    const coords = pontosChartAtual.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`);
 
     const ultimo = valores[valores.length - 1];
-    const cor = ultimo >= 0 ? "var(--rendo-color-accent)" : "var(--rendo-color-danger)";
-    const yZero = H - PAD - ((0 - vMin) / vRange) * (H - 2 * PAD);
+    const cor = ultimo >= 0 ? "var(--success)" : "var(--danger)";
+    const yZero = yDe(0);
+
+    // Grid horizontal discreto: 3 linhas guia (25/50/75% da altura util).
+    const grid = [0.25, 0.5, 0.75].map((f) => {
+        const y = (PAD_Y + (H - 2 * PAD_Y) * f).toFixed(1);
+        return `<line x1="0" y1="${y}" x2="${W}" y2="${y}" class="rendimento-grid"></line>`;
+    }).join("");
+
+    const areaId = "rendimentoAreaGrad";
+    const area = `M${coords[0]} L${coords.join(" L")} L${pontosChartAtual[pontosChartAtual.length - 1].x.toFixed(1)},${H} L${pontosChartAtual[0].x.toFixed(1)},${H} Z`;
 
     svg.innerHTML = `
+        <defs>
+            <linearGradient id="${areaId}" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="${cor}" stop-opacity="0.5"></stop>
+                <stop offset="100%" stop-color="${cor}" stop-opacity="0"></stop>
+            </linearGradient>
+        </defs>
+        ${grid}
         <line x1="0" y1="${yZero.toFixed(1)}" x2="${W}" y2="${yZero.toFixed(1)}" class="rendimento-zero"></line>
+        <path d="${area}" class="rendimento-area" fill="url(#${areaId})"></path>
+        <line class="rendimento-guide hidden" id="rendimentoGuide" x1="0" y1="0" x2="0" y2="${H}"></line>
         <polyline points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
+        <circle class="rendimento-ponto-hover hidden" id="rendimentoPontoHover" style="stroke:${cor}" cx="0" cy="0"></circle>
     `;
+
+    wrap.querySelectorAll(".chart-axis-y, .chart-axis-x").forEach((el) => el.remove());
+    wrap.insertAdjacentHTML("beforeend", `
+        <div class="chart-axis-y">
+            <span style="top:${(PAD_Y / H * 100).toFixed(1)}%">${esc(fmtMoeda(vMax, "BRL"))}</span>
+            <span style="top:${((H - PAD_Y) / H * 100).toFixed(1)}%">${esc(fmtMoeda(vMin, "BRL"))}</span>
+        </div>
+        <div class="chart-axis-x">
+            <span>${esc(fmtData(pontos[0].timestamp))}</span>
+            <span>${esc(fmtData(pontos[pontos.length - 1].timestamp))}</span>
+        </div>
+    `);
+}
+
+function moverTooltipChart(clientX, clientY) {
+    if (!pontosChartAtual.length) return;
+    const svg = $("#rendimentoChart");
+    const wrap = $("#rendimentoChartWrap");
+    const tooltip = $("#chartTooltip");
+    const svgRect = svg.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    if (clientX < svgRect.left || clientX > svgRect.right) { esconderTooltipChart(); return; }
+
+    const escalaX = svgRect.width / 600;
+    const xAlvo = (clientX - svgRect.left) / escalaX;
+    let maisProximo = pontosChartAtual[0];
+    for (const p of pontosChartAtual) {
+        if (Math.abs(p.x - xAlvo) < Math.abs(maisProximo.x - xAlvo)) maisProximo = p;
+    }
+
+    const ponto = $("#rendimentoPontoHover");
+    if (ponto) {
+        ponto.setAttribute("cx", maisProximo.x.toFixed(1));
+        ponto.setAttribute("cy", maisProximo.y.toFixed(1));
+        ponto.classList.remove("hidden");
+    }
+    const guia = $("#rendimentoGuide");
+    if (guia) {
+        guia.setAttribute("x1", maisProximo.x.toFixed(1));
+        guia.setAttribute("x2", maisProximo.x.toFixed(1));
+        guia.classList.remove("hidden");
+    }
+
+    const pxX = (svgRect.left - wrapRect.left) + maisProximo.x * escalaX;
+    const pxY = (svgRect.top - wrapRect.top) + maisProximo.y;
+    tooltip.style.left = `${pxX}px`;
+    tooltip.style.top = `${pxY}px`;
+    tooltip.innerHTML = `<span class="tt-data">${esc(fmtData(maisProximo.data))}</span><span class="tt-valor">${esc(fmtMoeda(maisProximo.valor, "BRL"))}</span>`;
+    tooltip.classList.add("show");
+}
+
+function esconderTooltipChart() {
+    $("#chartTooltip")?.classList.remove("show");
+    $("#rendimentoPontoHover")?.classList.add("hidden");
+    $("#rendimentoGuide")?.classList.add("hidden");
+}
+
+function mudarPeriodoChart(periodo) {
+    state.periodoChart = periodo;
+    $$(".chart-periodo").forEach((b) => b.classList.toggle("active", b.dataset.periodo === periodo));
+    renderRendimentoChart();
 }
 
 function renderAcoes() {
@@ -245,14 +441,14 @@ function renderAcoes() {
 
     tbody.innerHTML = lista.map((a) => `
         <tr>
-            <td>${esc(a.ticker)}</td>
+            <td class="acao-ticker-col">${acaoLogoHTML(a)}${esc(a.ticker)}</td>
             <td>${esc(a.nomeEmpresa || "—")}</td>
             <td>${mercadoTag(a.mercado)}</td>
             <td class="num">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</td>
             <td class="acoes-col">
                 <button class="btn btn-buy btn-icon" data-buy="${a.id}">Comprar</button>
-                <button class="btn btn-icon" title="Atualizar cotação" data-refresh-acao="${a.id}">⟳</button>
-                <button class="btn btn-icon" title="Detalhes" data-detail-acao="${a.id}">⤢</button>
+                <button class="btn btn-ghost btn-icon" title="Atualizar cotação" data-refresh-acao="${a.id}">${icone("refresh")}</button>
+                <button class="btn btn-ghost btn-icon" title="Detalhes" data-detail-acao="${a.id}">${icone("expand")}</button>
             </td>
         </tr>`).join("");
 
@@ -365,10 +561,10 @@ function renderCorretoras() {
                     <h3>${esc(c.nomeFantasia || c.razaoSocial || "—")}</h3>
                     ${c.nomeFantasia && c.razaoSocial ? `<div class="fantasia">${esc(c.razaoSocial)}</div>` : ""}
                 </div>
-                ${c.validadaNaCvm ? '<span class="tag tag-cvm">✔ CVM</span>' : ""}
+                ${c.validadaNaCvm ? `<span class="tag tag-cvm">${icone("badgeCheck", 12)} CVM</span>` : ""}
             </div>
             <div class="row">${esc(fmtCnpj(c.cnpj))}</div>
-            <div class="row">📍 <b>${esc(c.cidade || "—")}${c.uf ? "/" + esc(c.uf) : ""}</b></div>
+            <div class="row">${icone("mapPin", 13)} <b>${esc(c.cidade || "—")}${c.uf ? "/" + esc(c.uf) : ""}</b></div>
         </div>`).join("");
 
     if (state.corretoras.length && !lista.length) {
@@ -391,7 +587,18 @@ async function carregarOperacoes(pagina = 0) {
     state.operacoesPagina = { numero: resp.number ?? pagina, totalPages: resp.totalPages ?? 1 };
 }
 
+function mostrarSkeletonChart() {
+    const wrap = $("#rendimentoChartWrap");
+    $("#rendimentoChart")?.classList.add("hidden");
+    esconderTooltipChart();
+    wrap.querySelector(".empty")?.remove();
+    if (!wrap.querySelector(".chart-skeleton")) {
+        wrap.insertAdjacentHTML("beforeend", `<div class="chart-skeleton"></div>`);
+    }
+}
+
 async function carregarTudo() {
+    mostrarSkeletonChart();
     try {
         // Ações e corretoras pedem uma página grande porque o dashboard as usa
         // como cache completo (dropdown do modal de compra, lookup de moeda por
@@ -413,6 +620,7 @@ async function carregarTudo() {
     } catch (e) {
         toast("Falha ao carregar dados", e.message, "err");
     }
+    carregarIbovespa(); // widget decorativo -- nao bloqueia nem falha o resto do dashboard
 }
 
 /* --------------------------- Detalhes ------------------------------ */
@@ -424,7 +632,7 @@ function fecharModal() { $("#modal").classList.add("hidden"); }
 
 function detalheAcaoHTML(a) {
     return `
-        <h2>${esc(a.ticker)} ${mercadoTag(a.mercado)}</h2>
+        <h2>${acaoLogoHTML(a, 32)}${esc(a.ticker)} ${mercadoTag(a.mercado)}</h2>
         <p class="sub">${esc(a.nomeEmpresa || "Empresa não informada")}</p>
         <div class="detail-grid">
             <div class="detail-item"><span class="k">Cotação atual</span><span class="v">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</span></div>
@@ -432,14 +640,14 @@ function detalheAcaoHTML(a) {
         </div>
         <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap">
             <button class="btn btn-buy" data-buy="${a.id}">Comprar</button>
-            <button class="btn" data-refresh-acao="${a.id}">⟳ Atualizar cotação</button>
+            <button class="btn" data-refresh-acao="${a.id}">${icone("refresh")} Atualizar cotação</button>
         </div>`;
 }
 
 function detalheCorretoraHTML(c) {
     const endereco = [c.logradouro, c.numero, c.complemento].filter(Boolean).join(", ");
     return `
-        <h2>${esc(c.nomeFantasia || c.razaoSocial)} ${c.validadaNaCvm ? '<span class="tag tag-cvm">✔ CVM</span>' : ""}</h2>
+        <h2>${esc(c.nomeFantasia || c.razaoSocial)} ${c.validadaNaCvm ? `<span class="tag tag-cvm">${icone("badgeCheck", 12)} CVM</span>` : ""}</h2>
         <p class="sub">${esc(c.razaoSocial || "")}</p>
         <div class="detail-grid">
             <div class="detail-item"><span class="k">CNPJ</span><span class="v">${esc(fmtCnpj(c.cnpj))}</span></div>
@@ -612,7 +820,7 @@ async function buscarAcao(e) {
     box.innerHTML = `<div class="loading-row"><span class="spin"></span> Buscando…</div>`;
     try {
         const a = await api(`/acoes/ticker/${encodeURIComponent(ticker)}`);
-        box.innerHTML = `<div class="panel" style="background-color:var(--rendo-color-bg)">${detalheAcaoHTML(a)}</div>`;
+        box.innerHTML = `<div class="panel" style="background-color:var(--background)">${detalheAcaoHTML(a)}</div>`;
     } catch (err) {
         box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
     }
@@ -658,7 +866,7 @@ async function buscarCorretora(e) {
     box.innerHTML = `<div class="loading-row"><span class="spin"></span> Buscando…</div>`;
     try {
         const c = await api(`/corretoras/cnpj/${encodeURIComponent(cnpj)}`);
-        box.innerHTML = `<div class="panel" style="background-color:var(--rendo-color-bg)">${detalheCorretoraHTML(c)}</div>`;
+        box.innerHTML = `<div class="panel" style="background-color:var(--background)">${detalheCorretoraHTML(c)}</div>`;
     } catch (err) {
         box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
     }
@@ -691,11 +899,26 @@ function bind() {
     $("#btnOperacoesAnterior").addEventListener("click", () => mudarPaginaOperacoes(-1));
     $("#btnOperacoesProxima").addEventListener("click", () => mudarPaginaOperacoes(1));
 
+    $$(".chart-periodo").forEach((b) => b.addEventListener("click", () => mudarPeriodoChart(b.dataset.periodo)));
+    const chartWrap = $("#rendimentoChartWrap");
+    chartWrap.addEventListener("mousemove", (e) => moverTooltipChart(e.clientX, e.clientY));
+    chartWrap.addEventListener("mouseleave", esconderTooltipChart);
+
     $("#modalClose").addEventListener("click", fecharModal);
     $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") fecharModal(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModal(); });
 
     document.addEventListener("click", (e) => {
+        const kebab = e.target.closest("[data-kebab]");
+        if (kebab) {
+            const menu = $(`#rowMenu${kebab.dataset.kebab}`);
+            const jaAberto = menu.classList.contains("open");
+            $$(".row-menu.open").forEach((m) => m.classList.remove("open"));
+            if (!jaAberto) menu.classList.add("open");
+            return;
+        }
+        if (!e.target.closest(".row-menu")) $$(".row-menu.open").forEach((m) => m.classList.remove("open"));
+
         const buy = e.target.closest("[data-buy]");
         if (buy) { abrirCompraModal(Number(buy.dataset.buy)); return; }
 

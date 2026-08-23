@@ -13,6 +13,7 @@ public record AcaoResponseDTO(
         String moeda,
         BigDecimal cotacaoAtual,
         BigDecimal cotacaoAtualBRL,
-        LocalDateTime dataHoraCotacao
+        LocalDateTime dataHoraCotacao,
+        String logoUrl
 ) {
 }

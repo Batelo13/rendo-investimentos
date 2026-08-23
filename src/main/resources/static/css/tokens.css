@@ -1,7 +1,12 @@
 /*
- * Design tokens do Rendo. So variaveis (cor, tipografia, raio de borda) --
- * nenhuma regra visual concreta aqui. Ver base.css pra estilos que consomem
- * esses tokens. Valores definidos em docs/superpowers/specs/2026-08-10-identidade-visual-design.md
+ * Design tokens do Rendo. So variaveis (cor, tipografia, espacamento, raio de
+ * borda) -- nenhuma regra visual concreta aqui. Ver base.css/dashboard.css
+ * pra estilos que consomem esses tokens.
+ *
+ * Paleta "fintech premium" (redesign 2026-08-23): fundo quase-preto com
+ * hierarquia por luminosidade entre background/sidebar/surface/surface-elevated,
+ * em vez de bordas em tudo. --brand (mint) e --success sao cores DIFERENTES
+ * de proposito -- lucro nao usa a cor da marca, ver dashboard.css.
  */
 :root {
     /* Diz ao navegador que a pagina e escura de proposito -- sem isso, popups
@@ -10,49 +15,62 @@
        aplicados corretamente ao elemento fechado. */
     color-scheme: dark;
 
-    --rendo-color-primary: #4C4B63;
-    --rendo-color-accent: #5FE1B0;
+    --background: #0D0F14;
+    --sidebar: #11141A;
+    --surface: #151922;
+    --surface-elevated: #1A1F29;
+    --border: #262C37;
 
-    --rendo-color-bg: #1B1A24;
-    --rendo-color-surface: #24232F;
-    --rendo-color-surface-alt: #242530;
+    --text-primary: #F4F6F8;
+    --text-secondary: #8E99A8;
 
-    --rendo-color-text: #EDEBF5;
-    --rendo-color-text-muted: #B7B5C4;
+    --brand: #5DE2BA;
+    /* Texto/grafismo sobre um fundo preenchido com --brand (botao primary) --
+       --brand e uma cor clara, entao o texto precisa ser escuro pra ter
+       contraste (o token antigo --on-accent claro-sobre-mint-claro tinha
+       contraste ruim). Fixo, nao muda por tema. */
+    --on-brand: #0D0F14;
 
-    --rendo-color-warning: #F2B84B;
-    --rendo-color-danger: #F07167;
-
-    --rendo-color-border: #34333f;
-
-    /* Fixa (nao muda por tema) -- pra texto/grafismo sobre um fundo que e
-       sempre uma cor de marca (botao preenchido, painel deslizante do
-       login), nunca um neutro que acompanha o tema. Ver tema claro/escuro. */
-    --rendo-color-on-accent: #EDEBF5;
+    --success: #3DDC97;
+    --danger: #F06464;
+    --warning: #F2B84B;
 
     --rendo-font-body: 'Inter', sans-serif;
     --rendo-font-logo: 'Baloo 2', sans-serif;
 
-    --rendo-radius-sm: 8px;
-    --rendo-radius-md: 10px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    --transition-fast: 150ms ease;
 }
 
 /*
- * Tema claro -- so os neutros (bg/surface/text/border) mudam; primary/
- * accent/warning/danger sao a identidade da marca e ficam fixos nos dois
- * temas. Ativado via data-theme="light" na <html> (ver theme.js).
+ * Tema claro -- so os neutros (background/sidebar/surface/border/texto)
+ * mudam; brand/success/danger/warning sao a identidade da marca e ficam
+ * fixos nos dois temas. Ativado via data-theme="light" na <html> (ver
+ * theme.js). Valores de contraste podem ser refinados depois.
  */
 :root[data-theme="light"] {
     color-scheme: light;
 
-    --rendo-color-bg: #F3F2F8;
-    --rendo-color-surface: #FFFFFF;
-    --rendo-color-surface-alt: #EDEBF5;
+    --background: #F4F5F7;
+    --sidebar: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-elevated: #F0F1F3;
+    --border: #E2E5EA;
 
-    --rendo-color-text: #1B1A24;
-    --rendo-color-text-muted: #6B6980;
-
-    --rendo-color-border: #DEDCE8;
+    --text-primary: #10131A;
+    --text-secondary: #5B6472;
 }
 
 /*
@@ -61,31 +79,31 @@
  * bootstrap.min.css no <head> (cascata: mesma especificidade, ultimo vence).
  */
 :root {
-    --bs-primary: var(--rendo-color-primary);
-    --bs-primary-rgb: 76, 75, 99;
-    --bs-success: var(--rendo-color-accent);
-    --bs-success-rgb: 95, 225, 176;
-    --bs-warning: var(--rendo-color-warning);
+    --bs-primary: var(--brand);
+    --bs-primary-rgb: 93, 226, 186;
+    --bs-success: var(--success);
+    --bs-success-rgb: 61, 220, 151;
+    --bs-warning: var(--warning);
     --bs-warning-rgb: 242, 184, 75;
-    --bs-danger: var(--rendo-color-danger);
-    --bs-danger-rgb: 240, 113, 103;
+    --bs-danger: var(--danger);
+    --bs-danger-rgb: 240, 100, 100;
 
-    --bs-body-bg: var(--rendo-color-bg);
-    --bs-body-color: var(--rendo-color-text);
-    --bs-border-color: var(--rendo-color-border);
-    --bs-border-radius: var(--rendo-radius-sm);
-    --bs-border-radius-lg: var(--rendo-radius-md);
+    --bs-body-bg: var(--background);
+    --bs-body-color: var(--text-primary);
+    --bs-border-color: var(--border);
+    --bs-border-radius: var(--radius-sm);
+    --bs-border-radius-lg: var(--radius-md);
 
     --bs-body-font-family: var(--rendo-font-body);
-    --bs-link-color: var(--rendo-color-accent);
-    --bs-link-hover-color: var(--rendo-color-accent);
+    --bs-link-color: var(--brand);
+    --bs-link-hover-color: var(--brand);
 
     /* Componente Table do Bootstrap usa variaveis proprias por celula
        (--bs-table-color/--bs-table-bg), separadas de --bs-body-color/
        --bs-body-bg -- sem isso, --bs-table-color caia no default do
        Bootstrap (--bs-emphasis-color, preto no tema claro dele) e toda
        celula <td> ficava com texto preto sobre fundo quase preto. */
-    --bs-emphasis-color: var(--rendo-color-text);
-    --bs-table-color: var(--rendo-color-text);
+    --bs-emphasis-color: var(--text-primary);
+    --bs-table-color: var(--text-primary);
     --bs-table-bg: transparent;
 }

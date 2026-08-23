@@ -8,7 +8,7 @@ import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.integration.CotacaoProvider;
 import com.curso.gestaoinvestimentos.integration.DadosCotacaoResponse;
-import com.curso.gestaoinvestimentos.integration.TwelveDataCambioClient;
+import com.curso.gestaoinvestimentos.integration.DolarApiCambioClient;
 import com.curso.gestaoinvestimentos.model.Acao;
 import com.curso.gestaoinvestimentos.model.HistoricoCotacao;
 import com.curso.gestaoinvestimentos.model.Mercado;
@@ -28,10 +28,10 @@ public class AcaoService {
     private final AcaoRepository repository;
     private final HistoricoCotacaoRepository historicoRepository;
     private final List<CotacaoProvider> providers;
-    private final TwelveDataCambioClient cambioClient;
+    private final DolarApiCambioClient cambioClient;
 
     public AcaoService(AcaoRepository repository, HistoricoCotacaoRepository historicoRepository,
-                        List<CotacaoProvider> providers, TwelveDataCambioClient cambioClient) {
+                        List<CotacaoProvider> providers, DolarApiCambioClient cambioClient) {
         this.repository = repository;
         this.historicoRepository = historicoRepository;
         this.providers = providers;
@@ -52,6 +52,7 @@ public class AcaoService {
         acao.setMoeda(dadosCotacao.moeda());
         acao.setCotacaoAtual(dadosCotacao.cotacaoAtual());
         acao.setDataHoraCotacao(dadosCotacao.dataHoraCotacao());
+        acao.setLogoUrl(dadosCotacao.logoUrl());
 
         Acao salva = repository.save(acao);
         registrarHistorico(salva, dadosCotacao);
@@ -84,6 +85,7 @@ public class AcaoService {
         DadosCotacaoResponse dadosCotacao = buscarCotacao(acao.getTicker(), acao.getMercado());
         acao.setCotacaoAtual(dadosCotacao.cotacaoAtual());
         acao.setDataHoraCotacao(dadosCotacao.dataHoraCotacao());
+        acao.setLogoUrl(dadosCotacao.logoUrl());
 
         Acao salva = repository.save(acao);
         registrarHistorico(salva, dadosCotacao);
@@ -152,7 +154,8 @@ public class AcaoService {
                 acao.getMoeda(),
                 acao.getCotacaoAtual(),
                 cotacaoAtualBRL,
-                acao.getDataHoraCotacao()
+                acao.getDataHoraCotacao(),
+                acao.getLogoUrl()
         );
     }
 }

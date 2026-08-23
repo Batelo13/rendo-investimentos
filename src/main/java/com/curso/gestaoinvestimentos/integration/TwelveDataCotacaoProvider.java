@@ -62,7 +62,10 @@ public class TwelveDataCotacaoProvider implements CotacaoProvider {
                     resposta.name(),
                     resposta.currency(),
                     new BigDecimal(resposta.close()),
-                    Instant.ofEpochSecond(resposta.timestamp()).atOffset(ZoneOffset.UTC).toLocalDateTime()
+                    Instant.ofEpochSecond(resposta.timestamp()).atOffset(ZoneOffset.UTC).toLocalDateTime(),
+                    // Padrao publico e sem chave da FMP -- o endpoint /logo da propria
+                    // Twelve Data se mostrou instavel (404 em tickers validos).
+                    "https://financialmodelingprep.com/image-stock/" + resposta.symbol() + ".png"
             );
         } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden ex) {
             throw new ServicoExternoIndisponivelException(
