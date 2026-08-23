@@ -119,12 +119,15 @@
     margin: 14px 0 0;
 }
 
-.login-container form > p,
+/* Antes tambem batia em "form > p" (queria pegar so o subtitulo, mas o
+   subtitulo virou <span> faz tempo -- na pratica so estava pegando os
+   paragrafos de mensagem de erro/sucesso, que ficam vazios na maior parte
+   do tempo, e herdavam essa margem grande por engano). */
 .login-container form > span.subtitulo {
     font-size: 14px;
     line-height: 21px;
     color: var(--text-secondary);
-    margin: 8px 0 22px;
+    margin: 8px 0 20px;
     max-width: 320px;
 }
 
