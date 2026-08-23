@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Permite autenticar no Rendo com uma conta Google, Microsoft ou Apple, sem nunca exibir um provedor que não esteja realmente configurado e sem contornar a exigência de CPF no cadastro.
+Permite autenticar no Rendo com uma conta Google ou Microsoft, sem nunca exibir um provedor que não esteja realmente configurado e sem contornar a exigência de CPF no cadastro.
 
 ## Requirements
 
 ### Requirement: Login social só ativa com credenciais reais
-O sistema SHALL só disponibilizar login social (Google/Microsoft/Apple) para provedores cujo client-id e client-secret estejam configurados via variável de ambiente. Sem nenhuma credencial configurada, a aplicação SHALL subir normalmente e a UI SHALL não exibir nenhum botão de login social.
+O sistema SHALL só disponibilizar login social (Google/Microsoft) para provedores cujo client-id e client-secret estejam configurados via variável de ambiente. Sem nenhuma credencial configurada, a aplicação SHALL subir normalmente e a UI SHALL não exibir nenhum botão de login social.
 
 #### Scenario: Nenhuma credencial configurada
 - **WHEN** a aplicação inicia sem nenhuma variável de ambiente de OAuth2 configurada
