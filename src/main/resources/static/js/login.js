@@ -89,3 +89,14 @@ ligarValidacaoAoVivo(cadastroForm.email, validadores.email);
 ligarValidacaoAoVivo(cadastroForm.cpf, validadores.cpf);
 ligarValidacaoAoVivo(cadastroForm.senha, validadores.senha);
 if (loginEmailInput) ligarValidacaoAoVivo(loginEmailInput, validadores.email);
+
+// Mostrar/ocultar senha -- so alterna o type do input irmao, nao interfere
+// na validacao ao vivo (que escuta o evento 'input', nao 'click').
+document.querySelectorAll('.input-toggle-senha').forEach((botao) => {
+    botao.addEventListener('click', () => {
+        const input = botao.closest('.input-group').querySelector('input');
+        const mostrando = input.type === 'text';
+        input.type = mostrando ? 'password' : 'text';
+        botao.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+    });
+});

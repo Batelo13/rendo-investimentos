@@ -29,7 +29,7 @@
             <form id="cadastro-form" novalidate>
                 <div th:replace="~{fragments/logo :: logo}"></div>
                 <h1>Criar conta</h1>
-                <span>Comece a simular sua carteira de ações</span>
+                <span class="subtitulo">Comece a simular sua carteira de ações</span>
 
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
@@ -46,10 +46,28 @@
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                     <input type="password" name="senha" placeholder="Senha (mínimo 8 caracteres)" minlength="8" required>
+                    <button type="button" class="input-toggle-senha" aria-label="Mostrar senha">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
                 </div>
 
                 <p id="cadastro-mensagem" class="form-mensagem" role="alert"></p>
-                <button type="submit">Criar conta</button>
+                <button type="submit">Criar conta <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+
+                <div class="trust-row">
+                    <div class="trust-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+                        <span><b>Segurança</b>Dados protegidos</span>
+                    </div>
+                    <div class="trust-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        <span><b>Suporte</b>Sempre disponível</span>
+                    </div>
+                    <div class="trust-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                        <span><b>Plataforma</b>Confiável</span>
+                    </div>
+                </div>
             </form>
         </div>
 
@@ -57,8 +75,8 @@
         <div class="form-container sign-in">
             <form th:action="@{/login}" method="post">
                 <div th:replace="~{fragments/logo :: logo}"></div>
-                <h1>Entrar</h1>
-                <span>Acesse sua carteira de investimentos</span>
+                <h1>Bem-vindo de volta</h1>
+                <span class="subtitulo">Acesse sua conta para continuar</span>
                 <p id="login-mensagem" class="form-mensagem" role="alert"></p>
                 <p th:if="${param.error}" class="form-mensagem erro">Email ou senha inválidos.</p>
                 <p th:if="${param.logout}" class="form-mensagem sucesso">Sessão encerrada.</p>
@@ -70,10 +88,13 @@
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                     <input type="password" name="password" placeholder="Senha" required>
+                    <button type="button" class="input-toggle-senha" aria-label="Mostrar senha">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
                 </div>
 
-                <a class="link-discreto" href="#">Esqueceu sua senha?</a>
-                <button type="submit">Entrar</button>
+                <a class="link-discreto" href="#">Esqueci minha senha</a>
+                <button type="submit">Entrar <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
             </form>
         </div>
 
@@ -88,14 +109,56 @@
                         <rect x="1" y="10.5" width="65" height="50" rx="4"/>
                         <circle cx="55" cy="35.5" r="6.5"/>
                     </svg>
-                    <h1>Bem-vindo de volta!</h1>
-                    <p>Acompanhe sua carteira e suas operações de compra e venda</p>
+                    <div class="toggle-bars" aria-hidden="true">
+                        <span style="height:18px"></span><span style="height:30px"></span><span style="height:14px"></span>
+                        <span style="height:38px"></span><span style="height:22px"></span><span style="height:44px"></span>
+                    </div>
+
+                    <div class="toggle-head">
+                        <span>Já tem uma conta?</span>
+                        <button type="button" id="btn-login">Entrar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+                    </div>
+
+                    <div class="toggle-hero">
+                        <h1>Bem-vindo<br>de <span class="hl">volta!</span></h1>
+                        <p>Acesse sua carteira e continue investindo de forma simples, segura e inteligente.</p>
+                    </div>
+
                     <ul class="toggle-highlights">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Simule sem risco</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cotações em tempo real</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Histórico completo de operações</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Simule sem risco</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Cotações em tempo real</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Histórico completo de operações</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Acompanhe seu desempenho</li>
                     </ul>
-                    <button type="button" class="ghost" id="btn-login">Entrar</button>
+
+                    <!-- Widgets decorativos -- dados estaticos, ilustrativos, sem
+                         nenhuma chamada de API/DB. -->
+                    <div class="auth-widgets" aria-hidden="true">
+                        <div class="auth-widget">
+                            <div class="widget-patrimonio-head">
+                                <span>Patrimônio total</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </div>
+                            <div class="widget-patrimonio-linha">
+                                <div>
+                                    <div class="widget-patrimonio-valor">R$ 34.586,30</div>
+                                    <div class="widget-patrimonio-trend">+ R$ 1.250,45 (3,76%) hoje</div>
+                                </div>
+                                <svg class="widget-sparkline" viewBox="0 0 68 24" preserveAspectRatio="none">
+                                    <polyline points="0,20 10,17 20,18 30,12 40,13 50,7 60,8 68,2" fill="none" stroke="#5DE2BA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="auth-widget auth-widget-ativo">
+                            <div class="widget-ativo-logo">BR</div>
+                            <div class="widget-ativo-info"><b>PETR4</b><span>Petrobras PN</span></div>
+                            <div class="widget-ativo-preco"><b>R$ 37,45</b><span>+2,35%</span></div>
+                        </div>
+                        <div class="auth-widget auth-widget-seguranca">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+                            <div><b>Segurança avançada</b><span>Seus dados protegidos.</span></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="toggle-panel toggle-right">
                     <svg class="toggle-watermark" viewBox="0 0 68 62" aria-hidden="true">
@@ -105,14 +168,23 @@
                         <rect x="1" y="10.5" width="65" height="50" rx="4"/>
                         <circle cx="55" cy="35.5" r="6.5"/>
                     </svg>
-                    <h1>Olá, investidor!</h1>
-                    <p>Crie sua conta e comece a simular sua carteira de ações</p>
+
+                    <div class="toggle-head">
+                        <span>Ainda não tem uma conta?</span>
+                        <button type="button" id="btn-cadastro">Criar conta <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+                    </div>
+
+                    <div class="toggle-hero">
+                        <h1>Olá, <span class="hl">investidor!</span></h1>
+                        <p>Crie sua conta e comece a simular sua carteira de ações sem risco.</p>
+                    </div>
+
                     <ul class="toggle-highlights">
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>R$ 100.000 fictícios pra começar</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Ações do Brasil e dos EUA</li>
-                        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sem cartão, sem burocracia</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>R$ 100.000 fictícios pra começar</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Ações do Brasil e dos EUA</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Sem cartão, sem burocracia</li>
+                        <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Cadastro rápido e gratuito</li>
                     </ul>
-                    <button type="button" class="ghost" id="btn-cadastro">Criar conta</button>
                 </div>
             </div>
         </div>

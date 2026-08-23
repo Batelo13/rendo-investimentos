@@ -82,19 +82,26 @@
    dois indicadores de resultado usam a mesma tipografia dos demais --
    a cor por sinal vem do <span class="pl pl-pos/neg"> que fmtResultado()
    ja injeta dentro do valor, sem precisar de uma classe extra no tile. */
-.stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-3); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-3); }
 .stat-card {
     display: flex; flex-direction: column; gap: var(--space-1);
     padding: var(--space-4); border-radius: var(--radius-md);
     background-color: var(--surface); border: 1px solid var(--border);
 }
+.stat-card-featured { border-color: var(--brand); }
+.stat-icon {
+    width: 30px; height: 30px; border-radius: var(--radius-sm);
+    display: grid; place-items: center; margin-bottom: 2px;
+    background-color: rgba(93, 226, 186, 0.12); color: var(--brand);
+}
+.stat-icon svg { width: 16px; height: 16px; }
 .stat-label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
 .stat-value { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--text-primary); }
 .stat-hint { font-size: 11px; color: var(--text-secondary); }
 
 /* Panels */
 .panel { background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; }
-.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .panel-head h2 { margin: 0; font-size: 16px; font-weight: 700; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
@@ -115,7 +122,10 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .form-hint { margin: 2px 0 0; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 .form-inline { display: flex; gap: 10px; }
 .form-inline input { flex: 1; }
-.filter-input { max-width: 200px; padding: 8px 12px; font-size: 13px; }
+/* min-width:0 -- um <input> flex child nao encolhe abaixo do seu tamanho
+   intrinseco por padrao (~170-200px), entao sem isso ele passava por cima
+   da borda direita do painel em telas mais estreitas em vez de encolher. */
+.filter-input { max-width: 200px; min-width: 0; flex: 1 1 160px; padding: 8px 12px; font-size: 13px; }
 
 /* Buttons */
 .btn {
@@ -206,15 +216,18 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: var(--space-4); }
 .chart-periodos { display: flex; gap: 2px; background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px; }
 .chart-periodo {
-    border: 0; background: transparent; color: var(--text-secondary);
+    border: 1px solid transparent; background: transparent; color: var(--text-secondary);
     font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer;
-    padding: 5px 10px; border-radius: 5px; transition: background-color var(--transition-fast), color var(--transition-fast);
+    padding: 4px 10px; border-radius: 5px; transition: border-color var(--transition-fast), color var(--transition-fast);
 }
 .chart-periodo:hover { color: var(--text-primary); }
-.chart-periodo.active { background-color: var(--surface-elevated); color: var(--text-primary); }
+.chart-periodo.active { border-color: var(--brand); color: var(--text-primary); }
 
-#rendimentoChartWrap { width: 100%; position: relative; }
+#rendimentoChartWrap { width: 100%; position: relative; padding: 0 0 20px 56px; }
 #rendimentoChart { width: 100%; height: 220px; display: block; overflow: visible; }
+.chart-axis-y { position: absolute; top: 0; left: 0; width: 48px; height: 220px; }
+.chart-axis-y span { position: absolute; left: 0; transform: translateY(-50%); font-size: 11px; color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chart-axis-x { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-secondary); }
 .rendimento-grid { stroke: var(--border); stroke-width: 1; opacity: 0.6; }
 .rendimento-zero { stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.7; }
 .rendimento-linha { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }

@@ -80,28 +80,40 @@
         <!-- ===================== VISÃO GERAL ===================== -->
         <section class="view" id="view-visao-geral">
             <div class="stats-grid">
+                <div class="stat-card stat-card-featured">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></span>
+                    <span class="stat-label">Patrimônio total</span>
+                    <strong class="stat-value" id="statPatrimonioTotal">—</strong>
+                    <span class="stat-hint">Saldo + posições em carteira</span>
+                </div>
                 <div class="stat-card">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg></span>
                     <span class="stat-label">Saldo disponível</span>
                     <strong class="stat-value" id="statSaldoDisponivel">—</strong>
                 </div>
                 <div class="stat-card">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
                     <span class="stat-label">Saldo inicial</span>
                     <strong class="stat-value" id="statSaldoInicial">—</strong>
                 </div>
                 <div class="stat-card">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
                     <span class="stat-label">Posições em carteira</span>
                     <strong class="stat-value" id="statPosicoes">—</strong>
                 </div>
                 <div class="stat-card">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg></span>
                     <span class="stat-label">Corretoras cadastradas</span>
                     <strong class="stat-value" id="statCorretoras">—</strong>
                 </div>
                 <div class="stat-card">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg></span>
                     <span class="stat-label">Resultado não realizado</span>
                     <strong class="stat-value" id="statNaoRealizado">—</strong>
                     <span class="stat-hint">Posições em carteira</span>
                 </div>
                 <div class="stat-card">
+                    <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
                     <span class="stat-label">Resultado realizado</span>
                     <strong class="stat-value" id="statRealizado">—</strong>
                     <span class="stat-hint">Já consolidado nas vendas</span>

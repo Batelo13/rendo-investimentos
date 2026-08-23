@@ -187,6 +187,7 @@ function renderVisaoGeral() {
     $("#statCorretoras").textContent = state.corretoras.length;
 
     let naoRealizado = 0;
+    let valorPosicoesBRL = 0;
     for (const p of state.posicoes) {
         if (p.valorAtual == null || p.valorInvestido == null) continue;
         const moeda = moedaPorTicker(p.acaoTicker);
@@ -196,7 +197,11 @@ function renderVisaoGeral() {
             if (taxa == null) continue; // taxa indisponivel -- exclui em vez de tratar como 1:1
         }
         naoRealizado += (Number(p.valorAtual) - Number(p.valorInvestido)) * taxa;
+        valorPosicoesBRL += Number(p.valorAtual) * taxa;
     }
+    $("#statPatrimonioTotal").textContent = state.saldo
+        ? fmtMoeda(Number(state.saldo.saldoDisponivel) + valorPosicoesBRL, "BRL")
+        : "—";
     const realizado = state.operacoes
         .filter((o) => o.tipo === "VENDA" && o.status === "ATIVA")
         .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0) * Number(o.taxaCambio || 1), 0);
@@ -248,6 +253,7 @@ function renderRendimentoChart() {
     const svg = $("#rendimentoChart");
     wrap.querySelector(".empty")?.remove();
     wrap.querySelector(".chart-skeleton")?.remove();
+    wrap.querySelectorAll(".chart-axis-y, .chart-axis-x").forEach((el) => el.remove());
 
     const pontos = filtrarPontosPorPeriodo(state.rendimento, state.periodoChart);
     pontosChartAtual = [];
@@ -304,6 +310,18 @@ function renderRendimentoChart() {
         <polyline points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
         <circle class="rendimento-ponto-hover hidden" id="rendimentoPontoHover" style="stroke:${cor}" cx="0" cy="0"></circle>
     `;
+
+    wrap.querySelectorAll(".chart-axis-y, .chart-axis-x").forEach((el) => el.remove());
+    wrap.insertAdjacentHTML("beforeend", `
+        <div class="chart-axis-y">
+            <span style="top:${(PAD_Y / H * 100).toFixed(1)}%">${esc(fmtMoeda(vMax, "BRL"))}</span>
+            <span style="top:${((H - PAD_Y) / H * 100).toFixed(1)}%">${esc(fmtMoeda(vMin, "BRL"))}</span>
+        </div>
+        <div class="chart-axis-x">
+            <span>${esc(fmtData(pontos[0].timestamp))}</span>
+            <span>${esc(fmtData(pontos[pontos.length - 1].timestamp))}</span>
+        </div>
+    `);
 }
 
 function moverTooltipChart(clientX, clientY) {
