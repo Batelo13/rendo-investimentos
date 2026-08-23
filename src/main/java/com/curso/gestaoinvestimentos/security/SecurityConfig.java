@@ -1,6 +1,5 @@
 package com.curso.gestaoinvestimentos.security;
 
-import com.curso.gestaoinvestimentos.security.oauth2.AppleAuthorizationRequestResolver;
 import com.curso.gestaoinvestimentos.security.oauth2.LoginSocialFailureHandler;
 import com.curso.gestaoinvestimentos.security.oauth2.RendoOidcUserService;
 import org.springframework.context.annotation.Bean;
@@ -95,8 +94,6 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .defaultSuccessUrl("/dashboard", true)
                         .failureHandler(loginSocialFailureHandler)
-                        .authorizationEndpoint(authorization -> authorization
-                                .authorizationRequestResolver(new AppleAuthorizationRequestResolver(repository)))
                         .userInfoEndpoint(userInfo -> userInfo.oidcUserService(rendoOidcUserService)));
             } catch (Exception e) {
                 throw new IllegalStateException("Falha ao configurar oauth2Login", e);

@@ -14,18 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Login social (Google/Microsoft/Apple) e "estrutura pronta, nao funcionalidade
+ * Login social (Google/Microsoft) e "estrutura pronta, nao funcionalidade
  * falsa": cada provedor so entra na lista se AMBOS client-id/secret estiverem
  * configurados via variavel de ambiente. Sem nenhum configurado, este bean
  * retorna null (nenhum registro) e o SecurityConfig simplesmente nao ativa
  * oauth2Login() -- a aplicacao sobe normal, e os botoes na tela de login
  * apontam pra rotas reais que so passam a funcionar quando as credenciais
  * forem cadastradas (ver README/env vars: GOOGLE_CLIENT_ID/SECRET,
- * MICROSOFT_CLIENT_ID/SECRET, APPLE_CLIENT_ID/SECRET).
+ * MICROSOFT_CLIENT_ID/SECRET).
  *
- * Os tres sao tratados como OIDC (scope "openid"): mais robusto que OAuth2 puro
- * (claims assinadas, verificadas via JWKS) e o unico jeito de integrar a Apple,
- * que nao tem endpoint REST de userinfo -- so devolve um id_token.
+ * Os dois sao tratados como OIDC (scope "openid"): mais robusto que OAuth2
+ * puro (claims assinadas, verificadas via JWKS).
  */
 @Configuration
 public class OAuth2ClientRegistrations {
@@ -42,11 +41,6 @@ public class OAuth2ClientRegistrations {
     @Value("${oauth2.microsoft.tenant-id:common}")
     private String microsoftTenantId;
 
-    @Value("${oauth2.apple.client-id:}")
-    private String appleClientId;
-    @Value("${oauth2.apple.client-secret:}")
-    private String appleClientSecret;
-
     // @ConditionalOnExpression (nao Optional<> no ponto de injecao): o proprio
     // spring-security-oauth2-client exige, so por estar no classpath com
     // @EnableWebSecurity, que ALGUM bean ClientRegistrationRepository exista --
@@ -56,7 +50,7 @@ public class OAuth2ClientRegistrations {
     // nenhum, nao existe candidato nenhum, exatamente como se a dependencia nao
     // estivesse no projeto.
     @Bean
-    @ConditionalOnExpression("!('${oauth2.google.client-id:}' + '${oauth2.microsoft.client-id:}' + '${oauth2.apple.client-id:}').isBlank()")
+    @ConditionalOnExpression("!('${oauth2.google.client-id:}' + '${oauth2.microsoft.client-id:}').isBlank()")
     public ClientRegistrationRepository clientRegistrationRepository() {
         List<ClientRegistration> registros = new ArrayList<>();
 
@@ -65,9 +59,6 @@ public class OAuth2ClientRegistrations {
         }
         if (configurado(microsoftClientId, microsoftClientSecret)) {
             registros.add(microsoft());
-        }
-        if (configurado(appleClientId, appleClientSecret)) {
-            registros.add(apple());
         }
 
         if (registros.isEmpty()) {
@@ -116,28 +107,6 @@ public class OAuth2ClientRegistrations {
                 .userInfoUri("https://graph.microsoft.com/oidc/userinfo")
                 .userNameAttributeName("email")
                 .clientName("Microsoft")
-                .build();
-    }
-
-    // "Sign in with Apple": nao tem endpoint de userinfo, so id_token (por isso
-    // "openid" e obrigatorio no scope). O client-secret NAO e uma string
-    // estatica -- e um JWT assinado (ES256) com a chave privada .p8 baixada uma
-    // unica vez no Apple Developer, com validade maxima de 6 meses. Geracao/
-    // rotacao desse JWT fica fora do runtime da aplicacao (documentado no
-    // relatorio final / README).
-    private ClientRegistration apple() {
-        return ClientRegistration.withRegistrationId("apple")
-                .clientId(appleClientId)
-                .clientSecret(appleClientSecret)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                .scope("openid", "name", "email")
-                .authorizationUri("https://appleid.apple.com/auth/authorize")
-                .tokenUri("https://appleid.apple.com/auth/token")
-                .jwkSetUri("https://appleid.apple.com/auth/keys")
-                .userNameAttributeName("email")
-                .clientName("Apple")
                 .build();
     }
 }
