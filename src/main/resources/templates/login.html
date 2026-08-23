@@ -225,6 +225,54 @@
                         <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Sem cartão, sem burocracia</li>
                         <li><span class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Cadastro rápido e gratuito</li>
                     </ul>
+
+                    <!-- Widgets decorativos -- dados estaticos, ilustrativos, sem
+                         nenhuma chamada de API/DB (mesma regra do painel de cadastro). -->
+                    <div class="auth-widgets auth-widgets-rich" aria-hidden="true">
+                        <div class="auth-widget-row">
+                            <div class="auth-widget auth-widget-patrimonio-grande">
+                                <span class="widget-label">Patrimônio total</span>
+                                <div class="widget-patrimonio-valor-grande">R$ 100.000,00</div>
+                                <span class="widget-trend-badge">+3,42% hoje</span>
+                                <svg class="widget-area-chart" viewBox="0 0 220 68" preserveAspectRatio="none">
+                                    <defs>
+                                        <linearGradient id="authAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#5DE2BA" stop-opacity="0.45"/>
+                                            <stop offset="100%" stop-color="#5DE2BA" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0,54 20,47 40,49 60,34 80,39 100,27 120,31 140,17 160,21 180,9 200,13 220,3 220,68 0,68 Z" fill="url(#authAreaGrad)"/>
+                                    <polyline points="0,54 20,47 40,49 60,34 80,39 100,27 120,31 140,17 160,21 180,9 200,13 220,3" fill="none" stroke="#5DE2BA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="auth-widget auth-widget-ibov">
+                                <span class="widget-label">Ibovespa</span>
+                                <div class="widget-ibov-valor">128.532<small>pts</small></div>
+                                <span class="widget-trend-badge">+0,82%</span>
+                                <svg class="widget-sparkline" viewBox="0 0 68 24" preserveAspectRatio="none">
+                                    <polyline points="0,18 12,15 24,17 36,10 48,12 60,6 68,4" fill="none" stroke="#5DE2BA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="auth-widget auth-widget-altas">
+                            <span class="widget-label">Maiores altas</span>
+                            <div class="widget-altas-linha">
+                                <span class="widget-ativo-logo">BR</span>
+                                <span class="widget-altas-ticker">PETR4</span>
+                                <b>R$ 37,45</b><span class="widget-altas-pct">+2,35%</span>
+                            </div>
+                            <div class="widget-altas-linha">
+                                <span class="widget-ativo-logo">BR</span>
+                                <span class="widget-altas-ticker">VALE3</span>
+                                <b>R$ 62,18</b><span class="widget-altas-pct">+1,87%</span>
+                            </div>
+                        </div>
+                        <div class="auth-widget auth-widget-seguranca-row">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+                            <div class="auth-widget-seguranca-texto"><b>Segurança que você pode confiar</b><span>Seus dados protegidos com criptografia de ponta a ponta.</span></div>
+                            <span class="widget-ssl-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>SSL 256-bit</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
