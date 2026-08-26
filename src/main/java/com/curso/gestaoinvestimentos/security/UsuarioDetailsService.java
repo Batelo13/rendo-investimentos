@@ -22,6 +22,15 @@ public class UsuarioDetailsService implements UserDetailsService {
         Usuario usuario = repository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado: " + email));
 
+        // So checa email nao verificado se a conta estiver ativa -- bloqueio por
+        // admin (ativo=false) continua tendo prioridade e usa o DisabledException
+        // padrao do framework (via .disabled(true) abaixo), comportamento ja
+        // testado. "null" (contas anteriores a este campo, sem backfill de
+        // ddl-auto=update) e tratado como verificado, nunca bloqueia login.
+        if (Boolean.TRUE.equals(usuario.getAtivo()) && Boolean.FALSE.equals(usuario.getEmailVerified())) {
+            throw new EmailNaoVerificadoException("Confirme seu email antes de entrar.");
+        }
+
         return User.builder()
                 .username(usuario.getEmail())
                 .password(usuario.getSenha())

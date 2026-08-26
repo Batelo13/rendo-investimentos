@@ -85,6 +85,25 @@
                     </div>
                 </div>
             </form>
+
+            <!-- Confirmacao de codigo -- aparece so depois de um cadastro bem
+                 sucedido (login.js troca a visibilidade via classe "hidden"),
+                 dentro do mesmo painel de cadastro. -->
+            <form id="verificacao-form" class="hidden" novalidate>
+                <div th:replace="~{fragments/logo :: logo}"></div>
+                <h1>Confirme seu e-mail</h1>
+                <span class="subtitulo" id="verificacao-subtitulo">Enviamos um código de 6 dígitos pro seu e-mail</span>
+
+                <div class="input-group">
+                    <input type="text" name="codigo" class="codigo-input" placeholder="000000"
+                           inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
+                </div>
+
+                <p id="verificacao-mensagem" class="form-mensagem" role="alert"></p>
+                <button type="submit">Confirmar código <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+
+                <button type="button" id="btn-reenviar-codigo" class="link-discreto">Reenviar código</button>
+            </form>
         </div>
 
         <!-- Login -->
@@ -96,6 +115,10 @@
                 <p id="login-mensagem" class="form-mensagem" role="alert"></p>
                 <p th:if="${param.error}" class="form-mensagem erro">Email ou senha inválidos.</p>
                 <p th:if="${param.logout}" class="form-mensagem sucesso">Sessão encerrada.</p>
+                <p th:if="${param.erro}" class="form-mensagem erro">
+                    Confirme seu e-mail antes de entrar.
+                    <button type="button" id="btn-reenviar-do-login" class="link-discreto">Reenviar código</button>
+                </p>
 
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>

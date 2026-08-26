@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirme seu e-mail</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F2F4F7; font-family:'Segoe UI', Arial, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F2F4F7; padding:32px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF; border-radius:12px; overflow:hidden; border:1px solid #E4E7EC;">
+                <tr>
+                    <td style="background-color:#0D0F14; padding:24px 32px;">
+                        <span style="color:#5DE2BA; font-size:20px; font-weight:700; letter-spacing:0.5px;">Rendo</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px;">
+                        <p style="margin:0 0 16px; color:#1A1F29; font-size:16px;">Olá, <span th:text="${nome}">nome</span>!</p>
+                        <p style="margin:0 0 24px; color:#4A5363; font-size:15px; line-height:1.5;">
+                            Para concluir seu cadastro no Rendo, utilize o código abaixo:
+                        </p>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center" style="padding:8px 0 24px;">
+                                    <span th:text="${codigo}"
+                                          style="display:inline-block; background-color:#0D0F14; color:#5DE2BA; font-size:32px; font-weight:700; letter-spacing:10px; padding:16px 24px; border-radius:8px;">
+                                        000000
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                        <p style="margin:0 0 8px; color:#4A5363; font-size:14px; line-height:1.5;">
+                            Este código expira em <strong>10 minutos</strong>.
+                        </p>
+                        <p style="margin:0; color:#8E99A8; font-size:13px; line-height:1.5;">
+                            Caso você não tenha solicitado este cadastro, ignore este e-mail.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

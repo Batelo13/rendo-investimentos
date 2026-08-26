@@ -17,6 +17,11 @@ const cadastroForm = document.getElementById('cadastro-form');
 const cadastroMensagem = document.getElementById('cadastro-mensagem');
 const loginMensagem = document.getElementById('login-mensagem');
 const loginEmailInput = document.getElementById('login-email');
+const verificacaoForm = document.getElementById('verificacao-form');
+const verificacaoMensagem = document.getElementById('verificacao-mensagem');
+const verificacaoSubtitulo = document.getElementById('verificacao-subtitulo');
+const btnReenviarCodigo = document.getElementById('btn-reenviar-codigo');
+let emailEmVerificacao = '';
 
 cadastroForm.addEventListener('submit', async (evento) => {
     evento.preventDefault();
@@ -38,11 +43,13 @@ cadastroForm.addEventListener('submit', async (evento) => {
         });
 
         if (resposta.ok) {
-            loginEmailInput.value = dto.email;
-            loginMensagem.textContent = 'Conta criada! Faça login.';
-            loginMensagem.className = 'form-mensagem sucesso';
-            cadastroForm.reset();
-            container.classList.remove('active');
+            emailEmVerificacao = dto.email;
+            verificacaoSubtitulo.textContent = `Enviamos um código de 6 dígitos pra ${dto.email}`;
+            verificacaoMensagem.textContent = '';
+            verificacaoMensagem.className = 'form-mensagem';
+            cadastroForm.classList.add('hidden');
+            verificacaoForm.classList.remove('hidden');
+            verificacaoForm.codigo.focus();
             return;
         }
 
@@ -55,10 +62,93 @@ cadastroForm.addEventListener('submit', async (evento) => {
     }
 });
 
+verificacaoForm.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+    verificacaoMensagem.textContent = '';
+    verificacaoMensagem.className = 'form-mensagem';
+
+    try {
+        const resposta = await fetch('/usuarios/verificar-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailEmVerificacao, codigo: onlyDigits(verificacaoForm.codigo.value) }),
+        });
+
+        const corpo = await resposta.json();
+
+        if (resposta.ok) {
+            loginEmailInput.value = emailEmVerificacao;
+            loginMensagem.textContent = 'E-mail verificado! Faça login.';
+            loginMensagem.className = 'form-mensagem sucesso';
+            verificacaoForm.reset();
+            verificacaoForm.classList.add('hidden');
+            cadastroForm.classList.remove('hidden');
+            cadastroForm.reset();
+            container.classList.remove('active');
+            return;
+        }
+
+        verificacaoMensagem.textContent = corpo.message || 'Não foi possível confirmar o código.';
+        verificacaoMensagem.classList.add('erro');
+    } catch (falha) {
+        verificacaoMensagem.textContent = 'Não foi possível conectar ao servidor.';
+        verificacaoMensagem.classList.add('erro');
+    }
+});
+
+async function reenviarCodigo(email, elementoMensagem, botao) {
+    if (!email) {
+        elementoMensagem.textContent = 'Informe seu email pra reenviar o código.';
+        elementoMensagem.className = 'form-mensagem erro';
+        return;
+    }
+
+    botao.disabled = true;
+    try {
+        const resposta = await fetch('/usuarios/reenviar-codigo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+        const corpo = await resposta.json();
+        elementoMensagem.textContent = corpo.message;
+        elementoMensagem.className = 'form-mensagem ' + (resposta.ok ? 'sucesso' : 'erro');
+    } catch (falha) {
+        elementoMensagem.textContent = 'Não foi possível conectar ao servidor.';
+        elementoMensagem.className = 'form-mensagem erro';
+    } finally {
+        // Cooldown de reenvio no servidor e de 60s -- so evita cliques
+        // repetidos acidentais, a regra de verdade continua no backend.
+        setTimeout(() => { botao.disabled = false; }, 60000);
+    }
+}
+
+btnReenviarCodigo.addEventListener('click', () => {
+    reenviarCodigo(emailEmVerificacao, verificacaoMensagem, btnReenviarCodigo);
+});
+
+// Login social sem conta existente guarda o ultimo email tentado (ver
+// listener de submit do form de login mais abaixo) pra permitir reenviar o
+// código direto da tela de login quando o redirect ?erro=email-nao-verificado
+// acontece (o form nativo nao preserva o valor digitado apos o redirect).
+const btnReenviarDoLogin = document.getElementById('btn-reenviar-do-login');
+if (btnReenviarDoLogin) {
+    // Usa o #login-mensagem (paragrafo separado) como feedback, nunca o
+    // <p> que contem o proprio botao -- sobrescrever o textContent dele
+    // apagaria o botao do DOM.
+    btnReenviarDoLogin.addEventListener('click', () => {
+        const emailSalvo = localStorage.getItem('rendo-ultimo-login-email') || '';
+        reenviarCodigo(emailSalvo, loginMensagem, btnReenviarDoLogin);
+    });
+}
+
 // Login e um form nativo -- o browser navega pra fora da pagina ao submeter,
 // entao nao ha "fim" client-side pra esconder o overlay de novo (ou a
 // navegacao troca a pagina, ou o Spring Security recarrega o login com erro).
-document.querySelector('.sign-in form').addEventListener('submit', () => {
+document.querySelector('.sign-in form').addEventListener('submit', (evento) => {
+    try {
+        localStorage.setItem('rendo-ultimo-login-email', evento.target.username.value || '');
+    } catch (falha) { /* localStorage indisponivel (ex.: modo privado) -- reenvio na tela de login so nao tera o email pre-preenchido */ }
     loadingOverlay?.classList.remove('hidden');
 });
 

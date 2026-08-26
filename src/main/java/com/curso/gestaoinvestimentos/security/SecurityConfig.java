@@ -35,13 +35,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                      Optional<ClientRegistrationRepository> clientRegistrationRepository,
                                                      RendoOidcUserService rendoOidcUserService,
-                                                     LoginSocialFailureHandler loginSocialFailureHandler) throws Exception {
+                                                     LoginSocialFailureHandler loginSocialFailureHandler,
+                                                     LoginFormFailureHandler loginFormFailureHandler) throws Exception {
         http
                 // CSRF desativado por enquanto: ainda nao existem formularios Thymeleaf
                 // para carregar o token automaticamente. Reativar na fase de frontend.
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
+                        // Fluxo de verificacao de email: o usuario ainda nao tem sessao
+                        // nesse ponto (a conta acabou de ser criada como nao verificada).
+                        .requestMatchers(HttpMethod.POST, "/usuarios/verificar-email", "/usuarios/reenviar-codigo").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         // Fluxo de login social (so existe de fato quando ha provedor
                         // configurado -- ver OAuth2ClientRegistrations): precisa ser publico
@@ -70,7 +74,8 @@ public class SecurityConfig {
                 // padrao gerada pelo Spring Security. URL de processamento do POST
                 // continua sendo /login (mesmo comportamento de antes -- os testes que
                 // ja faziam post("/login") nao mudam).
-                .formLogin(form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/dashboard", true))
+                .formLogin(form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/dashboard", true)
+                        .failureHandler(loginFormFailureHandler))
                 // permitAll(): sem isso, o redirect padrao de logout ("/login?logout")
                 // nao fica na lista de URLs liberadas (essa lista compara a URL inteira,
                 // incluindo query string, contra "/login" -- "/login?logout" nao bate) e

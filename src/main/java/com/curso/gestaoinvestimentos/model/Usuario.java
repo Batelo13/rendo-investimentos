@@ -40,6 +40,11 @@ public class Usuario {
 
     private LocalDate dataCadastro;
 
+    // Nulo = conta anterior a este campo (ddl-auto=update nao faz backfill):
+    // tratada como verificada nas checagens de login para nao trancar quem
+    // ja tinha conta. Cadastro tradicional sempre define false explicitamente.
+    private Boolean emailVerified;
+
     public Long getId() {
         return id;
     }
@@ -102,5 +107,13 @@ public class Usuario {
 
     public void setDataCadastro(LocalDate dataCadastro) {
         this.dataCadastro = dataCadastro;
+    }
+
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 }

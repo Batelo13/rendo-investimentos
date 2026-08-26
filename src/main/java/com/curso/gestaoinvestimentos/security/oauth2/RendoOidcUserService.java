@@ -48,6 +48,14 @@ public class RendoOidcUserService extends OidcUserService {
             throw new OAuth2AuthenticationException(new OAuth2Error("conta_bloqueada"), "Conta bloqueada.");
         }
 
+        // O provedor OAuth2/OIDC ja comprova a posse do email -- uma autenticacao
+        // social bem-sucedida "cura" uma verificacao pendente, sem bloquear o
+        // login (ao contrario do formLogin, que exige o codigo por email).
+        if (!Boolean.TRUE.equals(usuario.getEmailVerified())) {
+            usuario.setEmailVerified(true);
+            usuarioRepository.save(usuario);
+        }
+
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getRole().name()));
         // nameAttributeKey = "email": Principal.getName() (usado em toda a API
         // via Principal.getName(), ex. CarteiraController) passa a devolver o
