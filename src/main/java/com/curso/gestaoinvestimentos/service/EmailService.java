@@ -32,7 +32,7 @@ public class EmailService {
 
     public void enviarCodigoVerificacao(String destinatario, String nome, String codigo) {
         if (!mailEnabled) {
-            log.info("MAIL_ENABLED=false -- email de verificacao para {} nao foi enviado (envio real desligado).", destinatario);
+            log.info("MAIL_ENABLED=false -- email de verificacao para {} nao foi enviado (envio real desligado). Codigo: {}", destinatario, codigo);
             return;
         }
 

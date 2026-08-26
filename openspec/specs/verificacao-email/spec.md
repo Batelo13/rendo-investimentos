@@ -83,3 +83,4 @@ O sistema SHALL permitir desativar o envio real de emails por configuração, se
 #### Scenario: Envio de email desligado
 - **WHEN** a configuração de envio de email está desligada
 - **THEN** o código ainda é gerado e armazenado normalmente, mas nenhum email real é disparado
+- **AND** o código gerado é registrado em log para permitir testar o fluxo localmente sem SMTP
