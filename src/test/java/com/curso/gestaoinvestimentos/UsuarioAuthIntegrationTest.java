@@ -2,8 +2,10 @@ package com.curso.gestaoinvestimentos;
 
 import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.model.Role;
+import com.curso.gestaoinvestimentos.model.TipoCodigo;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
+import com.curso.gestaoinvestimentos.repository.EmailVerificationCodeRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import com.curso.gestaoinvestimentos.util.CpfTestFixtures;
 import tools.jackson.databind.ObjectMapper;
@@ -47,6 +49,9 @@ class UsuarioAuthIntegrationTest {
     @Autowired
     private CarteiraRepository carteiraRepository;
 
+    @Autowired
+    private EmailVerificationCodeRepository codigoRepository;
+
     // H2 em memoria e recriado uma vez por contexto Spring, nao por teste -
     // sem isso, cadastros de um teste vazam pro proximo (ex: email duplicado).
     // Carteira e criada automaticamente no cadastro (FK obrigatoria pra
@@ -54,9 +59,13 @@ class UsuarioAuthIntegrationTest {
     @AfterEach
     void limparBanco() {
         carteiraRepository.deleteAll();
+        codigoRepository.deleteAll();
         usuarioRepository.deleteAll();
     }
 
+    // emailVerified=true aqui de proposito: este helper simula uma conta ja
+    // provisionada (usada pelos testes de login/autorizacao), nao o fluxo de
+    // cadastro em si -- esse fluxo tem cobertura propria mais abaixo.
     private Usuario cadastrarUsuario(String email, String senhaPlana, Role role) {
         Usuario usuario = new Usuario();
         usuario.setNome("Usuario de Teste");
@@ -65,6 +74,7 @@ class UsuarioAuthIntegrationTest {
         usuario.setSenha(passwordEncoder.encode(senhaPlana));
         usuario.setRole(role);
         usuario.setAtivo(true);
+        usuario.setEmailVerified(true);
         usuario.setDataCadastro(LocalDate.now());
         return usuarioRepository.save(usuario);
     }
@@ -77,13 +87,12 @@ class UsuarioAuthIntegrationTest {
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nome").value("Maria Silva"))
-                .andExpect(jsonPath("$.email").value("maria@example.com"))
-                .andExpect(jsonPath("$.cpf").value(cpf))
-                .andExpect(jsonPath("$.role").value("USER"))
-                .andExpect(jsonPath("$.ativo").value(true))
-                .andExpect(jsonPath("$.senha").doesNotExist());
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.emailVerificationRequired").value(true))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+
+        Usuario salvo = usuarioRepository.findByEmail("maria@example.com").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals(Boolean.FALSE, salvo.getEmailVerified());
     }
 
     @Test
@@ -105,7 +114,7 @@ class UsuarioAuthIntegrationTest {
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(primeiro)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isAccepted());
 
         UsuarioRequestDTO segundo = new UsuarioRequestDTO(
                 "Segundo Usuario", "segundo.cpf@example.com", cpf, "senha1234");
@@ -260,5 +269,41 @@ class UsuarioAuthIntegrationTest {
                         .param("password", "senha1234"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.not(org.hamcrest.Matchers.endsWith("/login?error"))));
+    }
+
+    @Test
+    void cadastroTradicionalGeraCodigoDeVerificacaoPendente() throws Exception {
+        String cpf = CpfTestFixtures.proximoCpfValido();
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Pendente Verificacao", "pendente@example.com", cpf, "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isAccepted());
+
+        Usuario salvo = usuarioRepository.findByEmail("pendente@example.com").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals(Boolean.FALSE, salvo.getEmailVerified());
+        org.junit.jupiter.api.Assertions.assertTrue(
+                codigoRepository.findFirstByUsuarioAndTipoAndUsadoFalseOrderByCriadoEmDesc(salvo, TipoCodigo.VERIFICACAO_EMAIL).isPresent());
+    }
+
+    @Test
+    void loginBloqueadoParaContaComEmailNaoVerificadoComRedirectDistinto() throws Exception {
+        Usuario naoVerificado = new Usuario();
+        naoVerificado.setNome("Nao Verificado");
+        naoVerificado.setEmail("naoverificado@example.com");
+        naoVerificado.setCpf(CpfTestFixtures.proximoCpfValido());
+        naoVerificado.setSenha(passwordEncoder.encode("senha1234"));
+        naoVerificado.setRole(Role.USER);
+        naoVerificado.setAtivo(true);
+        naoVerificado.setEmailVerified(false);
+        naoVerificado.setDataCadastro(LocalDate.now());
+        usuarioRepository.save(naoVerificado);
+
+        mockMvc.perform(post("/login")
+                        .param("username", "naoverificado@example.com")
+                        .param("password", "senha1234"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/login?erro=email-nao-verificado")));
     }
 }

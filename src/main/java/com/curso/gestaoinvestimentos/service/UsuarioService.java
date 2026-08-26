@@ -1,5 +1,6 @@
 package com.curso.gestaoinvestimentos.service;
 
+import com.curso.gestaoinvestimentos.dto.CadastroResponseDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
@@ -30,16 +31,18 @@ public class UsuarioService {
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final CarteiraRepository carteiraRepository;
+    private final EmailVerificationService emailVerificationService;
 
     public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder,
-                           CarteiraRepository carteiraRepository) {
+                           CarteiraRepository carteiraRepository, EmailVerificationService emailVerificationService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.carteiraRepository = carteiraRepository;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Transactional
-    public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
+    public CadastroResponseDTO cadastrar(UsuarioRequestDTO dto) {
         repository.findByEmail(dto.email()).ifPresent(existente -> {
             throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + dto.email());
         });
@@ -56,6 +59,7 @@ public class UsuarioService {
         // Campos controlados pelo sistema, nunca pelo cliente:
         usuario.setRole(Role.USER);
         usuario.setAtivo(true);
+        usuario.setEmailVerified(false);
         usuario.setDataCadastro(LocalDate.now());
 
         Usuario salvo = repository.save(usuario);
@@ -66,7 +70,10 @@ public class UsuarioService {
         carteira.setSaldoInicial(SALDO_INICIAL_PADRAO);
         carteiraRepository.save(carteira);
 
-        return toResponseDTO(salvo);
+        emailVerificationService.gerarEEnviarCodigo(salvo);
+
+        return new CadastroResponseDTO(
+                "Conta criada. Enviamos um codigo de verificacao para seu e-mail.", true);
     }
 
     public Page<UsuarioResponseDTO> listar(Pageable pageable) {
