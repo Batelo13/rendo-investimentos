@@ -1,0 +1,36 @@
+# Controle de versao e configuracoes das IDEs
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+
+# Configuracoes locais e segredos
+.env
+.env.*
+
+# Artefatos de build e dependencias locais
+target
+build
+*.class
+*.log
+node_modules
+graphify-out
+
+# Ferramentas locais que nao participam do build Maven no container
+.mvn
+mvnw
+mvnw.cmd
+package.json
+package-lock.json
+.claude
+.grok
+.worktrees
+openspec
+
+# Documentacao e arquivos do sistema
+docs
+HELP.md
+README.md
+.DS_Store
+**/.DS_Store
