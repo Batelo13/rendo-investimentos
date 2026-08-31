@@ -441,7 +441,7 @@ function renderAcoes() {
 
     tbody.innerHTML = lista.map((a) => `
         <tr>
-            <td class="acao-ticker-col">${acaoLogoHTML(a)}${esc(a.ticker)}</td>
+            <td><div class="acao-ticker-col">${acaoLogoHTML(a)}${esc(a.ticker)}</div></td>
             <td>${esc(a.nomeEmpresa || "—")}</td>
             <td>${mercadoTag(a.mercado)}</td>
             <td class="num">${esc(fmtMoeda(a.cotacaoAtual, a.moeda))}${a.cotacaoAtualBRL != null ? `<span class="valor-convertido">≈ ${esc(fmtMoeda(a.cotacaoAtualBRL, "BRL"))}</span>` : ""}</td>

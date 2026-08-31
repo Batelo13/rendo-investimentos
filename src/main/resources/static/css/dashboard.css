@@ -214,6 +214,7 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .tag-buy { color: var(--brand); background: rgba(93,226,186,0.1); border-color: rgba(93,226,186,0.3); }
 .tag-sell { color: var(--danger); background: rgba(240,100,100,0.1); border-color: rgba(240,100,100,0.3); }
 
+/* Wrapper interno: o <td> deve conservar o comportamento de table-cell. */
 .acao-ticker-col { display: flex; align-items: center; gap: 8px; }
 .acao-logo { border-radius: 4px; object-fit: contain; background: var(--background); flex-shrink: 0; }
 
