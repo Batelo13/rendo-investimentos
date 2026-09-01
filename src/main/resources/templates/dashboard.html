@@ -234,6 +234,20 @@
             <div class="panel">
                 <div class="panel-head">
                     <h2>Minhas posições <span class="count-badge" id="countPosicoes">0</span></h2>
+                    <select class="filter-input" id="filterPosicoesMercado">
+                        <option value="">Todos os mercados</option>
+                        <option value="BRASIL">Brasil (B3)</option>
+                        <option value="EUA">Estados Unidos</option>
+                    </select>
+                    <select class="filter-input" id="filterPosicoesCorretora">
+                        <option value="">Todas as corretoras</option>
+                    </select>
+                    <select class="filter-input" id="filterPosicoesResultado">
+                        <option value="">Todos os resultados</option>
+                        <option value="lucro">Lucro</option>
+                        <option value="prejuizo">Prejuízo</option>
+                        <option value="neutro">Neutro</option>
+                    </select>
                     <input class="filter-input" id="filterPosicoes" placeholder="Filtrar…" />
                 </div>
                 <div class="table-wrap">

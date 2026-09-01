@@ -111,6 +111,7 @@ function icone(nome, size = 14) {
         badgeCheck: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
         mapPin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
         kebab: '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>',
+        trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
     };
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="${size}" height="${size}" style="vertical-align:-2px">${paths[nome] || ""}</svg>`;
 }
@@ -449,6 +450,7 @@ function renderAcoes() {
                 <button class="btn btn-buy btn-icon" data-buy="${a.id}">Comprar</button>
                 <button class="btn btn-ghost btn-icon" title="Atualizar cotação" data-refresh-acao="${a.id}">${icone("refresh")}</button>
                 <button class="btn btn-ghost btn-icon" title="Detalhes" data-detail-acao="${a.id}">${icone("expand")}</button>
+                <button class="btn btn-ghost btn-icon" title="Excluir" data-delete-acao="${a.id}">${icone("trash")}</button>
             </td>
         </tr>`).join("");
 
@@ -457,13 +459,39 @@ function renderAcoes() {
     }
 }
 
+function corretorasDasPosicoes() {
+    return [...new Set(state.posicoes.map((p) => p.corretoraNome).filter(Boolean))].sort();
+}
+
+function popularFiltroCorretoras() {
+    const select = $("#filterPosicoesCorretora");
+    const atual = select.value;
+    const opcoes = corretorasDasPosicoes();
+    select.innerHTML = `<option value="">Todas as corretoras</option>` +
+        opcoes.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    if (opcoes.includes(atual)) select.value = atual;
+}
+
+function resultadoPosicao(p) {
+    const resultado = Number(p.valorAtual) - Number(p.valorInvestido);
+    if (resultado > 0) return "lucro";
+    if (resultado < 0) return "prejuizo";
+    return "neutro";
+}
+
 function renderPosicoes() {
     const filtro = $("#filterPosicoes").value.trim().toLowerCase();
+    const mercado = $("#filterPosicoesMercado").value;
+    const corretora = $("#filterPosicoesCorretora").value;
+    const filtroResultado = $("#filterPosicoesResultado").value;
     const tbody = $("#tablePosicoes tbody");
     const lista = state.posicoes.filter((p) =>
-        !filtro || (p.acaoTicker || "").toLowerCase().includes(filtro) || (p.corretoraNome || "").toLowerCase().includes(filtro));
+        (!filtro || (p.acaoTicker || "").toLowerCase().includes(filtro) || (p.corretoraNome || "").toLowerCase().includes(filtro)) &&
+        (!mercado || acaoPorTicker(p.acaoTicker)?.mercado === mercado) &&
+        (!corretora || p.corretoraNome === corretora) &&
+        (!filtroResultado || resultadoPosicao(p) === filtroResultado));
 
-    $("#countPosicoes").textContent = state.posicoes.length;
+    $("#countPosicoes").textContent = lista.length;
     $("#emptyPosicoes").classList.toggle("hidden", state.posicoes.length > 0);
 
     tbody.innerHTML = lista.map((p, i) => {
@@ -575,6 +603,7 @@ function renderCorretoras() {
 function renderTudo() {
     renderVisaoGeral();
     renderAcoes();
+    popularFiltroCorretoras();
     renderPosicoes();
     renderOperacoes();
     renderCorretoras();
@@ -837,6 +866,29 @@ async function atualizarCotacao(id) {
     }
 }
 
+async function excluirAcao(id) {
+    const a = state.acoes.find((x) => x.id === id);
+    if (!a) return;
+
+    const { isConfirmed } = await Swal.fire({
+        title: "Excluir ação?",
+        html: `Isso remove <b>${esc(a.ticker)}</b> do catálogo. Só é possível excluir ações sem compras/vendas registradas.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Excluir",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+
+    try {
+        await api(`/acoes/${id}`, { method: "DELETE" });
+        toast("Ação excluída", a.ticker, "ok");
+        await carregarTudo();
+    } catch (err) {
+        toast("Não foi possível excluir", err.message, "err");
+    }
+}
+
 /* ----------------------- Corretoras: submit -------------------------- */
 async function submitCorretora(e) {
     e.preventDefault();
@@ -893,6 +945,9 @@ function bind() {
 
     $("#filterAcoes").addEventListener("input", renderAcoes);
     $("#filterPosicoes").addEventListener("input", renderPosicoes);
+    $("#filterPosicoesMercado").addEventListener("change", renderPosicoes);
+    $("#filterPosicoesCorretora").addEventListener("change", renderPosicoes);
+    $("#filterPosicoesResultado").addEventListener("change", renderPosicoes);
     $("#filterOperacoes").addEventListener("input", renderOperacoes);
     $("#filterCorretoras").addEventListener("input", renderCorretoras);
 
@@ -927,6 +982,9 @@ function bind() {
 
         const r = e.target.closest("[data-refresh-acao]");
         if (r) { atualizarCotacao(Number(r.dataset.refreshAcao)); return; }
+
+        const del = e.target.closest("[data-delete-acao]");
+        if (del) { excluirAcao(Number(del.dataset.deleteAcao)); return; }
 
         const da = e.target.closest("[data-detail-acao]");
         if (da) {
