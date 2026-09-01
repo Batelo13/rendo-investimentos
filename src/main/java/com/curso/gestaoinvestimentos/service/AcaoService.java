@@ -5,6 +5,7 @@ import com.curso.gestaoinvestimentos.dto.AcaoResponseDTO;
 import com.curso.gestaoinvestimentos.dto.HistoricoCotacaoResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
+import com.curso.gestaoinvestimentos.exception.RegraDeNegocioException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.integration.CotacaoProvider;
 import com.curso.gestaoinvestimentos.integration.DadosCotacaoResponse;
@@ -14,26 +15,43 @@ import com.curso.gestaoinvestimentos.model.HistoricoCotacao;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.curso.gestaoinvestimentos.repository.AcaoRepository;
 import com.curso.gestaoinvestimentos.repository.HistoricoCotacaoRepository;
+import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
+import com.curso.gestaoinvestimentos.repository.PosicaoAtualRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AcaoService {
 
+    /**
+     * brapi.dev (provider de BRASIL) tambem retorna dados para tickers
+     * americanos -- sem essa checagem, um ticker EUA cadastrado com mercado
+     * BRASIL (ou vice-versa) era aceito silenciosamente, com a cotacao na
+     * moeda errada para a tag exibida.
+     */
+    private static final Map<Mercado, String> MOEDA_ESPERADA = Map.of(Mercado.BRASIL, "BRL", Mercado.EUA, "USD");
+
     private final AcaoRepository repository;
     private final HistoricoCotacaoRepository historicoRepository;
+    private final OperacaoRepository operacaoRepository;
+    private final PosicaoAtualRepository posicaoAtualRepository;
     private final List<CotacaoProvider> providers;
     private final DolarApiCambioClient cambioClient;
 
     public AcaoService(AcaoRepository repository, HistoricoCotacaoRepository historicoRepository,
+                        OperacaoRepository operacaoRepository, PosicaoAtualRepository posicaoAtualRepository,
                         List<CotacaoProvider> providers, DolarApiCambioClient cambioClient) {
         this.repository = repository;
         this.historicoRepository = historicoRepository;
+        this.operacaoRepository = operacaoRepository;
+        this.posicaoAtualRepository = posicaoAtualRepository;
         this.providers = providers;
         this.cambioClient = cambioClient;
     }
@@ -44,6 +62,7 @@ public class AcaoService {
         });
 
         DadosCotacaoResponse dadosCotacao = buscarCotacao(dto.ticker(), dto.mercado());
+        validarMoedaCompativel(dto.mercado(), dadosCotacao.ticker(), dadosCotacao.moeda());
 
         Acao acao = new Acao();
         acao.setTicker(dadosCotacao.ticker());
@@ -101,12 +120,34 @@ public class AcaoService {
                 .toList();
     }
 
+    @Transactional
+    public void excluir(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RecursoNaoEncontradoException("Acao nao encontrada com id " + id);
+        }
+        if (operacaoRepository.existsByAcaoId(id) || posicaoAtualRepository.existsByAcaoId(id)) {
+            throw new RegraDeNegocioException(
+                    "Nao e possivel excluir uma acao que ja possui operacoes ou posicoes registradas.");
+        }
+        historicoRepository.deleteByAcaoId(id);
+        repository.deleteById(id);
+    }
+
     private void registrarHistorico(Acao acao, DadosCotacaoResponse dadosCotacao) {
         HistoricoCotacao historico = new HistoricoCotacao();
         historico.setAcao(acao);
         historico.setPreco(dadosCotacao.cotacaoAtual());
         historico.setCapturadoEm(dadosCotacao.dataHoraCotacao());
         historicoRepository.save(historico);
+    }
+
+    private void validarMoedaCompativel(Mercado mercado, String ticker, String moeda) {
+        String esperada = MOEDA_ESPERADA.get(mercado);
+        if (esperada != null && moeda != null && !esperada.equalsIgnoreCase(moeda)) {
+            throw new RegraDeNegocioException(
+                    "O ticker " + ticker + " e negociado em " + moeda + ", nao e compativel com o mercado "
+                            + mercado + " (esperado " + esperada + "). Verifique se o mercado selecionado esta correto.");
+        }
     }
 
     /**

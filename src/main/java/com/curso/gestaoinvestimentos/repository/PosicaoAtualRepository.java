@@ -13,4 +13,6 @@ public interface PosicaoAtualRepository extends JpaRepository<PosicaoAtual, Long
     List<PosicaoAtual> findByCarteiraId(Long carteiraId);
 
     void deleteByCarteiraId(Long carteiraId);
+
+    boolean existsByAcaoId(Long acaoId);
 }

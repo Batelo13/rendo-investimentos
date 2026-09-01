@@ -55,4 +55,10 @@ public class AcaoController {
     public List<HistoricoCotacaoResponseDTO> historico(@PathVariable Long id) {
         return service.historico(id);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        service.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
 }

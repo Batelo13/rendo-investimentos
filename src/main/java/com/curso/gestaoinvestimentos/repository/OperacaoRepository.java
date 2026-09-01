@@ -16,4 +16,6 @@ public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
 
     List<Operacao> findByCarteiraIdAndAcaoIdAndCorretoraIdAndStatusOrderByDataHoraAsc(
             Long carteiraId, Long acaoId, Long corretoraId, StatusOperacao status);
+
+    boolean existsByAcaoId(Long acaoId);
 }

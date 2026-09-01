@@ -8,4 +8,6 @@ import java.util.List;
 public interface HistoricoCotacaoRepository extends JpaRepository<HistoricoCotacao, Long> {
 
     List<HistoricoCotacao> findByAcaoIdOrderByCapturadoEmDesc(Long acaoId);
+
+    void deleteByAcaoId(Long acaoId);
 }
