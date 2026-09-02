@@ -143,6 +143,34 @@ function fmtConvertido(valorNaMoedaOriginal, ticker) {
     return `<span class="valor-convertido">≈ ${esc(fmtMoeda(Number(valorNaMoedaOriginal) * taxa, "BRL"))}</span>`;
 }
 
+/**
+ * Agrupa posicoes (que sao por acao+corretora) em uma linha por acao para a
+ * Visao Geral -- pedido do professor: o preco medio ali deve ser o preco
+ * medio da acao como um todo, nao um preco medio por corretora repetido em
+ * varias linhas. precoMedio agregado = soma dos valorInvestido / soma das
+ * quantidades (media ponderada), pois valorInvestido de cada posicao ja e
+ * precoMedio*quantidade (ver CarteiraService). A tabela completa "Minhas
+ * posicoes" continua por corretora, que e o propósito dela.
+ */
+function consolidarPosicoesPorAcao(posicoes) {
+    const porAcao = new Map();
+    for (const p of posicoes) {
+        let g = porAcao.get(p.acaoTicker);
+        if (!g) {
+            g = { acaoTicker: p.acaoTicker, quantidade: 0, valorInvestido: 0, valorAtual: null, corretoras: [] };
+            porAcao.set(p.acaoTicker, g);
+        }
+        g.quantidade += Number(p.quantidade);
+        g.valorInvestido += Number(p.valorInvestido);
+        if (p.valorAtual != null) g.valorAtual = (g.valorAtual ?? 0) + Number(p.valorAtual);
+        g.corretoras.push(p.corretoraNome);
+    }
+    return Array.from(porAcao.values()).map((g) => ({
+        ...g,
+        precoMedio: g.quantidade > 0 ? g.valorInvestido / g.quantidade : 0,
+    }));
+}
+
 /* --------------------------- Toasts ------------------------------ */
 function toast(titulo, msg = "", tipo = "ok") {
     const el = document.createElement("div");
@@ -214,39 +242,36 @@ function renderVisaoGeral() {
     renderRendimentoChart();
 
     const dash = $("#dashPosicoes");
-    const recentes = state.posicoes.slice(0, 6);
+    const consolidado = consolidarPosicoesPorAcao(state.posicoes);
+    const recentes = consolidado.slice(0, 6);
     if (!recentes.length) {
         dash.innerHTML = `<div class="empty">Nenhuma posição ainda. Vá em <b>Ações</b> para comprar.</div>`;
         return;
     }
-    dash.innerHTML = recentes.map((p, i) => {
-        const moeda = moedaPorTicker(p.acaoTicker);
-        const acao = acaoPorTicker(p.acaoTicker);
-        const resultado = p.valorAtual != null ? Number(p.valorAtual) - Number(p.valorInvestido) : null;
+    dash.innerHTML = recentes.map((g) => {
+        const moeda = moedaPorTicker(g.acaoTicker);
+        const acao = acaoPorTicker(g.acaoTicker);
+        const resultado = g.valorAtual != null ? g.valorAtual - g.valorInvestido : null;
+        const corretoraLabel = g.corretoras.length === 1 ? g.corretoras[0] : `${g.corretoras.length} corretoras`;
+        const corretoraBadge = g.corretoras.length === 1 ? g.corretoras[0].slice(0, 2).toUpperCase() : `×${g.corretoras.length}`;
         return `
         <div class="mini-row">
             <span class="m-ativo">
                 ${acao ? acaoLogoHTML(acao, 22) : ""}
                 <span class="m-ativo-info">
-                    <span class="m-ticker">${esc(p.acaoTicker)}</span>
+                    <span class="m-ticker">${esc(g.acaoTicker)}</span>
                     ${acao && acao.nomeEmpresa ? `<span class="m-empresa">${esc(acao.nomeEmpresa)}</span>` : ""}
                 </span>
             </span>
             <span class="m-corretora">
-                <span class="m-corretora-badge">${esc((p.corretoraNome || "—").slice(0, 2).toUpperCase())}</span>
-                ${esc(p.corretoraNome)}
+                <span class="m-corretora-badge">${esc(corretoraBadge)}</span>
+                ${esc(corretoraLabel)}
             </span>
-            <span class="m-qtd">${esc(fmtNumero(p.quantidade))} un.</span>
-            <span class="m-preco-medio">${esc(fmtMoeda(p.precoMedio, moeda))}</span>
+            <span class="m-qtd">${esc(fmtNumero(g.quantidade))} un.</span>
+            <span class="m-preco-medio">${esc(fmtMoeda(g.precoMedio, moeda))}</span>
             <span class="m-preco-atual">${acao && acao.cotacaoAtual != null ? esc(fmtMoeda(acao.cotacaoAtual, moeda)) : "—"}</span>
             <span class="m-resultado">${fmtResultado(resultado, moeda)}</span>
-            <span class="m-valor">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</span>
-            <span class="m-kebab-wrap">
-                <button type="button" class="m-kebab" data-kebab="${i}" aria-label="Mais ações">${icone("kebab")}</button>
-                <div class="row-menu" id="rowMenu${i}">
-                    <button type="button" data-sell="${i}">Vender</button>
-                </div>
-            </span>
+            <span class="m-valor">${esc(fmtMoeda(g.valorAtual, moeda))}${fmtConvertido(g.valorAtual, g.acaoTicker)}</span>
         </div>`;
     }).join("");
 

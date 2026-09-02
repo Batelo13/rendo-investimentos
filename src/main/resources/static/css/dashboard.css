@@ -235,7 +235,7 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .mini-list { display: flex; flex-direction: column; }
 .mini-row {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 60px 85px 85px 85px 95px 26px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 60px 85px 85px 85px 95px;
     align-items: center; gap: var(--space-3);
     padding: 11px 4px; border-top: 1px solid var(--border);
 }
@@ -375,7 +375,7 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 @media (max-width: 1366px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 1024px) {
     .stats-grid { grid-template-columns: repeat(3, 1fr); }
-    .mini-row { grid-template-columns: minmax(0, 1.6fr) 92px 100px 26px; }
+    .mini-row { grid-template-columns: minmax(0, 1.6fr) 92px 100px; }
     .mini-row .m-corretora, .mini-row .m-qtd, .mini-row .m-preco-medio, .mini-row .m-preco-atual { display: none; }
 }
 @media (max-width: 860px) {
@@ -394,7 +394,7 @@ select option { background-color: var(--surface); color: var(--text-primary); }
     .stats-grid { grid-template-columns: 1fr 1fr; gap: var(--space-2); }
     .stat-card { padding: var(--space-3); }
     .detail-grid { grid-template-columns: 1fr; }
-    .mini-row { grid-template-columns: minmax(0, 1fr) 90px 26px; }
+    .mini-row { grid-template-columns: minmax(0, 1fr) 90px; }
     .mini-row .m-resultado { display: none; }
     #rendimentoChart { height: 170px; }
 }
