@@ -240,6 +240,13 @@ select option { background-color: var(--surface); color: var(--text-primary); }
     padding: 11px 4px; border-top: 1px solid var(--border);
 }
 .mini-row:first-child { border-top: 0; }
+.mini-row-header {
+    padding: 0 4px 10px; border-top: 0;
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-secondary); font-weight: 700;
+}
+.mini-row-header .h-qtd, .mini-row-header .h-preco, .mini-row-header .h-preco-atual,
+.mini-row-header .h-resultado, .mini-row-header .h-valor { text-align: right; }
 .mini-row .m-ativo { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .mini-row .m-ativo-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .mini-row .m-ticker { font-weight: 700; font-size: 13.5px; }
@@ -377,6 +384,7 @@ select option { background-color: var(--surface); color: var(--text-primary); }
     .stats-grid { grid-template-columns: repeat(3, 1fr); }
     .mini-row { grid-template-columns: minmax(0, 1.6fr) 92px 100px; }
     .mini-row .m-corretora, .mini-row .m-qtd, .mini-row .m-preco-medio, .mini-row .m-preco-atual { display: none; }
+    .mini-row-header .h-corretora, .mini-row-header .h-qtd, .mini-row-header .h-preco, .mini-row-header .h-preco-atual { display: none; }
 }
 @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; }
@@ -396,5 +404,6 @@ select option { background-color: var(--surface); color: var(--text-primary); }
     .detail-grid { grid-template-columns: 1fr; }
     .mini-row { grid-template-columns: minmax(0, 1fr) 90px; }
     .mini-row .m-resultado { display: none; }
+    .mini-row-header .h-resultado { display: none; }
     #rendimentoChart { height: 170px; }
 }
