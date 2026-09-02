@@ -740,7 +740,7 @@ function abrirCompraModal(acaoId) {
             </label>
             <div id="opResumo"></div>
             <button class="btn btn-buy" type="submit" id="btnOperacao">Confirmar compra</button>
-            <p class="form-hint">A compra recalcula o preço médio acumulado da posição nessa corretora.</p>
+            <p class="form-hint">A compra recalcula o preço médio da posição nessa corretora.</p>
         </form>`);
 
     ligarResumoOperacao(a, null);
@@ -763,7 +763,7 @@ function abrirVendaModal(posicaoIndex) {
     abrirModal(`
         <h2>Vender ${esc(p.acaoTicker)} ${tipoTag("VENDA")}</h2>
         <p class="sub">${esc(p.corretoraNome)}</p>
-        <div class="op-info">Posição atual: <b>${esc(fmtNumero(p.quantidade))} un.</b> a preço médio acumulado de <b>${esc(fmtMoeda(p.precoMedio, moedaPorTicker(p.acaoTicker)))}</b></div>
+        <div class="op-info">Posição atual: <b>${esc(fmtNumero(p.quantidade))} un.</b> a preço médio de <b>${esc(fmtMoeda(p.precoMedio, moedaPorTicker(p.acaoTicker)))}</b></div>
         <form id="formOperacao" class="form" data-tipo="VENDA" data-acao-id="${a.id}" data-corretora-id="${corretora.id}">
             <label class="field">
                 <span>Quantidade (máx. ${esc(fmtNumero(p.quantidade))})</span>
@@ -775,7 +775,7 @@ function abrirVendaModal(posicaoIndex) {
             </label>
             <div id="opResumo"></div>
             <button class="btn btn-sell" type="submit" id="btnOperacao">Confirmar venda</button>
-            <p class="form-hint">A venda calcula o lucro/prejuízo: (preço de venda − preço médio acumulado) × quantidade.</p>
+            <p class="form-hint">A venda calcula o lucro/prejuízo: (preço de venda − preço médio) × quantidade.</p>
         </form>`);
 
     ligarResumoOperacao(a, p);
