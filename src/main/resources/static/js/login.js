@@ -5,6 +5,9 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 
 const onlyDigits = (s) => (s || '').replace(/\D/g, '');
 
+const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
 btnCadastro.addEventListener('click', () => container.classList.add('active'));
 btnLogin.addEventListener('click', () => container.classList.remove('active'));
 
@@ -38,7 +41,7 @@ cadastroForm.addEventListener('submit', async (evento) => {
     try {
         const resposta = await fetch('/usuarios', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
             body: JSON.stringify(dto),
         });
 
@@ -70,7 +73,7 @@ verificacaoForm.addEventListener('submit', async (evento) => {
     try {
         const resposta = await fetch('/usuarios/verificar-email', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
             body: JSON.stringify({ email: emailEmVerificacao, codigo: onlyDigits(verificacaoForm.codigo.value) }),
         });
 
@@ -107,7 +110,7 @@ async function reenviarCodigo(email, elementoMensagem, botao) {
     try {
         const resposta = await fetch('/usuarios/reenviar-codigo', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
             body: JSON.stringify({ email }),
         });
         const corpo = await resposta.json();

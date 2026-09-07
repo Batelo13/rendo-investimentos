@@ -19,12 +19,14 @@ import com.curso.gestaoinvestimentos.repository.OperacaoRepository;
 import com.curso.gestaoinvestimentos.repository.PosicaoAtualRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import com.curso.gestaoinvestimentos.util.CpfTestFixtures;
+import com.curso.gestaoinvestimentos.util.CsrfTestConfig;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(CsrfTestConfig.class)
 class OperacaoIntegrationTest {
 
     private static final BigDecimal SALDO_INICIAL_TESTE = new BigDecimal("100000.00");

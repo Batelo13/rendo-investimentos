@@ -8,20 +8,25 @@ import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.EmailVerificationCodeRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import com.curso.gestaoinvestimentos.util.CpfTestFixtures;
+import com.curso.gestaoinvestimentos.util.CsrfTestConfig;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
 
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(CsrfTestConfig.class)
 class UsuarioAuthIntegrationTest {
 
     @Autowired
@@ -51,6 +57,9 @@ class UsuarioAuthIntegrationTest {
 
     @Autowired
     private EmailVerificationCodeRepository codigoRepository;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     // H2 em memoria e recriado uma vez por contexto Spring, nao por teste -
     // sem isso, cadastros de um teste vazam pro proximo (ex: email duplicado).
@@ -93,6 +102,25 @@ class UsuarioAuthIntegrationTest {
 
         Usuario salvo = usuarioRepository.findByEmail("maria@example.com").orElseThrow();
         org.junit.jupiter.api.Assertions.assertEquals(Boolean.FALSE, salvo.getEmailVerified());
+    }
+
+    // Unico teste que nao usa o mockMvc compartilhado da classe: ele tem
+    // csrf() aplicado por padrao a toda requisicao (ver CsrfTestConfig), o
+    // que mascararia exatamente o comportamento que este teste precisa provar
+    // -- por isso monta uma instancia propria, sem esse default.
+    @Test
+    void deveRejeitarRequisicaoDeEscritaSemTokenCsrf() throws Exception {
+        MockMvc mockMvcSemCsrfPadrao = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .build();
+
+        UsuarioRequestDTO dto = new UsuarioRequestDTO(
+                "Sem Token", "sem.token@example.com", CpfTestFixtures.proximoCpfValido(), "senha1234");
+
+        mockMvcSemCsrfPadrao.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isForbidden());
     }
 
     @Test

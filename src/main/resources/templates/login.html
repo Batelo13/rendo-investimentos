@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <script>
         (function () {
             if (localStorage.getItem('rendo-theme') === 'light') {
@@ -109,6 +111,7 @@
         <!-- Login -->
         <div class="form-container sign-in">
             <form th:action="@{/login}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <div th:replace="~{fragments/logo :: logo}"></div>
                 <h1>Bem-vindo de volta</h1>
                 <span class="subtitulo">Acesse sua conta para continuar</span>

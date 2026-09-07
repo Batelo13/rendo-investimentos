@@ -27,9 +27,12 @@ const state = {
 let pontosChartAtual = [];
 
 /* ----------------------------- HTTP ------------------------------ */
+const csrfToken = $('meta[name="_csrf"]')?.content;
+const csrfHeader = $('meta[name="_csrf_header"]')?.content;
+
 async function api(path, options = {}) {
     const res = await fetch(path, {
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json", [csrfHeader]: csrfToken },
         ...options,
     });
 

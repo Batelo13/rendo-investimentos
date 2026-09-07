@@ -38,9 +38,11 @@ public class SecurityConfig {
                                                      LoginSocialFailureHandler loginSocialFailureHandler,
                                                      LoginFormFailureHandler loginFormFailureHandler) throws Exception {
         http
-                // CSRF desativado por enquanto: ainda nao existem formularios Thymeleaf
-                // para carregar o token automaticamente. Reativar na fase de frontend.
-                .csrf(csrf -> csrf.disable())
+                // CSRF reativado: login/logout sao forms Thymeleaf nativos (hidden
+                // input com o token) e o dashboard/cadastro mandam o token via header
+                // (meta tag lida pelo JS). H2 console tem forms proprios sem token,
+                // por isso fica de fora da protecao.
+                .csrf(csrf -> csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern("/h2-console/**")))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
                         // Fluxo de verificacao de email: o usuario ainda nao tem sessao
