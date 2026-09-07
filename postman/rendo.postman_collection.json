@@ -1,0 +1,449 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c",
+    "name": "Rendo — API",
+    "description": "# Rendo — Colecao Postman\n\nAPI REST do projeto academico Rendo (gestao de investimentos simulada, sem dinheiro real).\n\n## Como usar\n\n1. Suba a aplicacao (`mvn spring-boot:run` com o profile `dev`, ou `docker compose up`) — ela escuta em `http://localhost:8080` por padrao. Se for diferente, ajuste a variavel de colecao `baseUrl`.\n2. Rode a pasta **01 - Autenticacao** de cima para baixo, na ordem — sem pular nenhuma requisicao. O passo 3 (verificar e-mail) exige copiar o codigo de 6 digitos que aparece no console do servidor (procure por \"Codigo:\") — ou no e-mail recebido, se o envio real (`MAIL_ENABLED=true`) estiver configurado. Cole esse codigo na variavel de colecao `codigoVerificacao` antes de enviar essa requisicao. O passo logo apos o login (\"GET /dashboard\") tambem e obrigatorio: por seguranca, o token CSRF e trocado no momento em que o login e concluido, entao o token capturado antes de logar para de valer e precisa ser recapturado de uma pagina ja autenticada.\n3. Depois disso as demais pastas podem ser exploradas livremente, em qualquer ordem. Toda requisicao de escrita (POST/PATCH/PUT/DELETE) recebe automaticamente o header do token CSRF via um script de pre-requisicao no nivel da colecao — nao precisa configurar nada manualmente.\n4. Algumas rotas exigem o papel ADMIN (indicado na descricao de cada uma). Como nao existe cadastro publico de administrador, promova um usuario direto no banco: com o profile `dev` (H2), abra `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:rendo`, usuario `sa`, senha em branco) e rode:\n   ```sql\n   UPDATE usuarios SET role = 'ADMIN' WHERE email = 'professor.teste@example.com';\n   ```\n   Depois faca logout (pasta **08 - Logout**) e login de novo (pasta 01, incluindo o passo \"GET /dashboard\" — o token rotaciona de novo a cada login) — a sessao precisa ser recriada para carregar o novo papel.\n\n## Variaveis da colecao\n\n- `baseUrl` — endereco da API (padrao `http://localhost:8080`)\n- `usuarioEmail` / `usuarioSenha` / `usuarioCpf` — dados do usuario de teste criado na pasta 01\n- `codigoVerificacao` — cole aqui o codigo de 6 digitos recebido no cadastro\n- `corretoraCnpj` / `acaoTicker` — dados usados nos cadastros de exemplo (CNPJ real da XP, ticker real da Petrobras)\n- `corretoraId` / `acaoId` / `operacaoId` / `usuarioId` — preenchidos automaticamente pelas proprias requisicoes conforme voce as executa\n- `csrfToken` / `csrfHeader` — preenchidos automaticamente pela requisicao \"GET /login\", nao precisam ser editados manualmente",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Ponto unico: toda requisicao de escrita ganha o header CSRF automaticamente,",
+          "// igual ao helper api() do dashboard.js do proprio frontend.",
+          "const metodosProtegidos = ['POST', 'PUT', 'PATCH', 'DELETE'];",
+          "if (metodosProtegidos.includes(pm.request.method)) {",
+          "    const headerName = pm.collectionVariables.get('csrfHeader') || 'X-CSRF-TOKEN';",
+          "    const token = pm.collectionVariables.get('csrfToken');",
+          "    if (token) {",
+          "        pm.request.headers.upsert({ key: headerName, value: token });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "csrfToken", "value": "" },
+    { "key": "csrfHeader", "value": "X-CSRF-TOKEN" },
+    { "key": "usuarioEmail", "value": "professor.teste@example.com" },
+    { "key": "usuarioSenha", "value": "senha1234" },
+    { "key": "usuarioCpf", "value": "11144477735" },
+    { "key": "codigoVerificacao", "value": "000000" },
+    { "key": "corretoraCnpj", "value": "02332886000104" },
+    { "key": "acaoTicker", "value": "PETR4" },
+    { "key": "corretoraId", "value": "" },
+    { "key": "acaoId", "value": "" },
+    { "key": "operacaoId", "value": "" },
+    { "key": "usuarioId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Autenticacao",
+      "description": "Rode as requisicoes desta pasta em ordem, de cima para baixo, antes de qualquer outra pasta.",
+      "item": [
+        {
+          "name": "GET /login (captura token CSRF)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const corpo = pm.response.text();",
+                  "const token = corpo.match(/name=\"_csrf\" content=\"([^\"]+)\"/);",
+                  "const header = corpo.match(/name=\"_csrf_header\" content=\"([^\"]+)\"/);",
+                  "pm.test('Pagina de login carregou (200)', () => pm.response.to.have.status(200));",
+                  "pm.test('Token CSRF encontrado no HTML', () => pm.expect(token).to.not.be.null);",
+                  "if (token) pm.collectionVariables.set('csrfToken', token[1]);",
+                  "if (header) pm.collectionVariables.set('csrfHeader', header[1]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /usuarios (cadastro)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Professor Teste\",\n  \"email\": \"{{usuarioEmail}}\",\n  \"cpf\": \"{{usuarioCpf}}\",\n  \"senha\": \"{{usuarioSenha}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/usuarios",
+            "description": "Cria a conta como USER comum (nao existe cadastro publico de ADMIN). Resposta 202 = cadastro aceito, aguardando verificacao de e-mail.\n\n**Depois de enviar:** olhe o console do servidor (procure a linha \"Codigo:\") ou o e-mail recebido, e cole o codigo de 6 digitos na variavel de colecao `codigoVerificacao` antes da proxima requisicao."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Cadastro aceito (202)', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /usuarios/verificar-email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"codigo\": \"{{codigoVerificacao}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/usuarios/verificar-email",
+            "description": "Confirme que a variavel `codigoVerificacao` tem o codigo real recebido antes de enviar — o valor padrao (\"000000\") sempre vai falhar."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Email verificado (200)', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "{{usuarioEmail}}" },
+                { "key": "password", "value": "{{usuarioSenha}}" }
+              ]
+            },
+            "url": "{{baseUrl}}/login",
+            "description": "Autenticacao nativa do Spring Security (mesma URL usada pelo form da tela de login). Sucesso = 302 redirecionando pro /dashboard; o cookie de sessao fica guardado automaticamente pelo Postman para as proximas requisicoes."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login processado (redirect 302)', () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /dashboard (recaptura token pos-login)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/dashboard",
+            "description": "Passo obrigatorio depois do login: por seguranca (protecao contra session fixation), o Spring Security troca o token CSRF no momento em que a autenticacao e concluida — o token capturado no passo 1 (antes do login) para de valer. Esta requisicao busca uma pagina autenticada e recaptura um token valido, exatamente como o proprio dashboard.html faz pro JavaScript do frontend."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const corpo = pm.response.text();",
+                  "const token = corpo.match(/name=\"_csrf\" content=\"([^\"]+)\"/);",
+                  "const header = corpo.match(/name=\"_csrf_header\" content=\"([^\"]+)\"/);",
+                  "pm.test('Dashboard acessivel (200)', () => pm.response.to.have.status(200));",
+                  "pm.test('Token CSRF pos-login encontrado', () => pm.expect(token).to.not.be.null);",
+                  "if (token) pm.collectionVariables.set('csrfToken', token[1]);",
+                  "if (header) pm.collectionVariables.set('csrfHeader', header[1]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /carteiras/me (smoke test do login)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/me",
+            "description": "Se voltar 401 aqui, o login anterior nao funcionou — confira email/senha e se o email foi mesmo verificado."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sessao autenticada (200)', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Corretoras",
+      "item": [
+        {
+          "name": "POST /corretoras (cadastro)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cnpj\": \"{{corretoraCnpj}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/corretoras",
+            "description": "CNPJ real (XP Investimentos) — razao social, endereco e validacao CVM sao resolvidos automaticamente a partir dele."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Corretora cadastrada (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('corretoraId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /corretoras",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/corretoras" }
+        },
+        {
+          "name": "GET /corretoras/{id}",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/corretoras/{{corretoraId}}" }
+        },
+        {
+          "name": "GET /corretoras/cnpj/{cnpj}",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/corretoras/cnpj/{{corretoraCnpj}}" }
+        }
+      ]
+    },
+    {
+      "name": "03 - Acoes",
+      "item": [
+        {
+          "name": "POST /acoes (cadastro)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticker\": \"{{acaoTicker}}\",\n  \"mercado\": \"BRASIL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/acoes",
+            "description": "Mercado aceita `BRASIL` ou `EUA` — a cotacao e buscada no provedor certo pra cada um, e o cadastro e rejeitado (422) se a moeda retornada nao bater com o mercado escolhido."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Acao cadastrada (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('acaoId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /acoes",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes" }
+        },
+        {
+          "name": "GET /acoes/{id}",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes/{{acaoId}}" }
+        },
+        {
+          "name": "GET /acoes/ticker/{ticker}",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes/ticker/{{acaoTicker}}" }
+        },
+        {
+          "name": "PUT /acoes/{id}/atualizar-cotacao",
+          "request": { "method": "PUT", "header": [], "url": "{{baseUrl}}/acoes/{{acaoId}}/atualizar-cotacao" }
+        },
+        {
+          "name": "GET /acoes/{id}/historico",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes/{{acaoId}}/historico" }
+        },
+        {
+          "name": "DELETE /acoes/{id}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/acoes/{{acaoId}}",
+            "description": "So funciona se a acao nao tiver nenhuma operacao/posicao associada (422 caso contrario, pra preservar o historico imutavel). Se voce ja rodou a pasta 04 - Operacoes pra essa acao, essa requisicao vai ser rejeitada de proposito — troque `acaoTicker` por um ticker novo se quiser ver a exclusao funcionar."
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Operacoes",
+      "item": [
+        {
+          "name": "POST /operacoes (compra)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"acaoId\": {{acaoId}},\n  \"corretoraId\": {{corretoraId}},\n  \"tipo\": \"COMPRA\",\n  \"quantidade\": 10,\n  \"precoUnitario\": 25.50\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/operacoes",
+            "description": "`tipo` aceita `COMPRA` ou `VENDA`. Uma COMPRA e bloqueada (422) se o saldo disponivel da carteira nao cobrir o custo; uma VENDA e bloqueada se a posicao nao tiver quantidade suficiente."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Operacao registrada (201)', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('operacaoId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /operacoes/{id}/cancelar (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/operacoes/{{operacaoId}}/cancelar",
+            "description": "Requer papel ADMIN — veja a nota sobre promover um usuario na descricao da colecao. Bloqueado (422) se cancelar deixaria o saldo historico da carteira negativo em algum ponto."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Carteira",
+      "item": [
+        {
+          "name": "GET /carteiras/me",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me" }
+        },
+        {
+          "name": "GET /carteiras/me/operacoes",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me/operacoes" }
+        },
+        {
+          "name": "GET /carteiras/me/saldo",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me/saldo" }
+        },
+        {
+          "name": "GET /carteiras/me/rendimento-historico",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me/rendimento-historico" }
+        },
+        {
+          "name": "GET /carteiras/{usuarioId} (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/{{usuarioId}}",
+            "description": "Requer papel ADMIN. `usuarioId` e preenchido automaticamente ao rodar \"GET /usuarios\" na pasta 06, ou edite manualmente."
+          }
+        },
+        {
+          "name": "GET /carteiras/{usuarioId}/operacoes (ADMIN)",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/{{usuarioId}}/operacoes" }
+        },
+        {
+          "name": "PATCH /carteiras/{usuarioId}/reconstruir (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/{{usuarioId}}/reconstruir",
+            "description": "Reprocessa o historico de operacoes do zero e reescreve o cache de posicao (PosicaoAtual) — util depois de qualquer correcao manual no banco."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Usuarios (ADMIN)",
+      "description": "Toda requisicao desta pasta exige papel ADMIN — veja a nota sobre promover um usuario na descricao da colecao.",
+      "item": [
+        {
+          "name": "GET /usuarios",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/usuarios" },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.content && json.content.length > 0) {",
+                  "        pm.collectionVariables.set('usuarioId', json.content[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /usuarios/{id}",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/usuarios/{{usuarioId}}" }
+        },
+        {
+          "name": "PATCH /usuarios/{id}/bloquear",
+          "request": { "method": "PATCH", "header": [], "url": "{{baseUrl}}/usuarios/{{usuarioId}}/bloquear" }
+        },
+        {
+          "name": "PATCH /usuarios/{id}/desbloquear",
+          "request": { "method": "PATCH", "header": [], "url": "{{baseUrl}}/usuarios/{{usuarioId}}/desbloquear" }
+        }
+      ]
+    },
+    {
+      "name": "07 - Mercado",
+      "item": [
+        {
+          "name": "GET /mercado/ibovespa",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/mercado/ibovespa" }
+        }
+      ]
+    },
+    {
+      "name": "08 - Logout",
+      "item": [
+        {
+          "name": "POST /logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/logout",
+            "description": "Encerra a sessao. Rode isso antes de tentar logar com outro usuario (ex.: depois de promover alguem a ADMIN)."
+          }
+        }
+      ]
+    }
+  ]
+}
