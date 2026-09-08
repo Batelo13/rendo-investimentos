@@ -62,6 +62,12 @@ public class Operacao {
     @JoinColumn(name = "cancelada_por_id")
     private Usuario canceladaPor;
 
+    // Liga os dois lancamentos de uma transferencia entre corretoras
+    // (TRANSFERENCIA_SAIDA <-> TRANSFERENCIA_ENTRADA). Null para COMPRA/VENDA.
+    @ManyToOne
+    @JoinColumn(name = "operacao_vinculada_id")
+    private Operacao operacaoVinculada;
+
     public Long getId() {
         return id;
     }
@@ -164,5 +170,13 @@ public class Operacao {
 
     public void setCanceladaPor(Usuario canceladaPor) {
         this.canceladaPor = canceladaPor;
+    }
+
+    public Operacao getOperacaoVinculada() {
+        return operacaoVinculada;
+    }
+
+    public void setOperacaoVinculada(Operacao operacaoVinculada) {
+        this.operacaoVinculada = operacaoVinculada;
     }
 }

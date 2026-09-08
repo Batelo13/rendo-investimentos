@@ -27,7 +27,11 @@ public class PosicaoCalculator {
         BigDecimal quantidadeMinima = BigDecimal.ZERO;
 
         for (Operacao operacao : operacoesEmOrdemCronologica) {
-            if (operacao.getTipo() == TipoOperacao.COMPRA) {
+            // TRANSFERENCIA_ENTRADA/SAIDA mexem em quantidade igual COMPRA/VENDA
+            // (o preco gravado ja e o preco medio de origem, entao a media
+            // ponderada continua correta), mas nao representam dinheiro entrando
+            // ou saindo -- isso e tratado a parte, no SaldoCalculator.
+            if (operacao.getTipo() == TipoOperacao.COMPRA || operacao.getTipo() == TipoOperacao.TRANSFERENCIA_ENTRADA) {
                 BigDecimal novaQuantidade = quantidade.add(operacao.getQuantidade());
                 if (novaQuantidade.compareTo(BigDecimal.ZERO) == 0) {
                     precoMedio = BigDecimal.ZERO;

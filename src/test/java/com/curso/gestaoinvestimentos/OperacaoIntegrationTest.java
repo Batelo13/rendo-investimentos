@@ -332,10 +332,14 @@ class OperacaoIntegrationTest {
 
     @Test
     void deveRegistrarCompraFracionariaERefletirNaPosicao() throws Exception {
+        // Fracao de acao (0,5 unidade) so existe no mercado dos EUA -- no Brasil o
+        // mercado fracionario negocia em unidades inteiras (ver
+        // deveRejeitarCompraFracionariaParaAcaoBrasileira abaixo).
         cadastrarUsuario("fracionario@example.com", "senha1234", Role.USER);
-        Acao acao = cadastrarAcao("BOVA11");
+        Acao acao = cadastrarAcaoEua("AAPL");
         Corretora corretora = cadastrarCorretora(true);
         MockHttpSession sessao = logar("fracionario@example.com", "senha1234");
+        when(cambioClient.buscarTaxaUsdParaBrl()).thenReturn(new BigDecimal("5.00"));
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("0.5"), new BigDecimal("100.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
@@ -354,6 +358,19 @@ class OperacaoIntegrationTest {
 
         assertEquals(1, posicoes.length);
         assertEquals(0, posicoes[0].quantidade().compareTo(new BigDecimal("0.5")));
+    }
+
+    @Test
+    void deveRejeitarCompraFracionariaParaAcaoBrasileira() throws Exception {
+        cadastrarUsuario("fracionariobr@example.com", "senha1234", Role.USER);
+        Acao acao = cadastrarAcao("BOVA11");
+        Corretora corretora = cadastrarCorretora(true);
+        MockHttpSession sessao = logar("fracionariobr@example.com", "senha1234");
+
+        OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("0.5"), new BigDecimal("100.00"));
+        mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(compra)))
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test

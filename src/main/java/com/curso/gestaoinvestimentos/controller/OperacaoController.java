@@ -2,6 +2,8 @@ package com.curso.gestaoinvestimentos.controller;
 
 import com.curso.gestaoinvestimentos.dto.OperacaoRequestDTO;
 import com.curso.gestaoinvestimentos.dto.OperacaoResponseDTO;
+import com.curso.gestaoinvestimentos.dto.TransferenciaRequestDTO;
+import com.curso.gestaoinvestimentos.dto.TransferenciaResponseDTO;
 import com.curso.gestaoinvestimentos.service.OperacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +29,19 @@ public class OperacaoController {
         return ResponseEntity.created(location).body(criada);
     }
 
+    @PostMapping("/transferencias")
+    public TransferenciaResponseDTO transferir(Principal principal, @Valid @RequestBody TransferenciaRequestDTO dto) {
+        return service.transferir(principal.getName(), dto);
+    }
+
     @PatchMapping("/{id}/cancelar")
     public OperacaoResponseDTO cancelar(Principal principal, @PathVariable Long id) {
         return service.cancelar(id, principal.getName());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(Principal principal, @PathVariable Long id) {
+        service.excluir(id, principal.getName());
+        return ResponseEntity.noContent().build();
     }
 }

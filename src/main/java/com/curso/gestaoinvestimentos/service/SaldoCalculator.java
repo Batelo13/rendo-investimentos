@@ -24,6 +24,11 @@ public class SaldoCalculator {
         BigDecimal saldo = saldoInicial;
 
         for (Operacao operacao : operacoesEmOrdemCronologica) {
+            if (operacao.getTipo() == TipoOperacao.TRANSFERENCIA_SAIDA
+                    || operacao.getTipo() == TipoOperacao.TRANSFERENCIA_ENTRADA) {
+                // Transferencia entre corretoras nao movimenta dinheiro, so custodia.
+                continue;
+            }
             BigDecimal valor = operacao.getPrecoUnitario()
                     .multiply(operacao.getQuantidade())
                     .multiply(operacao.getTaxaCambio());

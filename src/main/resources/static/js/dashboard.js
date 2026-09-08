@@ -534,7 +534,10 @@ function renderPosicoes() {
             <td class="num">${esc(fmtMoeda(p.valorInvestido, moeda))}${fmtConvertido(p.valorInvestido, p.acaoTicker)}</td>
             <td class="num">${esc(fmtMoeda(p.valorAtual, moeda))}${fmtConvertido(p.valorAtual, p.acaoTicker)}</td>
             <td class="num">${fmtResultado(resultado, moeda)}${fmtConvertido(resultado, p.acaoTicker)}</td>
-            <td class="acoes-col"><button class="btn btn-sell btn-icon" data-sell="${i}">Vender</button></td>
+            <td class="acoes-col">
+                <button class="btn btn-sell btn-icon" data-sell="${i}">Vender</button>
+                <button class="btn btn-ghost btn-icon" data-transferir="${i}">Transferir</button>
+            </td>
         </tr>`;
     }).join("");
 
@@ -544,7 +547,11 @@ function renderPosicoes() {
 }
 
 function tipoTag(tipo) {
-    return tipo === "COMPRA" ? '<span class="tag tag-buy">COMPRA</span>' : '<span class="tag tag-sell">VENDA</span>';
+    if (tipo === "COMPRA") return '<span class="tag tag-buy">COMPRA</span>';
+    if (tipo === "VENDA") return '<span class="tag tag-sell">VENDA</span>';
+    if (tipo === "TRANSFERENCIA_SAIDA") return '<span class="tag">TRANSF. (saída)</span>';
+    if (tipo === "TRANSFERENCIA_ENTRADA") return '<span class="tag">TRANSF. (entrada)</span>';
+    return `<span class="tag">${esc(tipo)}</span>`;
 }
 
 function renderOperacoes() {
@@ -578,11 +585,12 @@ function renderOperacoes() {
             <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}${convertidoPreco}</td>
             <td>${o.status === "CANCELADA" ? '<span class="tag">Cancelada</span>' : '<span class="tag tag-cvm">Ativa</span>'}</td>
             <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) + convertidoResultado : '<span class="pl pl-zero">—</span>'}</td>
+            <td class="acoes-col"><button class="btn btn-ghost btn-icon" title="Excluir" data-delete-operacao="${o.id}">${icone("trash")}</button></td>
         </tr>`;
     }).join("");
 
     if (state.operacoes.length && !lista.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty">Nenhum resultado para o filtro.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="empty">Nenhum resultado para o filtro.</td></tr>`;
     }
 
     const pag = state.operacoesPagina;
@@ -717,10 +725,20 @@ function detalheCorretoraHTML(c) {
 }
 
 /* ----------------------- Modal de operacao -------------------------- */
+// Mercado fracionario brasileiro so negocia em unidades inteiras (1, 2, 3...);
+// fracao de acao (0,5) so existe nos EUA. O backend recusa o resto, mas o
+// input ja nasce certo pra nao deixar nem tentar.
+function stepQuantidade(acao) {
+    return acao.mercado === "BRASIL"
+        ? { step: "1", min: "1" }
+        : { step: "any", min: "0.000001" };
+}
+
 function abrirCompraModal(acaoId) {
     const a = state.acoes.find((x) => x.id === acaoId);
     if (!a) return;
     const cotacao = a.cotacaoAtual != null ? Number(a.cotacaoAtual) : "";
+    const qtdStep = stepQuantidade(a);
 
     abrirModal(`
         <h2>Comprar ${esc(a.ticker)} ${tipoTag("COMPRA")}</h2>
@@ -735,7 +753,7 @@ function abrirCompraModal(acaoId) {
             </label>
             <label class="field">
                 <span>Quantidade</span>
-                <input name="quantidade" type="number" min="0.000001" step="any" placeholder="Ex.: 100" required />
+                <input name="quantidade" type="number" min="${qtdStep.min}" step="${qtdStep.step}" placeholder="Ex.: 100" required />
             </label>
             <label class="field">
                 <span>Preço unitário</span>
@@ -762,6 +780,7 @@ function abrirVendaModal(posicaoIndex) {
         return;
     }
     const cotacao = a.cotacaoAtual != null ? Number(a.cotacaoAtual) : "";
+    const qtdStep = stepQuantidade(a);
 
     abrirModal(`
         <h2>Vender ${esc(p.acaoTicker)} ${tipoTag("VENDA")}</h2>
@@ -770,7 +789,7 @@ function abrirVendaModal(posicaoIndex) {
         <form id="formOperacao" class="form" data-tipo="VENDA" data-acao-id="${a.id}" data-corretora-id="${corretora.id}">
             <label class="field">
                 <span>Quantidade (máx. ${esc(fmtNumero(p.quantidade))})</span>
-                <input name="quantidade" type="number" min="0.000001" max="${p.quantidade}" step="any" placeholder="Ex.: 50" required />
+                <input name="quantidade" type="number" min="${qtdStep.min}" max="${p.quantidade}" step="${qtdStep.step}" placeholder="Ex.: 50" required />
             </label>
             <label class="field">
                 <span>Preço unitário</span>
@@ -782,6 +801,107 @@ function abrirVendaModal(posicaoIndex) {
         </form>`);
 
     ligarResumoOperacao(a, p);
+}
+
+function abrirTransferenciaModal(posicaoIndex) {
+    const p = state.posicoes[posicaoIndex];
+    if (!p) return;
+    const a = state.acoes.find((x) => x.ticker === p.acaoTicker);
+    const corretoraOrigem = state.corretoras.find((c) => c.nomeFantasia === p.corretoraNome);
+    if (!a || !corretoraOrigem) {
+        toast("Não foi possível abrir a transferência", "Ação ou corretora não encontrada no catálogo.", "err");
+        return;
+    }
+    const destinos = state.corretoras.filter((c) => c.id !== corretoraOrigem.id);
+    if (!destinos.length) {
+        toast("Sem corretora de destino", "Cadastre outra corretora para transferir essa posição.", "err");
+        return;
+    }
+    const qtdStep = stepQuantidade(a);
+
+    abrirModal(`
+        <h2>Transferir ${esc(p.acaoTicker)}</h2>
+        <p class="sub">De ${esc(p.corretoraNome)}</p>
+        <div class="op-info">Posição atual: <b>${esc(fmtNumero(p.quantidade))} un.</b> a preço médio de <b>${esc(fmtMoeda(p.precoMedio, moedaPorTicker(p.acaoTicker)))}</b></div>
+        <form id="formTransferencia" class="form" data-acao-id="${a.id}" data-corretora-origem-id="${corretoraOrigem.id}">
+            <label class="field">
+                <span>Corretora de destino</span>
+                <select name="corretoraDestinoId" required>
+                    <option value="">Selecione…</option>
+                    ${destinos.map((c) => `<option value="${c.id}">${esc(c.nomeFantasia || c.razaoSocial)} — ${esc(fmtCnpj(c.cnpj))}</option>`).join("")}
+                </select>
+            </label>
+            <label class="field">
+                <span>Quantidade (máx. ${esc(fmtNumero(p.quantidade))})</span>
+                <input name="quantidade" type="number" min="${qtdStep.min}" max="${p.quantidade}" step="${qtdStep.step}" placeholder="Ex.: 50" required />
+            </label>
+            <button class="btn" type="submit" id="btnTransferencia">Confirmar transferência</button>
+            <p class="form-hint">Mantém o preço médio de origem — não é uma venda, só muda de custódia.</p>
+        </form>`);
+
+    $("#formTransferencia").addEventListener("submit", (e) => submitTransferencia(e, a));
+    setTimeout(() => $("#formTransferencia").corretoraDestinoId.focus(), 50);
+}
+
+async function submitTransferencia(e, acao) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = $("#btnTransferencia");
+
+    const acaoId = Number(form.dataset.acaoId);
+    const corretoraOrigemId = Number(form.dataset.corretoraOrigemId);
+    const corretoraDestinoId = Number(form.corretoraDestinoId.value);
+    const quantidade = Number(form.quantidade.value);
+
+    if (!corretoraDestinoId) return toast("Validação", "Selecione a corretora de destino.", "err");
+    if (!quantidade || quantidade <= 0) return toast("Validação", "Informe uma quantidade válida.", "err");
+
+    const { isConfirmed } = await Swal.fire({
+        title: "Confirmar transferência",
+        html: `Transferir <b>${esc(fmtNumero(quantidade))}</b> un. de <b>${esc(acao.ticker)}</b>?`,
+        showCancelButton: true,
+        confirmButtonText: "Confirmar transferência",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+
+    setLoading(btn, true, "Transferindo…");
+    try {
+        await api("/operacoes/transferencias", {
+            method: "POST",
+            body: JSON.stringify({ acaoId, corretoraOrigemId, corretoraDestinoId, quantidade }),
+        });
+        toast("Transferência registrada", `${quantidade} un. de ${acao.ticker}`, "ok");
+        fecharModal();
+        await carregarTudo();
+    } catch (err) {
+        toast("Falha na transferência", err.message, "err");
+    } finally {
+        setLoading(btn, false, "Confirmar transferência");
+    }
+}
+
+async function excluirOperacao(id) {
+    const o = state.operacoes.find((x) => x.id === id);
+    if (!o) return;
+
+    const { isConfirmed } = await Swal.fire({
+        title: "Excluir operação?",
+        html: `Isso remove <b>${esc(fmtNumero(o.quantidade))}</b> un. de <b>${esc(o.acaoTicker)}</b> (${esc(o.tipo)}) do histórico definitivamente.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Excluir",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+
+    try {
+        await api(`/operacoes/${id}`, { method: "DELETE" });
+        toast("Operação excluída", o.acaoTicker, "ok");
+        await carregarTudo();
+    } catch (err) {
+        toast("Não foi possível excluir", err.message, "err");
+    }
 }
 
 function ligarResumoOperacao(acao, posicao) {
@@ -1007,6 +1127,12 @@ function bind() {
 
         const sell = e.target.closest("[data-sell]");
         if (sell) { abrirVendaModal(Number(sell.dataset.sell)); return; }
+
+        const transferir = e.target.closest("[data-transferir]");
+        if (transferir) { abrirTransferenciaModal(Number(transferir.dataset.transferir)); return; }
+
+        const delOp = e.target.closest("[data-delete-operacao]");
+        if (delOp) { excluirOperacao(Number(delOp.dataset.deleteOperacao)); return; }
 
         const r = e.target.closest("[data-refresh-acao]");
         if (r) { atualizarCotacao(Number(r.dataset.refreshAcao)); return; }

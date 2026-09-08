@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
 
@@ -18,4 +19,8 @@ public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
             Long carteiraId, Long acaoId, Long corretoraId, StatusOperacao status);
 
     boolean existsByAcaoId(Long acaoId);
+
+    Optional<Operacao> findByIdAndCarteiraId(Long id, Long carteiraId);
+
+    Optional<Operacao> findByOperacaoVinculadaId(Long operacaoVinculadaId);
 }
