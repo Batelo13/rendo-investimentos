@@ -150,6 +150,14 @@ docker compose up --build
 
 A aplicação sobe em `http://localhost:8080` (porta configurável via `APP_PORT`).
 
+> **Banco Postgres já existente de antes de 2026-09-08 (transferência entre corretoras)?** É preciso rodar uma migração manual uma única vez. O projeto usa `spring.jpa.hibernate.ddl-auto=update` (sem Flyway/Liquibase) — o Hibernate cria colunas novas automaticamente, mas **não atualiza CHECK constraints em colunas já existentes**. Quando `TipoOperacao` ganhou `TRANSFERENCIA_SAIDA`/`TRANSFERENCIA_ENTRADA`, a constraint `operacoes_tipo_check` do Postgres continuou só aceitando `COMPRA`/`VENDA`, e qualquer transferência falha com `500` (`DataIntegrityViolationException` / `SQLState 23514`). Corrija com:
+> ```sql
+> ALTER TABLE operacoes DROP CONSTRAINT operacoes_tipo_check;
+> ALTER TABLE operacoes ADD CONSTRAINT operacoes_tipo_check
+>   CHECK (tipo IN ('COMPRA','VENDA','TRANSFERENCIA_SAIDA','TRANSFERENCIA_ENTRADA'));
+> ```
+> Rode via `docker exec -it <container-postgres> psql -U postgres -d rendodb -c "..."` (ou uma sessão `psql` normal). Um banco criado do zero (`docker compose down -v` seguido de `up`) já nasce com a constraint correta — a migração só é necessária pra volumes que sobreviveram a essa mudança.
+
 ### Opção 2 — Local com Maven (usa H2 em memória, sem Docker)
 
 ```bash
