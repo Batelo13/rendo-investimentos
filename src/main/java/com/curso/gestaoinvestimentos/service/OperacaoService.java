@@ -239,65 +239,6 @@ public class OperacaoService {
         return new TransferenciaResponseDTO(toResponseDTO(saidaSalva), toResponseDTO(entradaSalva));
     }
 
-    @Transactional
-    public void excluir(Long operacaoId, String emailUsuarioAutenticado) {
-        Usuario usuario = buscarUsuarioPorEmail(emailUsuarioAutenticado);
-        Carteira carteira = carteiraRepository.findByUsuarioId(usuario.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Carteira nao encontrada para o usuario " + usuario.getId()));
-
-        // Busca escopada a propria carteira: se o id existir mas for de outro
-        // usuario, cai no 404 igual a um id inexistente, sem vazar a existencia
-        // do recurso alheio.
-        Operacao operacao = operacaoRepository.findByIdAndCarteiraId(operacaoId, carteira.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Operacao nao encontrada com id " + operacaoId));
-
-        if (operacao.getTipo() == TipoOperacao.TRANSFERENCIA_SAIDA || operacao.getTipo() == TipoOperacao.TRANSFERENCIA_ENTRADA) {
-            excluirTransferencia(carteira, operacao);
-            return;
-        }
-
-        validarExclusaoNaoQuebraHistorico(carteira, operacao.getAcao(), operacao.getCorretora(), operacao.getId());
-        operacaoRepository.delete(operacao);
-        posicaoCacheService.atualizar(carteira, operacao.getAcao(), operacao.getCorretora());
-    }
-
-    private void excluirTransferencia(Carteira carteira, Operacao operacao) {
-        // O vinculo so e gravado no lado SAIDA (aponta pra ENTRADA); a partir da
-        // ENTRADA e preciso achar quem aponta pra ela. Excluindo sempre a SAIDA
-        // primeiro evitamos violar a FK operacao_vinculada_id.
-        Operacao saida = operacao.getTipo() == TipoOperacao.TRANSFERENCIA_SAIDA
-                ? operacao
-                : operacaoRepository.findByOperacaoVinculadaId(operacao.getId())
-                        .orElseThrow(() -> new RecursoNaoEncontradoException(
-                                "Lancamento de origem da transferencia nao encontrado"));
-        Operacao entrada = operacao.getTipo() == TipoOperacao.TRANSFERENCIA_ENTRADA
-                ? operacao
-                : operacao.getOperacaoVinculada();
-
-        validarExclusaoNaoQuebraHistorico(carteira, saida.getAcao(), saida.getCorretora(), saida.getId());
-        validarExclusaoNaoQuebraHistorico(carteira, entrada.getAcao(), entrada.getCorretora(), entrada.getId());
-
-        operacaoRepository.delete(saida);
-        operacaoRepository.delete(entrada);
-
-        posicaoCacheService.atualizar(carteira, saida.getAcao(), saida.getCorretora());
-        posicaoCacheService.atualizar(carteira, entrada.getAcao(), entrada.getCorretora());
-    }
-
-    private void validarExclusaoNaoQuebraHistorico(Carteira carteira, Acao acao, Corretora corretora, Long idOperacaoRemovida) {
-        List<Operacao> historico = operacaoRepository.findByCarteiraIdAndAcaoIdAndCorretoraIdAndStatusOrderByDataHoraAsc(
-                carteira.getId(), acao.getId(), corretora.getId(), StatusOperacao.ATIVA);
-        List<Operacao> historicoSemEssa = new ArrayList<>(historico);
-        historicoSemEssa.removeIf(op -> op.getId().equals(idOperacaoRemovida));
-
-        PosicaoCalculator.Posicao simulacao = PosicaoCalculator.calcular(historicoSemEssa);
-        if (simulacao.quantidadeMinimaHistorica().compareTo(BigDecimal.ZERO) < 0) {
-            throw new RegraDeNegocioException(
-                    "Excluir essa operacao deixaria a posicao negativa em algum momento do historico de "
-                            + acao.getTicker() + " na corretora " + corretora.getNomeFantasia());
-        }
-    }
-
     private void validarQuantidadeInteiraSeBrasil(Acao acao, BigDecimal quantidade) {
         // Mercado fracionario brasileiro negocia em unidades inteiras (1, 2, 3...);
         // fracao de acao (0,5) so existe nos EUA, onde corretoras vendem "fatias".

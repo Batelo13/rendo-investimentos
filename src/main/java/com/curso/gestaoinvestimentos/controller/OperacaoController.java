@@ -38,10 +38,4 @@ public class OperacaoController {
     public OperacaoResponseDTO cancelar(Principal principal, @PathVariable Long id) {
         return service.cancelar(id, principal.getName());
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(Principal principal, @PathVariable Long id) {
-        service.excluir(id, principal.getName());
-        return ResponseEntity.noContent().build();
-    }
 }

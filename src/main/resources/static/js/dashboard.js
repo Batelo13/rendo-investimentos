@@ -585,12 +585,11 @@ function renderOperacoes() {
             <td class="num">${esc(fmtMoeda(o.precoUnitario, moeda))}${convertidoPreco}</td>
             <td>${o.status === "CANCELADA" ? '<span class="tag">Cancelada</span>' : '<span class="tag tag-cvm">Ativa</span>'}</td>
             <td class="num">${o.tipo === "VENDA" ? fmtResultado(o.lucroPrejuizoRealizado, moeda) + convertidoResultado : '<span class="pl pl-zero">—</span>'}</td>
-            <td class="acoes-col"><button class="btn btn-ghost btn-icon" title="Excluir" data-delete-operacao="${o.id}">${icone("trash")}</button></td>
         </tr>`;
     }).join("");
 
     if (state.operacoes.length && !lista.length) {
-        tbody.innerHTML = `<tr><td colspan="9" class="empty">Nenhum resultado para o filtro.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="empty">Nenhum resultado para o filtro.</td></tr>`;
     }
 
     const pag = state.operacoesPagina;
@@ -711,8 +710,13 @@ function detalheAcaoHTML(a) {
 
 function detalheCorretoraHTML(c) {
     const endereco = [c.logradouro, c.numero, c.complemento].filter(Boolean).join(", ");
+    // PosicaoDTO nao expoe corretoraId (mesma limitacao ja anotada em
+    // abrirVendaModal), entao o vinculo com essa corretora e por nome mesmo.
+    const nomeCorretora = c.nomeFantasia || c.razaoSocial;
+    const posicoes = state.posicoes.filter((p) => p.corretoraNome === nomeCorretora && Number(p.quantidade) > 0);
+
     return `
-        <h2>${esc(c.nomeFantasia || c.razaoSocial)} ${c.validadaNaCvm ? `<span class="tag tag-cvm">${icone("badgeCheck", 12)} CVM</span>` : ""}</h2>
+        <h2>${esc(nomeCorretora)} ${c.validadaNaCvm ? `<span class="tag tag-cvm">${icone("badgeCheck", 12)} CVM</span>` : ""}</h2>
         <p class="sub">${esc(c.razaoSocial || "")}</p>
         <div class="detail-grid">
             <div class="detail-item"><span class="k">CNPJ</span><span class="v">${esc(fmtCnpj(c.cnpj))}</span></div>
@@ -721,7 +725,20 @@ function detalheCorretoraHTML(c) {
             <div class="detail-item"><span class="k">Telefone</span><span class="v">${esc(c.telefone || "—")}</span></div>
             <div class="detail-item detail-full"><span class="k">Endereço</span><span class="v">${esc(endereco || "—")}</span></div>
             <div class="detail-item"><span class="k">Cidade / UF</span><span class="v">${esc(c.cidade || "—")}${c.uf ? " / " + esc(c.uf) : ""}</span></div>
-        </div>`;
+        </div>
+        <h3 style="margin-top:20px">Ações nessa corretora</h3>
+        ${posicoes.length ? `
+        <table class="table" style="min-width:0">
+            <thead><tr><th>Ticker</th><th class="num">Qtd</th><th class="num">Preço médio</th></tr></thead>
+            <tbody>
+                ${posicoes.map((p) => `
+                <tr>
+                    <td>${esc(p.acaoTicker)}</td>
+                    <td class="num">${esc(fmtNumero(p.quantidade))}</td>
+                    <td class="num">${esc(fmtMoeda(p.precoMedio, moedaPorTicker(p.acaoTicker)))}</td>
+                </tr>`).join("")}
+            </tbody>
+        </table>` : `<div class="empty">Nenhuma ação nessa corretora.</div>`}`;
 }
 
 /* ----------------------- Modal de operacao -------------------------- */
@@ -878,29 +895,6 @@ async function submitTransferencia(e, acao) {
         toast("Falha na transferência", err.message, "err");
     } finally {
         setLoading(btn, false, "Confirmar transferência");
-    }
-}
-
-async function excluirOperacao(id) {
-    const o = state.operacoes.find((x) => x.id === id);
-    if (!o) return;
-
-    const { isConfirmed } = await Swal.fire({
-        title: "Excluir operação?",
-        html: `Isso remove <b>${esc(fmtNumero(o.quantidade))}</b> un. de <b>${esc(o.acaoTicker)}</b> (${esc(o.tipo)}) do histórico definitivamente.`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Excluir",
-        cancelButtonText: "Cancelar",
-    });
-    if (!isConfirmed) return;
-
-    try {
-        await api(`/operacoes/${id}`, { method: "DELETE" });
-        toast("Operação excluída", o.acaoTicker, "ok");
-        await carregarTudo();
-    } catch (err) {
-        toast("Não foi possível excluir", err.message, "err");
     }
 }
 
@@ -1130,9 +1124,6 @@ function bind() {
 
         const transferir = e.target.closest("[data-transferir]");
         if (transferir) { abrirTransferenciaModal(Number(transferir.dataset.transferir)); return; }
-
-        const delOp = e.target.closest("[data-delete-operacao]");
-        if (delOp) { excluirOperacao(Number(delOp.dataset.deleteOperacao)); return; }
 
         const r = e.target.closest("[data-refresh-acao]");
         if (r) { atualizarCotacao(Number(r.dataset.refreshAcao)); return; }
