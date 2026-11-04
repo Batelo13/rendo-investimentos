@@ -118,7 +118,7 @@
     transition: color var(--motion-fast) var(--ease-emphasized);
 }
 
-.login-container .link-discreto:hover { color: var(--brand); }
+.login-container .link-discreto:hover { color: var(--focus-ring); }
 
 /* Reset de <button> quando link-discreto e usado num botao em vez de <a>
    (ex.: "Reenviar código"), mantendo a mesma aparencia visual do link. */
@@ -245,8 +245,8 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
     }
 }
 
-.input-group.valido input { border-color: var(--success); }
-.input-group.invalido input { border-color: var(--danger); }
+.input-group.valido input { border-color: var(--auth-success-text); }
+.input-group.invalido input { border-color: var(--auth-danger-text); }
 
 /* Mostrar/ocultar senha */
 .input-toggle-senha {

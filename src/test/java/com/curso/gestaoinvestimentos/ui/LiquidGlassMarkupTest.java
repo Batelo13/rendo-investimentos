@@ -104,6 +104,9 @@ class LiquidGlassMarkupTest {
         assertTrue(css.contains("--auth-success-text:"));
         assertTrue(css.contains(".toggle-head button:focus-visible"));
         assertTrue(css.contains("outline: 2px solid var(--brand);"));
+        assertTrue(css.contains(".login-container .link-discreto:hover { color: var(--focus-ring); }"));
+        assertTrue(css.contains(".input-group.valido input { border-color: var(--auth-success-text); }"));
+        assertTrue(css.contains(".input-group.invalido input { border-color: var(--auth-danger-text); }"));
         assertFalse(css.contains("min-height: 560px;"));
         assertTrue(css.matches(
                 "(?s).*@media \\(max-width: 700px\\) \\{.*button\\.link-discreto,\\s*"
