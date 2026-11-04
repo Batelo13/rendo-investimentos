@@ -68,10 +68,31 @@ class LiquidGlassMarkupTest {
         String dashboard = template("dashboard.html");
         assertTrue(login.contains("id=\"container\""));
         assertTrue(login.contains("id=\"cadastro-form\""));
+        assertTrue(login.contains("id=\"verificacao-form\""));
+        assertTrue(login.contains("id=\"btn-cadastro\""));
+        assertTrue(login.contains("id=\"btn-login\""));
+        assertTrue(login.contains("name=\"username\""));
+        assertTrue(login.contains("name=\"password\""));
         assertTrue(login.contains("class=\"form-container sign-in\""));
         assertTrue(dashboard.contains("id=\"sidebar\""));
         assertTrue(dashboard.contains("id=\"view-visao-geral\""));
         assertTrue(dashboard.contains("id=\"modalContent\""));
         assertTrue(dashboard.contains("data-view=\"visao-geral\""));
+    }
+
+    @Test
+    void autenticacaoUsaShellGlassForte() throws IOException {
+        assertTrue(template("login.html").contains("class=\"login-container glass-surface-strong\""));
+    }
+
+    @Test
+    void autenticacaoUsaTokensGlassEMantemPainelTematico() throws IOException {
+        String css = Files.readString(RESOURCES.resolve("static/css/login.css"));
+        assertTrue(css.contains("border-color: var(--glass-border-highlight);"));
+        assertTrue(css.contains("background: var(--glass-standard);"));
+        assertTrue(css.contains(":root[data-theme=\"light\"] .login-page"));
+        assertTrue(css.contains("--auth-panel: rgba(45, 45, 70, 0.9);"));
+        assertTrue(css.contains("var(--motion-medium) var(--ease-emphasized)"));
+        assertTrue(css.contains("outline: 2px solid var(--focus-ring);"));
     }
 }
