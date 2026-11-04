@@ -1,0 +1,101 @@
+body.rendo-page {
+    min-height: 100vh;
+    position: relative;
+    isolation: isolate;
+    overflow-x: hidden;
+    background:
+        radial-gradient(circle at 12% 8%, var(--atmosphere-brand), transparent 32rem),
+        radial-gradient(circle at 88% 16%, var(--atmosphere-slate), transparent 34rem),
+        var(--background);
+    color: var(--text-primary);
+}
+
+body.rendo-page::before {
+    content: "";
+    position: fixed;
+    inset: -18%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 30% 70%, var(--atmosphere-slate), transparent 28rem),
+        radial-gradient(circle at 74% 78%, var(--atmosphere-brand), transparent 26rem);
+    opacity: 0.55;
+    animation: rendo-atmosphere 24s ease-in-out infinite alternate;
+}
+
+.glass-surface,
+.glass-surface-subtle,
+.glass-surface-strong {
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-inner-highlight), var(--glass-shadow);
+}
+
+.glass-surface { background: var(--glass-standard-solid); }
+.glass-surface-subtle { background: var(--glass-subtle-solid); }
+.glass-surface-strong { background: var(--glass-strong-solid); }
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .glass-surface {
+        background: var(--glass-standard);
+        -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(125%);
+        backdrop-filter: blur(var(--glass-blur)) saturate(125%);
+    }
+    .glass-surface-subtle {
+        background: var(--glass-subtle);
+        -webkit-backdrop-filter: blur(var(--glass-blur-subtle)) saturate(118%);
+        backdrop-filter: blur(var(--glass-blur-subtle)) saturate(118%);
+    }
+    .glass-surface-strong {
+        background: var(--glass-strong);
+        -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(132%);
+        backdrop-filter: blur(var(--glass-blur-strong)) saturate(132%);
+    }
+}
+
+.glass-interactive {
+    transition:
+        transform var(--motion-fast) var(--ease-standard),
+        border-color var(--motion-fast) ease,
+        box-shadow var(--motion-fast) ease;
+}
+
+.glass-focus:focus-visible,
+.glass-interactive:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .glass-interactive:hover {
+        transform: translateY(-4px);
+        border-color: var(--glass-border-highlight);
+        box-shadow: var(--glass-inner-highlight), var(--glass-shadow-raised);
+    }
+}
+
+@keyframes rendo-atmosphere {
+    from { transform: translate3d(-2%, -1%, 0) scale(1); }
+    to { transform: translate3d(3%, 2%, 0) scale(1.04); }
+}
+
+@media (max-width: 700px) {
+    body.rendo-page::before { opacity: 0.38; }
+    .glass-surface,
+    .glass-surface-subtle,
+    .glass-surface-strong {
+        --glass-blur-subtle: 8px;
+        --glass-blur: 12px;
+        --glass-blur-strong: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    body.rendo-page::before { animation: none; }
+    .glass-interactive:hover { transform: none; }
+}
