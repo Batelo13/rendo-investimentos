@@ -544,6 +544,11 @@ select option { background-color: var(--surface); color: var(--text-primary); }
     .toasts { left: var(--space-3); right: var(--space-3); bottom: var(--space-3); max-width: none; }
 }
 
+@media (max-width: 380px) {
+    .stats-grid { grid-template-columns: minmax(0, 1fr); }
+    .stats-grid > * { min-width: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .rendo-modal,
     .rendo-modal-backdrop.open .rendo-modal { transform: none; }

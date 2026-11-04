@@ -140,11 +140,35 @@ class LiquidGlassMarkupTest {
         assertTrue(script.contains("toggleAttribute(\"inert\""));
         assertTrue(script.contains("aria-hidden"));
         assertTrue(script.contains("matchMedia(\"(max-width: 860px)\")"));
-        assertTrue(script.contains("addEventListener(\"change\", () => setSidebarOpen(false, { focus: false, restoreFocus: true }))"));
+        assertTrue(script.contains("function syncSidebarForMediaChange"));
+        assertTrue(script.contains("focusStableDashboardTarget(focusTarget)"));
+        assertFalse(script.contains("addEventListener(\"change\", () => setSidebarOpen(false, { focus: false, restoreFocus: true }))"));
         assertTrue(script.contains("getComputedStyle(document.documentElement)"));
         assertTrue(script.contains("\"--success-text\""));
         assertTrue(script.contains("\"--danger-text\""));
         assertFalse(script.contains("renderGraficoRendimento();"));
+    }
+
+    @Test
+    void cardsDeCorretoraSaoAcionaveisPorCliqueETecladoComUmaSoAcao() throws IOException {
+        String script = dashboardScript();
+        assertTrue(script.contains("role=\"button\" tabindex=\"0\" data-detail-corretora"));
+        assertTrue(script.contains("function abrirDetalheCorretora(card)"));
+        assertTrue(script.contains("event.target.closest(\"[data-detail-corretora]\")"));
+        assertTrue(script.contains("event.key === \"Enter\""));
+        assertTrue(script.contains("event.key === \" \""));
+        assertTrue(script.contains("event.preventDefault()"));
+        assertTrue(script.contains("abrirDetalheCorretora(card)"));
+        assertTrue(script.contains("abrirDetalheCorretora(dc)"));
+    }
+
+    @Test
+    void overviewFinanceiroEmpilhaAntesDeCortarMoedaEmViewportEstreito() throws IOException {
+        String css = dashboardCss();
+        assertTrue(css.matches("(?s).*@media \\(max-width: 3[6-8]0px\\) \\{.*"
+                + "\\.stats-grid \\{[^}]*grid-template-columns: minmax\\(0, 1fr\\);[^}]*}.*"));
+        assertTrue(css.matches("(?s).*@media \\(max-width: 3[6-8]0px\\) \\{.*"
+                + "\\.stats-grid > \\* \\{[^}]*min-width: 0;[^}]*}.*"));
     }
 
     @Test

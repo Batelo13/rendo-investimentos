@@ -64,6 +64,29 @@ function focusableElements(container) {
     return $$(FOCUSABLE_SELECTOR, container).filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true");
 }
 
+function canReceiveFocus(element) {
+    if (!(element instanceof HTMLElement) || !element.isConnected || element.hasAttribute("disabled") || element.closest("[inert]")) return false;
+    const style = window.getComputedStyle(element);
+    return style.display !== "none" && style.visibility !== "hidden" && element.getClientRects().length > 0;
+}
+
+function focusStableDashboardTarget(focusTarget) {
+    const target = [focusTarget, $("#menuToggle")].find(canReceiveFocus);
+    if (target) {
+        target.focus();
+        return;
+    }
+
+    const fallback = $("#viewTitle") || $(".main");
+    if (!fallback) return;
+    const hadTabindex = fallback.hasAttribute("tabindex");
+    if (!hadTabindex) fallback.setAttribute("tabindex", "-1");
+    fallback.focus();
+    if (!hadTabindex) {
+        fallback.addEventListener("blur", () => fallback.removeAttribute("tabindex"), { once: true });
+    }
+}
+
 function trapFocus(event, container) {
     const focusable = focusableElements(container);
     if (!focusable.length) {
@@ -261,6 +284,22 @@ function setSidebarOpen(open, { focus = true, restoreFocus = false } = {}) {
         const target = sidebarPreviouslyFocused?.isConnected ? sidebarPreviouslyFocused : toggle;
         target?.focus();
         sidebarPreviouslyFocused = null;
+    }
+}
+
+function syncSidebarForMediaChange() {
+    const sidebar = $("#sidebar");
+    const activeElement = document.activeElement;
+    const focusWasOnClose = activeElement === $("#sidebarClose");
+    const focusWasInsideSidebar = sidebar.contains(activeElement);
+    const enteringMobile = mobileSidebarMedia.matches;
+
+    setSidebarOpen(false, { focus: false, restoreFocus: false });
+
+    if (!enteringMobile && focusWasOnClose) {
+        focusStableDashboardTarget($("#menuToggle"));
+    } else if (enteringMobile && focusWasInsideSidebar) {
+        focusStableDashboardTarget($("#viewTitle"));
     }
 }
 
@@ -692,7 +731,7 @@ function renderCorretoras() {
     $("#emptyCorretoras").classList.toggle("hidden", state.corretoras.length > 0);
 
     wrap.innerHTML = lista.map((c) => `
-        <div class="ccard glass-surface glass-interactive" data-detail-corretora="${c.id}">
+        <div class="ccard glass-surface glass-interactive" role="button" tabindex="0" data-detail-corretora="${c.id}">
             <div class="ccard-top">
                 <div>
                     <h3>${esc(c.nomeFantasia || c.razaoSocial || "—")}</h3>
@@ -820,7 +859,7 @@ function fecharModal() {
         modalClosing = false;
         const focusTarget = modalPreviouslyFocused;
         modalPreviouslyFocused = null;
-        if (focusTarget?.isConnected) focusTarget.focus();
+        focusStableDashboardTarget(focusTarget);
     };
     modalTransitionHandler = (event) => {
         if (event.target !== modal) return;
@@ -829,6 +868,11 @@ function fecharModal() {
     };
     modal.addEventListener("transitionend", modalTransitionHandler);
     modalCloseTimer = window.setTimeout(finish, 260);
+}
+
+function abrirDetalheCorretora(card) {
+    const corretora = state.corretoras.find((item) => item.id === Number(card.dataset.detailCorretora));
+    if (corretora) abrirModal(detalheCorretoraHTML(corretora));
 }
 
 function detalheAcaoHTML(a) {
@@ -1230,6 +1274,13 @@ function handleDashboardKeydown(event) {
         } else if (event.key === "Tab") {
             trapFocus(event, sidebar);
         }
+        return;
+    }
+
+    const card = event.target.closest("[data-detail-corretora]");
+    if (card && (event.key === "Enter" || event.key === " ")) {
+        if (event.key === " ") event.preventDefault();
+        abrirDetalheCorretora(card);
     }
 }
 
@@ -1243,7 +1294,7 @@ function bind() {
     });
     $("#sidebarClose").addEventListener("click", () => setSidebarOpen(false, { focus: false, restoreFocus: true }));
     $("#sidebarBackdrop").addEventListener("click", () => setSidebarOpen(false, { focus: false, restoreFocus: true }));
-    mobileSidebarMedia.addEventListener("change", () => setSidebarOpen(false, { focus: false, restoreFocus: true }));
+    mobileSidebarMedia.addEventListener("change", syncSidebarForMediaChange);
     setSidebarOpen(false, { focus: false });
     $("#refreshAll").addEventListener("click", carregarTudo);
     $("#btnTema")?.addEventListener("click", refreshSemanticColors);
@@ -1311,8 +1362,7 @@ function bind() {
         }
         const dc = e.target.closest("[data-detail-corretora]");
         if (dc) {
-            const c = state.corretoras.find((x) => x.id === Number(dc.dataset.detailCorretora));
-            if (c) abrirModal(detalheCorretoraHTML(c));
+            abrirDetalheCorretora(dc);
             return;
         }
     });
