@@ -165,10 +165,12 @@ class LiquidGlassMarkupTest {
     @Test
     void overviewFinanceiroEmpilhaAntesDeCortarMoedaEmViewportEstreito() throws IOException {
         String css = dashboardCss();
-        assertTrue(css.matches("(?s).*@media \\(max-width: 3[6-8]0px\\) \\{.*"
+        assertTrue(css.matches("(?s).*@media \\(max-width: 420px\\) \\{.*"
                 + "\\.stats-grid \\{[^}]*grid-template-columns: minmax\\(0, 1fr\\);[^}]*}.*"));
-        assertTrue(css.matches("(?s).*@media \\(max-width: 3[6-8]0px\\) \\{.*"
+        assertTrue(css.matches("(?s).*@media \\(max-width: 420px\\) \\{.*"
                 + "\\.stats-grid > \\* \\{[^}]*min-width: 0;[^}]*}.*"));
+        assertTrue(css.matches("(?s).*@media \\(max-width: 420px\\) \\{.*"
+                + "\\.stat-value \\{[^}]*font-size: clamp\\(16px, 5vw, 20px\\);[^}]*white-space: nowrap;[^}]*}.*"));
     }
 
     @Test

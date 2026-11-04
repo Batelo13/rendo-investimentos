@@ -544,9 +544,10 @@ select option { background-color: var(--surface); color: var(--text-primary); }
     .toasts { left: var(--space-3); right: var(--space-3); bottom: var(--space-3); max-width: none; }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
     .stats-grid { grid-template-columns: minmax(0, 1fr); }
     .stats-grid > * { min-width: 0; }
+    .stat-value { font-size: clamp(16px, 5vw, 20px); white-space: nowrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
