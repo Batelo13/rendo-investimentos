@@ -235,4 +235,18 @@ class LiquidGlassMarkupTest {
         assertFalse(loginPageRule.contains("overflow-y: hidden;"));
         assertFalse(loginPageRule.contains("overflow-y: clip;"));
     }
+
+    @Test
+    void autenticacaoOcultaFormularioInativoDuranteTrocaDePainel() throws IOException {
+        String css = Files.readString(RESOURCES.resolve("static/css/login.css"));
+
+        assertTrue(css.matches("(?s).*\\.sign-in \\{[^}]*opacity: 1;[^}]*"
+                + "visibility: visible;[^}]*pointer-events: auto;[^}]*}.*"));
+        assertTrue(css.matches("(?s).*\\.sign-up \\{[^}]*opacity: 0;[^}]*"
+                + "visibility: hidden;[^}]*pointer-events: none;[^}]*}.*"));
+        assertTrue(css.matches("(?s).*\\.login-container\\.active \\.sign-in \\{[^}]*"
+                + "opacity: 0;[^}]*visibility: hidden;[^}]*pointer-events: none;[^}]*}.*"));
+        assertTrue(css.matches("(?s).*\\.login-container\\.active \\.sign-up \\{[^}]*"
+                + "opacity: 1;[^}]*visibility: visible;[^}]*pointer-events: auto;[^}]*}.*"));
+    }
 }

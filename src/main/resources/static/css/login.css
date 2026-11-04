@@ -354,20 +354,35 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
         opacity var(--motion-medium) var(--ease-emphasized);
 }
 
-.sign-in { z-index: 2; }
+.sign-in {
+    z-index: 2;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
 
 .login-container.active .sign-in,
 .login-container.active .sign-up {
     left: var(--auth-panel-w);
 }
 
+.login-container.active .sign-in {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .sign-up {
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
     z-index: 1;
 }
 
 .login-container.active .sign-up {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
     z-index: 5;
     animation: mover var(--motion-medium) var(--ease-emphasized);
 }
