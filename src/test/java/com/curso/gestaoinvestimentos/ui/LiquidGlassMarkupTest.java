@@ -222,4 +222,15 @@ class LiquidGlassMarkupTest {
                 "(?s).*@media \\(max-width: 700px\\) \\{.*button\\.link-discreto,\\s*"
                         + "a\\.link-discreto \\{[^}]*min-height: 44px;[^}]*\\}.*"));
     }
+
+    @Test
+    void autenticacaoContemOverflowDecorativoSomenteNoEixoHorizontal() throws IOException {
+        String css = Files.readString(RESOURCES.resolve("static/css/login.css"));
+        String loginPageRule = css.substring(css.indexOf(".login-page {"), css.indexOf("}", css.indexOf(".login-page {")) + 1);
+
+        assertTrue(loginPageRule.contains("overflow-x: clip;"));
+        assertFalse(loginPageRule.contains("overflow: clip;"));
+        assertFalse(loginPageRule.contains("overflow-y: hidden;"));
+        assertFalse(loginPageRule.contains("overflow-y: clip;"));
+    }
 }
