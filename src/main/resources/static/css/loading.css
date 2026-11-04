@@ -24,6 +24,7 @@
 }
 
 .loading-overlay.hidden {
+    display: flex !important;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;

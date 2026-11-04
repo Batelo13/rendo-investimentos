@@ -53,8 +53,13 @@ class LiquidGlassMarkupTest {
         assertTrue(template("index.html").contains("loading(startHidden=false)"));
         assertTrue(template("dashboard.html").contains("loading(startHidden=false)"));
         assertTrue(template("login.html").contains("loading(startHidden=true)"));
-        String loading = Files.readString(RESOURCES.resolve("static/js/loading.js"));
-        assertTrue(loading.contains("rendo:page-ready"));
+        String loadingJs = Files.readString(RESOURCES.resolve("static/js/loading.js"));
+        assertTrue(loadingJs.contains("addEventListener('load'"));
+        assertTrue(loadingJs.contains("classList.add('hidden')"));
+        assertTrue(loadingJs.contains("dispatchEvent(new CustomEvent('rendo:page-ready'))"));
+        assertTrue(loadingJs.contains("{ once: true }"));
+        String loadingCss = Files.readString(RESOURCES.resolve("static/css/loading.css"));
+        assertTrue(loadingCss.contains("display: flex !important;"));
     }
 
     @Test
