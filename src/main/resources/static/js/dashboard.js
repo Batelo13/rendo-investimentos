@@ -177,7 +177,7 @@ function consolidarPosicoesPorAcao(posicoes) {
 /* --------------------------- Toasts ------------------------------ */
 function toast(titulo, msg = "", tipo = "ok") {
     const el = document.createElement("div");
-    el.className = `rendo-toast ${tipo}`;
+    el.className = `rendo-toast glass-surface ${tipo}`;
     const corpo = document.createElement("div");
     corpo.className = "t-body";
     const b = document.createElement("b");
@@ -618,7 +618,7 @@ function renderCorretoras() {
     $("#emptyCorretoras").classList.toggle("hidden", state.corretoras.length > 0);
 
     wrap.innerHTML = lista.map((c) => `
-        <div class="ccard" data-detail-corretora="${c.id}">
+        <div class="ccard glass-surface glass-interactive" data-detail-corretora="${c.id}">
             <div class="ccard-top">
                 <div>
                     <h3>${esc(c.nomeFantasia || c.razaoSocial || "—")}</h3>
@@ -688,11 +688,24 @@ async function carregarTudo() {
 }
 
 /* --------------------------- Detalhes ------------------------------ */
+let modalCloseTimer;
+
 function abrirModal(html) {
+    const modal = $("#modal");
+    window.clearTimeout(modalCloseTimer);
     $("#modalContent").innerHTML = html;
-    $("#modal").classList.remove("hidden");
+    modal.classList.remove("hidden");
+    requestAnimationFrame(() => modal.classList.add("open"));
 }
-function fecharModal() { $("#modal").classList.add("hidden"); }
+
+function fecharModal() {
+    const modal = $("#modal");
+    if (modal.classList.contains("hidden")) return;
+    modal.classList.remove("open");
+    const finish = () => modal.classList.add("hidden");
+    modal.addEventListener("transitionend", finish, { once: true });
+    modalCloseTimer = window.setTimeout(finish, 260);
+}
 
 function detalheAcaoHTML(a) {
     return `
@@ -991,7 +1004,7 @@ async function buscarAcao(e) {
     box.innerHTML = `<div class="loading-row"><span class="spin"></span> Buscando…</div>`;
     try {
         const a = await api(`/acoes/ticker/${encodeURIComponent(ticker)}`);
-        box.innerHTML = `<div class="panel" style="background-color:var(--background)">${detalheAcaoHTML(a)}</div>`;
+        box.innerHTML = `<div class="panel glass-surface">${detalheAcaoHTML(a)}</div>`;
     } catch (err) {
         box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
     }
@@ -1060,7 +1073,7 @@ async function buscarCorretora(e) {
     box.innerHTML = `<div class="loading-row"><span class="spin"></span> Buscando…</div>`;
     try {
         const c = await api(`/corretoras/cnpj/${encodeURIComponent(cnpj)}`);
-        box.innerHTML = `<div class="panel" style="background-color:var(--background)">${detalheCorretoraHTML(c)}</div>`;
+        box.innerHTML = `<div class="panel glass-surface">${detalheCorretoraHTML(c)}</div>`;
     } catch (err) {
         box.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
     }

@@ -19,6 +19,10 @@ class LiquidGlassMarkupTest {
         return Files.readString(RESOURCES.resolve("templates").resolve(name));
     }
 
+    private String dashboardScript() throws IOException {
+        return Files.readString(RESOURCES.resolve("static/js/dashboard.js"));
+    }
+
     @Test
     void todasAsPaginasCarregamGlassAntesDoCssEspecificoEMotionAntesDoScriptDaTela() throws IOException {
         for (String page : PAGES) {
@@ -79,6 +83,20 @@ class LiquidGlassMarkupTest {
         assertTrue(dashboard.contains("id=\"view-visao-geral\""));
         assertTrue(dashboard.contains("id=\"modalContent\""));
         assertTrue(dashboard.contains("data-view=\"visao-geral\""));
+        assertTrue(dashboard.contains("id=\"refreshAll\""));
+        assertTrue(dashboard.contains("id=\"rendimentoChart\""));
+        assertTrue(dashboard.contains("id=\"periodoPills\""));
+        assertTrue(dashboard.contains("id=\"menuToggle\""));
+        assertTrue(dashboard.contains("id=\"modal\""));
+        assertTrue(dashboard.contains("id=\"toasts\""));
+    }
+
+    @Test
+    void modalTemEntradaESaidaAnimadasSemAlterarSeuId() throws IOException {
+        String script = dashboardScript();
+        assertTrue(script.contains("classList.add(\"open\")"));
+        assertTrue(script.contains("transitionend"));
+        assertTrue(script.contains("classList.add(\"hidden\")"));
     }
 
     @Test
