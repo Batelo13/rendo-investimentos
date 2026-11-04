@@ -25,6 +25,7 @@
     --text-secondary: #8E99A8;
 
     --brand: #5DE2BA;
+    --brand-text: #5DE2BA;
     /* Texto/grafismo sobre um fundo preenchido com --brand (botao primary) --
        --brand e uma cor clara, entao o texto precisa ser escuro pra ter
        contraste (o token antigo --on-accent claro-sobre-mint-claro tinha
@@ -33,6 +34,8 @@
 
     --success: #3DDC97;
     --danger: #F06464;
+    --success-text: #5DE2BA;
+    --danger-text: #FF8F8F;
     --warning: #F2B84B;
 
     --rendo-font-body: 'Inter', sans-serif;
@@ -78,10 +81,10 @@
 }
 
 /*
- * Tema claro -- so os neutros (background/sidebar/surface/border/texto)
- * mudam; brand/success/danger/warning sao a identidade da marca e ficam
- * fixos nos dois temas. Ativado via data-theme="light" na <html> (ver
- * theme.js). Valores de contraste podem ser refinados depois.
+ * Tema claro -- os preenchimentos brand/success/danger/warning preservam a
+ * identidade da marca; os foregrounds semanticos *-text mudam para manter
+ * contraste AA sobre superficies claras. Ativado via data-theme="light" na
+ * <html> (ver theme.js).
  */
 :root[data-theme="light"] {
     color-scheme: light;
@@ -94,6 +97,10 @@
 
     --text-primary: #10131A;
     --text-secondary: #5B6472;
+
+    --brand-text: #147A61;
+    --success-text: #146C43;
+    --danger-text: #B42318;
 
     --atmosphere-brand: rgba(55, 190, 151, 0.18);
     --atmosphere-slate: rgba(96, 93, 145, 0.14);

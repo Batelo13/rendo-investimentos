@@ -27,6 +27,9 @@
 <div class="app glass-stage">
     <aside class="sidebar glass-surface glass-surface-strong" id="sidebar" data-motion>
         <div th:replace="~{fragments/logo :: logo}"></div>
+        <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Fechar menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
 
         <nav class="nav">
             <button class="nav-item active" data-view="visao-geral">
@@ -82,10 +85,11 @@
             </div>
         </div>
     </aside>
+    <button class="sidebar-backdrop hidden" id="sidebarBackdrop" type="button" aria-label="Fechar menu lateral"></button>
 
     <main class="main">
         <header class="topbar glass-surface glass-surface-subtle" data-motion>
-            <button class="hamburger" id="menuToggle" aria-label="Menu">
+            <button class="hamburger" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
             <div class="topbar-title">
@@ -353,9 +357,9 @@
 </div>
 
 <!-- Modal -->
-<div class="rendo-modal-backdrop hidden" id="modal">
-    <div class="rendo-modal glass-surface glass-surface-strong">
-        <button class="rendo-modal-close" id="modalClose">
+<div class="rendo-modal-backdrop hidden" id="modal" aria-hidden="true">
+    <div class="rendo-modal glass-surface glass-surface-strong" role="dialog" aria-modal="true" aria-label="Detalhes do investimento" tabindex="-1">
+        <button class="rendo-modal-close" id="modalClose" type="button" aria-label="Fechar janela">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
         <div id="modalContent"></div>

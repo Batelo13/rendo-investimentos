@@ -23,6 +23,14 @@ class LiquidGlassMarkupTest {
         return Files.readString(RESOURCES.resolve("static/js/dashboard.js"));
     }
 
+    private String dashboardCss() throws IOException {
+        return Files.readString(RESOURCES.resolve("static/css/dashboard.css"));
+    }
+
+    private String tokensCss() throws IOException {
+        return Files.readString(RESOURCES.resolve("static/css/tokens.css"));
+    }
+
     @Test
     void todasAsPaginasCarregamGlassAntesDoCssEspecificoEMotionAntesDoScriptDaTela() throws IOException {
         for (String page : PAGES) {
@@ -97,6 +105,66 @@ class LiquidGlassMarkupTest {
         assertTrue(script.contains("classList.add(\"open\")"));
         assertTrue(script.contains("transitionend"));
         assertTrue(script.contains("classList.add(\"hidden\")"));
+    }
+
+    @Test
+    void dashboardExpoeModalESidebarMoveisAcessiveis() throws IOException {
+        String dashboard = template("dashboard.html");
+        assertTrue(dashboard.contains("role=\"dialog\""));
+        assertTrue(dashboard.contains("aria-modal=\"true\""));
+        assertTrue(dashboard.contains("aria-label=\"Detalhes do investimento\""));
+        assertTrue(dashboard.contains("tabindex=\"-1\""));
+        assertTrue(dashboard.contains("id=\"modalClose\""));
+        assertTrue(dashboard.contains("aria-label=\"Fechar janela\""));
+        assertTrue(dashboard.contains("aria-controls=\"sidebar\""));
+        assertTrue(dashboard.contains("aria-expanded=\"false\""));
+        assertTrue(dashboard.contains("id=\"sidebarClose\""));
+        assertTrue(dashboard.contains("aria-label=\"Fechar menu\""));
+        assertTrue(dashboard.contains("id=\"sidebarBackdrop\""));
+        assertTrue(dashboard.contains("aria-label=\"Fechar menu lateral\""));
+    }
+
+    @Test
+    void dashboardProtegeLifecycleFocoETecladoDeModalESidebar() throws IOException {
+        String script = dashboardScript();
+        assertTrue(script.contains("event.target !== modal"));
+        assertTrue(script.contains("event.propertyName !== \"opacity\""));
+        assertTrue(script.contains("removeEventListener(\"transitionend\""));
+        assertTrue(script.contains("cancelAnimationFrame"));
+        assertTrue(script.contains("modalGeneration"));
+        assertTrue(script.contains("modalClosing"));
+        assertTrue(script.contains("modalPreviouslyFocused"));
+        assertTrue(script.contains("event.key === \"Tab\""));
+        assertTrue(script.contains("event.key === \"Escape\""));
+        assertTrue(script.contains("aria-expanded"));
+        assertTrue(script.contains("toggleAttribute(\"inert\""));
+        assertTrue(script.contains("aria-hidden"));
+        assertTrue(script.contains("matchMedia(\"(max-width: 860px)\")"));
+        assertTrue(script.contains("addEventListener(\"change\", () => setSidebarOpen(false, { focus: false, restoreFocus: true }))"));
+        assertTrue(script.contains("getComputedStyle(document.documentElement)"));
+        assertTrue(script.contains("\"--success-text\""));
+        assertTrue(script.contains("\"--danger-text\""));
+        assertFalse(script.contains("renderGraficoRendimento();"));
+    }
+
+    @Test
+    void dashboardMantemContrasteSemanticoECabeEmViewportMovel() throws IOException {
+        String css = dashboardCss();
+        String tokens = tokensCss();
+        assertTrue(tokens.contains("--brand-text: #5DE2BA;"));
+        assertTrue(tokens.contains("--success-text: #5DE2BA;"));
+        assertTrue(tokens.contains("--danger-text: #FF8F8F;"));
+        assertTrue(tokens.contains("--brand-text: #147A61;"));
+        assertTrue(tokens.contains("--success-text: #146C43;"));
+        assertTrue(tokens.contains("--danger-text: #B42318;"));
+        assertTrue(css.contains("color: var(--brand-text);"));
+        assertTrue(css.contains("color: var(--success-text);"));
+        assertTrue(css.contains("color: var(--danger-text);"));
+        assertTrue(css.contains("z-index: 100;"));
+        assertTrue(css.matches("(?s).*@media \\(max-width: 860px\\) \\{.*"
+                + "\\.cards \\{[^}]*grid-template-columns: minmax\\(0, 1fr\\);[^}]*}.*"));
+        assertTrue(css.matches("(?s).*@media \\(max-width: 860px\\) \\{.*"
+                + "\\.form-inline \\{[^}]*flex-direction: column;[^}]*}.*"));
     }
 
     @Test

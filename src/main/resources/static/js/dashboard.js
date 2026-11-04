@@ -9,6 +9,7 @@
 
 const $ = (s, ctx = document) => ctx.querySelector(s);
 const $$ = (s, ctx = document) => [...ctx.querySelectorAll(s)];
+const FOCUSABLE_SELECTOR = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const state = {
     saldo: null,
@@ -54,6 +55,32 @@ async function api(path, options = {}) {
 /* --------------------------- Utils ------------------------------- */
 const onlyDigits = (s) => (s || "").replace(/\D/g, "");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+
+function semanticColor(token) {
+    return getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+}
+
+function focusableElements(container) {
+    return $$(FOCUSABLE_SELECTOR, container).filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true");
+}
+
+function trapFocus(event, container) {
+    const focusable = focusableElements(container);
+    if (!focusable.length) {
+        event.preventDefault();
+        container.focus();
+        return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !container.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !container.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+    }
+}
 
 function moedaPorTicker(ticker) {
     const acao = state.acoes.find((a) => a.ticker === ticker);
@@ -202,6 +229,41 @@ const VIEW_META = {
     "corretoras": ["Corretoras", "Instituições validadas via CNPJ, CEP e CVM"],
 };
 
+const mobileSidebarMedia = window.matchMedia("(max-width: 860px)");
+let sidebarPreviouslyFocused = null;
+
+function setSidebarOpen(open, { focus = true, restoreFocus = false } = {}) {
+    const sidebar = $("#sidebar");
+    const toggle = $("#menuToggle");
+    const backdrop = $("#sidebarBackdrop");
+    const mobile = mobileSidebarMedia.matches;
+    const shouldOpen = mobile && open;
+
+    if (shouldOpen && !sidebar.classList.contains("open")) {
+        sidebarPreviouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : toggle;
+    }
+
+    sidebar.classList.toggle("open", shouldOpen);
+    toggle.setAttribute("aria-expanded", String(shouldOpen));
+    backdrop.classList.toggle("hidden", !shouldOpen);
+
+    if (mobile) {
+        sidebar.toggleAttribute("inert", !shouldOpen);
+        sidebar.setAttribute("aria-hidden", String(!shouldOpen));
+    } else {
+        sidebar.toggleAttribute("inert", false);
+        sidebar.removeAttribute("aria-hidden");
+    }
+
+    if (shouldOpen && focus) {
+        ($("#sidebarClose") || focusableElements(sidebar)[0] || sidebar).focus();
+    } else if (!shouldOpen && restoreFocus && mobile) {
+        const target = sidebarPreviouslyFocused?.isConnected ? sidebarPreviouslyFocused : toggle;
+        target?.focus();
+        sidebarPreviouslyFocused = null;
+    }
+}
+
 function setView(view) {
     $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
     $$(".view").forEach((v) => v.classList.add("hidden"));
@@ -209,7 +271,7 @@ function setView(view) {
     const [t, s] = VIEW_META[view] || VIEW_META["visao-geral"];
     $("#viewTitle").textContent = t;
     $("#viewSubtitle").textContent = s;
-    $("#sidebar").classList.remove("open");
+    setSidebarOpen(false, { focus: false, restoreFocus: true });
 }
 
 /* ---------------------------- Render ------------------------------ */
@@ -299,7 +361,9 @@ function renderSparklineNaoRealizado() {
         const y = 26 - ((v - min) / range) * 24 - 1;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
-    const cor = valores[valores.length - 1] >= valores[0] ? "var(--success)" : "var(--danger)";
+    const cor = valores[valores.length - 1] >= valores[0]
+        ? semanticColor("--success-text")
+        : semanticColor("--danger-text");
     svg.innerHTML = `<polyline points="${coords.join(" ")}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
 }
 
@@ -317,7 +381,8 @@ async function carregarIbovespa() {
         const variacao = Number(indice.variacaoPercentual || 0);
         const el = $("#ibovVariacao");
         el.textContent = `${variacao >= 0 ? "+" : ""}${variacao.toFixed(2)}%`;
-        el.style.color = variacao >= 0 ? "var(--success)" : "var(--danger)";
+        el.dataset.colorToken = variacao >= 0 ? "--success-text" : "--danger-text";
+        el.style.color = semanticColor(el.dataset.colorToken);
         $("#sidebarIbov").classList.remove("hidden");
     } catch {
         $("#sidebarIbov")?.classList.add("hidden");
@@ -370,7 +435,7 @@ function renderRendimentoChart() {
     const coords = pontosChartAtual.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`);
 
     const ultimo = valores[valores.length - 1];
-    const cor = ultimo >= 0 ? "var(--success)" : "var(--danger)";
+    const cor = ultimo >= 0 ? semanticColor("--success-text") : semanticColor("--danger-text");
     const yZero = yDe(0);
 
     // Grid horizontal discreto: 3 linhas guia (25/50/75% da altura util).
@@ -451,6 +516,15 @@ function esconderTooltipChart() {
     $("#chartTooltip")?.classList.remove("show");
     $("#rendimentoPontoHover")?.classList.add("hidden");
     $("#rendimentoGuide")?.classList.add("hidden");
+}
+
+function refreshSemanticColors() {
+    const ibovVariacao = $("#ibovVariacao");
+    if (ibovVariacao?.dataset.colorToken) {
+        ibovVariacao.style.color = semanticColor(ibovVariacao.dataset.colorToken);
+    }
+    renderSparklineNaoRealizado();
+    renderRendimentoChart();
 }
 
 function mudarPeriodoChart(periodo) {
@@ -688,22 +762,72 @@ async function carregarTudo() {
 }
 
 /* --------------------------- Detalhes ------------------------------ */
-let modalCloseTimer;
+let modalCloseTimer = null;
+let modalAnimationFrame = null;
+let modalTransitionHandler = null;
+let modalGeneration = 0;
+let modalClosing = false;
+let modalPreviouslyFocused = null;
+
+function cleanupModalLifecycle(modal) {
+    if (modalTransitionHandler) {
+        modal.removeEventListener("transitionend", modalTransitionHandler);
+        modalTransitionHandler = null;
+    }
+    if (modalCloseTimer !== null) {
+        window.clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
+    }
+    if (modalAnimationFrame !== null) {
+        window.cancelAnimationFrame(modalAnimationFrame);
+        modalAnimationFrame = null;
+    }
+}
 
 function abrirModal(html) {
     const modal = $("#modal");
-    window.clearTimeout(modalCloseTimer);
+    const dialog = modal.querySelector(".rendo-modal");
+    const wasHidden = modal.classList.contains("hidden");
+    const generation = ++modalGeneration;
+    cleanupModalLifecycle(modal);
+    modalClosing = false;
+    if (wasHidden && document.activeElement instanceof HTMLElement) {
+        modalPreviouslyFocused = document.activeElement;
+    }
     $("#modalContent").innerHTML = html;
+    modal.setAttribute("aria-hidden", "false");
     modal.classList.remove("hidden");
-    requestAnimationFrame(() => modal.classList.add("open"));
+    modalAnimationFrame = requestAnimationFrame(() => {
+        modalAnimationFrame = null;
+        if (generation !== modalGeneration || modal.classList.contains("hidden")) return;
+        modal.classList.add("open");
+        (focusableElements(dialog)[0] || dialog).focus();
+    });
 }
 
 function fecharModal() {
     const modal = $("#modal");
-    if (modal.classList.contains("hidden")) return;
+    if (modal.classList.contains("hidden") || modalClosing) return;
+    const generation = ++modalGeneration;
+    cleanupModalLifecycle(modal);
+    modalClosing = true;
     modal.classList.remove("open");
-    const finish = () => modal.classList.add("hidden");
-    modal.addEventListener("transitionend", finish, { once: true });
+    const finish = () => {
+        if (generation !== modalGeneration) return;
+        cleanupModalLifecycle(modal);
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+        modalClosing = false;
+        const focusTarget = modalPreviouslyFocused;
+        modalPreviouslyFocused = null;
+        if (focusTarget?.isConnected) focusTarget.focus();
+    };
+    modalTransitionHandler = (event) => {
+        if (event.target !== modal) return;
+        if (event.propertyName !== "opacity") return;
+        finish();
+    };
+    modal.addEventListener("transitionend", modalTransitionHandler);
     modalCloseTimer = window.setTimeout(finish, 260);
 }
 
@@ -1086,12 +1210,43 @@ function setLoading(btn, loading, label) {
     btn.innerHTML = loading ? `<span class="spin"></span> ${label}` : label;
 }
 
+function handleDashboardKeydown(event) {
+    const modal = $("#modal");
+    if (!modal.classList.contains("hidden")) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            fecharModal();
+        } else if (event.key === "Tab") {
+            trapFocus(event, modal.querySelector(".rendo-modal"));
+        }
+        return;
+    }
+
+    const sidebar = $("#sidebar");
+    if (mobileSidebarMedia.matches && sidebar.classList.contains("open")) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            setSidebarOpen(false, { focus: false, restoreFocus: true });
+        } else if (event.key === "Tab") {
+            trapFocus(event, sidebar);
+        }
+    }
+}
+
 /* ---------------------------- Eventos --------------------------------- */
 function bind() {
     $$(".nav-item").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
     $$("[data-goto]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.goto)));
-    $("#menuToggle").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#menuToggle").addEventListener("click", () => {
+        const open = $("#menuToggle").getAttribute("aria-expanded") !== "true";
+        setSidebarOpen(open);
+    });
+    $("#sidebarClose").addEventListener("click", () => setSidebarOpen(false, { focus: false, restoreFocus: true }));
+    $("#sidebarBackdrop").addEventListener("click", () => setSidebarOpen(false, { focus: false, restoreFocus: true }));
+    mobileSidebarMedia.addEventListener("change", () => setSidebarOpen(false, { focus: false, restoreFocus: true }));
+    setSidebarOpen(false, { focus: false });
     $("#refreshAll").addEventListener("click", carregarTudo);
+    $("#btnTema")?.addEventListener("click", refreshSemanticColors);
 
     $("#formAcao").addEventListener("submit", submitAcao);
     $("#formBuscaAcao").addEventListener("submit", buscarAcao);
@@ -1115,8 +1270,12 @@ function bind() {
     chartWrap.addEventListener("mouseleave", esconderTooltipChart);
 
     $("#modalClose").addEventListener("click", fecharModal);
-    $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") fecharModal(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModal(); });
+    $("#modal").addEventListener("click", (event) => {
+        const modal = $("#modal");
+        if (event.target !== modal) return;
+        fecharModal();
+    });
+    document.addEventListener("keydown", handleDashboardKeydown);
 
     document.addEventListener("click", (e) => {
         const kebab = e.target.closest("[data-kebab]");
