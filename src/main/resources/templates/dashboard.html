@@ -18,13 +18,14 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/glass.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
     <link rel="stylesheet" th:href="@{/css/loading.css}">
 </head>
-<body>
+<body class="rendo-page dashboard-page">
 <div th:replace="~{fragments/loading :: loading(startHidden=false)}"></div>
-<div class="app">
-    <aside class="sidebar" id="sidebar">
+<div class="app glass-stage">
+    <aside class="sidebar glass-surface glass-surface-strong" id="sidebar" data-motion>
         <div th:replace="~{fragments/logo :: logo}"></div>
 
         <nav class="nav">
@@ -83,7 +84,7 @@
     </aside>
 
     <main class="main">
-        <header class="topbar">
+        <header class="topbar glass-surface glass-surface-subtle" data-motion>
             <button class="hamburger" id="menuToggle" aria-label="Menu">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
             </button>
@@ -97,7 +98,7 @@
         </header>
 
         <!-- ===================== VISÃO GERAL ===================== -->
-        <section class="view" id="view-visao-geral">
+        <section class="view" id="view-visao-geral" data-motion>
             <div class="stats-grid">
                 <div class="stat-card stat-card-featured">
                     <span class="stat-icon stat-icon-brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg></span>
@@ -190,7 +191,7 @@
         </section>
 
         <!-- ===================== AÇÕES ===================== -->
-        <section class="view hidden" id="view-acoes">
+        <section class="view hidden" id="view-acoes" data-motion>
             <div class="grid-2">
                 <div class="panel">
                     <div class="panel-head"><h2>Cadastrar ação</h2></div>
@@ -242,7 +243,7 @@
         </section>
 
         <!-- ===================== MINHAS POSIÇÕES ===================== -->
-        <section class="view hidden" id="view-posicoes">
+        <section class="view hidden" id="view-posicoes" data-motion>
             <div class="panel">
                 <div class="panel-head">
                     <h2>Minhas posições <span class="count-badge" id="countPosicoes">0</span></h2>
@@ -281,7 +282,7 @@
         </section>
 
         <!-- ===================== OPERAÇÕES ===================== -->
-        <section class="view hidden" id="view-operacoes">
+        <section class="view hidden" id="view-operacoes" data-motion>
             <div class="panel">
                 <div class="panel-head">
                     <h2>Histórico de operações <span class="count-badge" id="countOperacoes">0</span></h2>
@@ -313,7 +314,7 @@
         </section>
 
         <!-- ===================== CORRETORAS ===================== -->
-        <section class="view hidden" id="view-corretoras">
+        <section class="view hidden" id="view-corretoras" data-motion>
             <div class="grid-2">
                 <div class="panel">
                     <div class="panel-head"><h2>Cadastrar corretora</h2></div>
@@ -362,6 +363,7 @@
 <div class="toasts" id="toasts"></div>
 
 <script th:src="@{/js/loading.js}"></script>
+<script th:src="@{/js/motion.js}"></script>
 <script th:src="@{/js/theme.js}"></script>
 <script th:src="@{/js/vendor/sweetalert2.all.min.js}"></script>
 <script th:src="@{/js/dashboard.js}"></script>

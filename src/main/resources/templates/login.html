@@ -18,12 +18,13 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/glass.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
     <link rel="stylesheet" th:href="@{/css/loading.css}">
 </head>
-<body>
+<body class="rendo-page auth-page">
 <div th:replace="~{fragments/loading :: loading(startHidden=true)}"></div>
-<main class="login-page">
+<main class="login-page" data-motion>
     <div class="login-container" id="container">
 
         <!-- Cadastro -->
@@ -298,6 +299,7 @@
     </div>
 </main>
 <script th:src="@{/js/loading.js}"></script>
+<script th:src="@{/js/motion.js}"></script>
 <script th:src="@{/js/login.js}"></script>
 </body>
 </html>

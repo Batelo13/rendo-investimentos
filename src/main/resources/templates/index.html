@@ -15,13 +15,17 @@
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/glass.css}">
     <link rel="stylesheet" th:href="@{/css/loading.css}">
 </head>
-<body>
+<body class="rendo-page landing-page">
 <div th:replace="~{fragments/loading :: loading(startHidden=false)}"></div>
-<header style="padding: 24px 32px;">
-    <div th:replace="~{fragments/logo :: logo}"></div>
-</header>
+<main class="landing-shell glass-surface glass-surface-strong" data-motion>
+    <header style="padding: 24px 32px;">
+        <div th:replace="~{fragments/logo :: logo}"></div>
+    </header>
+</main>
 <script th:src="@{/js/loading.js}"></script>
+<script th:src="@{/js/motion.js}"></script>
 </body>
 </html>
