@@ -3,6 +3,8 @@
 .login-page {
     --auth-panel: rgba(36, 36, 58, 0.88);
     --auth-panel-alt: rgba(48, 48, 74, 0.92);
+    --auth-danger-text: #FF8F8F;
+    --auth-success-text: #5DE2BA;
     --auth-panel-w: 45%;
     --auth-form-w: 55%;
     min-height: 100vh;
@@ -16,6 +18,8 @@
 :root[data-theme="light"] .login-page {
     --auth-panel: rgba(45, 45, 70, 0.9);
     --auth-panel-alt: rgba(57, 57, 86, 0.94);
+    --auth-danger-text: #B42318;
+    --auth-success-text: #146C43;
 }
 
 /* Fundo com movimento sutil: dois blobs desfocados que derivam devagar --
@@ -66,7 +70,6 @@
 }
 
 .login-container {
-    background: var(--glass-strong-solid);
     border-color: var(--glass-border-highlight);
     border-radius: 28px;
     position: relative;
@@ -75,14 +78,6 @@
     max-width: 100%;
     min-height: 720px;
     animation: rendo-aparecer var(--motion-medium) var(--ease-emphasized);
-}
-
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-    .login-container {
-        background: var(--glass-strong);
-        -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(132%);
-        backdrop-filter: blur(var(--glass-blur-strong)) saturate(132%);
-    }
 }
 
 @keyframes rendo-aparecer {
@@ -285,8 +280,8 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
     margin: 2px 0;
 }
 
-.form-mensagem.erro { color: var(--danger); }
-.form-mensagem.sucesso { color: var(--success); }
+.form-mensagem.erro { color: var(--auth-danger-text); }
+.form-mensagem.sucesso { color: var(--auth-success-text); }
 .form-mensagem.info { color: var(--text-secondary); }
 
 /* Login social -- so aparece quando ha provedor configurado (ver
@@ -489,6 +484,10 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
         transform var(--motion-fast) var(--ease-emphasized);
 }
 .toggle-head button:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); }
+.toggle-head button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
+}
 .toggle-head button svg { width: 13px; height: 13px; }
 
 .toggle-hero { position: relative; margin-top: 18px; }
@@ -639,8 +638,8 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
    troca de estado direta (mesma logica .active, tecnica de exibicao
    diferente); a prioridade nessa largura e formulario + clareza. */
 @media (max-width: 900px) {
+    .login-page { align-items: flex-start; }
     .auth-widgets { display: none; }
-    .login-container { min-height: 560px; }
 }
 
 @media (max-width: 700px) {
@@ -675,6 +674,15 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
     .toggle-head { margin-bottom: 14px; }
     .toggle-head button,
     .input-toggle-senha { min-width: 44px; min-height: 44px; }
+
+    button.link-discreto,
+    a.link-discreto {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 8px;
+    }
 
     .form-container {
         position: relative; left: auto !important; width: 100%; height: auto;

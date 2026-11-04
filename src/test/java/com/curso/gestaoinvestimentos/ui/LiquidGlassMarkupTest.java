@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquidGlassMarkupTest {
@@ -94,5 +95,18 @@ class LiquidGlassMarkupTest {
         assertTrue(css.contains("--auth-panel: rgba(45, 45, 70, 0.9);"));
         assertTrue(css.contains("var(--motion-medium) var(--ease-emphasized)"));
         assertTrue(css.contains("outline: 2px solid var(--focus-ring);"));
+    }
+
+    @Test
+    void autenticacaoMantemContrasteFocoEAlvosMoveisAcessiveis() throws IOException {
+        String css = Files.readString(RESOURCES.resolve("static/css/login.css"));
+        assertTrue(css.contains("--auth-danger-text:"));
+        assertTrue(css.contains("--auth-success-text:"));
+        assertTrue(css.contains(".toggle-head button:focus-visible"));
+        assertTrue(css.contains("outline: 2px solid var(--brand);"));
+        assertFalse(css.contains("min-height: 560px;"));
+        assertTrue(css.matches(
+                "(?s).*@media \\(max-width: 700px\\) \\{.*button\\.link-discreto,\\s*"
+                        + "a\\.link-discreto \\{[^}]*min-height: 44px;[^}]*\\}.*"));
     }
 }
