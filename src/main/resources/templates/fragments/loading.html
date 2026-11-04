@@ -4,12 +4,12 @@
 <!--
   Overlay de loading reutilizavel. startHidden=false (index/dashboard): fica
   visivel por padrao no HTML como splash de carregamento inicial, e
-  loading.js remove a classe "hidden" ao terminar de carregar. startHidden=true
+  loading.js adiciona a classe "hidden" ao terminar de carregar. startHidden=true
   (login): comeca escondido -- so aparece quando login.js reusa #loadingOverlay
   pra dar feedback durante o submit de login/cadastro.
 -->
-<div th:fragment="loading(startHidden)" id="loadingOverlay" class="loading-overlay" th:classappend="${startHidden} ? 'hidden' : ''">
-    <svg class="loading-wallet" viewBox="0 0 68 62" role="img" aria-label="Carregando">
+<div th:fragment="loading(startHidden)" id="loadingOverlay" class="loading-overlay" th:classappend="${startHidden} ? 'hidden' : ''" role="status" aria-live="polite" aria-label="Carregando">
+    <svg class="loading-wallet" viewBox="0 0 68 62" aria-hidden="true">
         <rect x="8" y="2" width="22" height="9" rx="1.5" fill="#5FE1B0" transform="rotate(-16 19 6.5)"/>
         <circle cx="38" cy="13.75" r="6.75" fill="#5FE1B0"/>
         <circle cx="55" cy="13.75" r="6.75" fill="#5FE1B0"/>

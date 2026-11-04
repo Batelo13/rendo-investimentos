@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
         (function () {
             if (localStorage.getItem('rendo-theme') === 'light') {
@@ -21,9 +22,11 @@
 <body class="rendo-page landing-page">
 <div th:replace="~{fragments/loading :: loading(startHidden=false)}"></div>
 <main class="landing-shell glass-surface glass-surface-strong" data-motion>
-    <header style="padding: 24px 32px;">
-        <div th:replace="~{fragments/logo :: logo}"></div>
-    </header>
+    <div th:replace="~{fragments/logo :: logo}"></div>
+    <span class="landing-eyebrow">Sua carteira, com clareza</span>
+    <h1>Decisões melhores começam com uma visão completa.</h1>
+    <p>Organize ativos, corretoras e operações em uma experiência simples, segura e feita para acompanhar sua evolução.</p>
+    <a class="landing-cta glass-focus" th:href="@{/login}">Acessar minha carteira</a>
 </main>
 <script th:src="@{/js/loading.js}"></script>
 <script th:src="@{/js/motion.js}"></script>

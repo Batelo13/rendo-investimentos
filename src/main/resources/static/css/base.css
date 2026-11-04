@@ -22,3 +22,79 @@
     color: var(--text-primary);
     line-height: 1;
 }
+
+.landing-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(var(--space-4), 4vw, var(--space-8));
+}
+
+.landing-shell {
+    width: min(100%, 760px);
+    padding: clamp(var(--space-6), 7vw, 64px);
+    border-radius: 28px;
+    text-align: center;
+}
+
+.landing-shell .rendo-logo {
+    margin-bottom: clamp(var(--space-6), 5vw, 40px);
+}
+
+.landing-eyebrow {
+    display: block;
+    width: fit-content;
+    margin-inline: auto;
+    margin-bottom: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border-radius: 999px;
+    background: var(--brand);
+    color: var(--on-brand);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.landing-shell h1 {
+    max-width: 680px;
+    margin: 0 auto var(--space-5);
+    font-size: clamp(2rem, 6vw, 3.75rem);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+}
+
+.landing-shell p {
+    max-width: 600px;
+    margin: 0 auto clamp(var(--space-6), 5vw, 40px);
+    color: var(--text-secondary);
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    line-height: 1.7;
+}
+
+.landing-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    background: var(--brand);
+    color: var(--on-brand);
+    font-weight: 700;
+    text-decoration: none;
+    transition: filter var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+}
+
+.landing-cta:hover {
+    color: var(--on-brand);
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-cta:hover {
+        transform: none;
+    }
+}

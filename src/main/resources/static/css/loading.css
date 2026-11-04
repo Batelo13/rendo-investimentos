@@ -11,19 +11,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--background);
-    transition: opacity 0.25s ease;
+    background: var(--glass-strong-solid);
+    transition: opacity var(--motion-medium) var(--ease-standard), visibility var(--motion-medium) linear;
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .loading-overlay {
+        background: var(--glass-strong);
+        -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(130%);
+        backdrop-filter: blur(var(--glass-blur-strong)) saturate(130%);
+    }
 }
 
 .loading-overlay.hidden {
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
 }
 
 .loading-wallet {
     width: 68px;
     height: 62px;
-    animation: loading-pulse 1.1s ease-in-out infinite;
+    animation: loading-pulse var(--motion-slow) var(--ease-standard) infinite;
 }
 
 @keyframes loading-pulse {

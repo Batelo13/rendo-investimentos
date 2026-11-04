@@ -49,6 +49,15 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void loadingInicialContinuaSomenteNoIndexEDashboard() throws IOException {
+        assertTrue(template("index.html").contains("loading(startHidden=false)"));
+        assertTrue(template("dashboard.html").contains("loading(startHidden=false)"));
+        assertTrue(template("login.html").contains("loading(startHidden=true)"));
+        String loading = Files.readString(RESOURCES.resolve("static/js/loading.js"));
+        assertTrue(loading.contains("rendo:page-ready"));
+    }
+
+    @Test
     void contratosFuncionaisContinuamPresentes() throws IOException {
         String login = template("login.html");
         String dashboard = template("dashboard.html");
