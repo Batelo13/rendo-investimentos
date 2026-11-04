@@ -63,6 +63,7 @@
     --glass-strong: rgba(17, 21, 29, 0.86);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-border-highlight: rgba(255, 255, 255, 0.16);
+    --focus-ring: var(--brand);
     --glass-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.07);
     --glass-shadow: 0 22px 60px -34px rgba(0, 0, 0, 0.72);
     --glass-shadow-raised: 0 28px 70px -34px rgba(0, 0, 0, 0.82);
@@ -104,6 +105,7 @@
     --glass-strong: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(16, 19, 26, 0.09);
     --glass-border-highlight: rgba(255, 255, 255, 0.92);
+    --focus-ring: #147A61;
     --glass-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
     --glass-shadow: 0 22px 55px -34px rgba(45, 54, 72, 0.3);
     --glass-shadow-raised: 0 28px 65px -32px rgba(45, 54, 72, 0.38);

@@ -61,7 +61,7 @@ body.rendo-page::before {
 
 .glass-focus:focus-visible,
 .glass-interactive:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 3px;
 }
 
