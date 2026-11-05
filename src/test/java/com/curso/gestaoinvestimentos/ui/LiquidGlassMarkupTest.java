@@ -163,6 +163,15 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void filtroDeCorretorasSoComparaCnpjQuandoOTermoPossuiDigitos() throws IOException {
+        String script = dashboardScript();
+
+        assertTrue(script.contains("const filtroCnpj = onlyDigits(filtro);"));
+        assertTrue(script.contains("(filtroCnpj && onlyDigits(c.cnpj).includes(filtroCnpj))"));
+        assertFalse(script.contains("onlyDigits(c.cnpj).includes(onlyDigits(filtro))"));
+    }
+
+    @Test
     void overviewFinanceiroEmpilhaAntesDeCortarMoedaEmViewportEstreito() throws IOException {
         String css = dashboardCss();
         assertTrue(css.matches("(?s).*@media \\(max-width: 420px\\) \\{.*"

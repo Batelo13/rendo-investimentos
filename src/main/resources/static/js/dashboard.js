@@ -720,12 +720,13 @@ async function mudarPaginaOperacoes(delta) {
 
 function renderCorretoras() {
     const filtro = $("#filterCorretoras").value.trim().toLowerCase();
+    const filtroCnpj = onlyDigits(filtro);
     const wrap = $("#cardsCorretoras");
     const lista = state.corretoras.filter((c) =>
         !filtro ||
         (c.razaoSocial || "").toLowerCase().includes(filtro) ||
         (c.nomeFantasia || "").toLowerCase().includes(filtro) ||
-        onlyDigits(c.cnpj).includes(onlyDigits(filtro)));
+        (filtroCnpj && onlyDigits(c.cnpj).includes(filtroCnpj)));
 
     $("#countCorretoras").textContent = state.corretoras.length;
     $("#emptyCorretoras").classList.toggle("hidden", state.corretoras.length > 0);
