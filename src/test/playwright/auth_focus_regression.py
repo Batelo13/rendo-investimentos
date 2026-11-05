@@ -10,15 +10,21 @@ from playwright.sync_api import Page, sync_playwright
 
 BASE_URL = "http://localhost:8080/login"
 AUTH_REGIONS = ".form-container, .toggle-panel"
+THEME_SURFACES = {"dark": "#151922", "light": "#FFFFFF"}
 
 
 def apply_theme(page: Page, theme: str) -> None:
     page.add_init_script(f"localStorage.setItem('rendo-theme', '{theme}')")
 
 
-def assert_theme(page: Page, theme: str) -> None:
+def assert_theme(page: Page, theme: str) -> str:
     expected = "light" if theme == "light" else None
     assert page.locator("html").get_attribute("data-theme") == expected
+    surface = page.locator("html").evaluate(
+        "el => getComputedStyle(el).getPropertyValue('--surface').trim()"
+    )
+    assert surface.upper() == THEME_SURFACES[theme].upper(), (theme, surface)
+    return surface
 
 
 def active_snapshot(page: Page) -> dict:
@@ -54,6 +60,33 @@ def assert_transition_locked(page: Page, expected_active: bool) -> None:
         "signUpInert": True,
         "leftInert": True,
         "rightInert": True,
+    }, state
+
+
+def assert_focus_outside_auth(page: Page) -> None:
+    snapshot = active_snapshot(page)
+    assert not snapshot["insideAuthRegion"], snapshot
+
+
+def assert_immediate_stable_accessibility(page: Page, signup: bool) -> None:
+    """Valida o estado sincrono; o foco logico usa dois animation frames."""
+    state = page.locator("#container").evaluate(
+        """(container) => ({
+            active: container.classList.contains('active'),
+            transitionMarker: container.getAttribute('data-auth-transition'),
+            signInInert: container.querySelector('.sign-in').inert,
+            signUpInert: container.querySelector('.sign-up').inert,
+            leftInert: container.querySelector('.toggle-left').inert,
+            rightInert: container.querySelector('.toggle-right').inert,
+        })"""
+    )
+    assert state == {
+        "active": signup,
+        "transitionMarker": None,
+        "signInInert": signup,
+        "signUpInert": not signup,
+        "leftInert": not signup,
+        "rightInert": signup,
     }, state
 
 
@@ -96,13 +129,21 @@ def exercise_desktop_transition(page: Page) -> None:
     page.locator("#btn-cadastro").click(no_wait_after=True)
     assert_transition_locked(page, expected_active=True)
     page.keyboard.press("Tab")
-    assert not active_snapshot(page)["insideAuthRegion"], active_snapshot(page)
+    assert_focus_outside_auth(page)
+    # A amostra intermediaria impede um falso positivo que apenas confira o
+    # lock no mesmo tick do clique e depois pule direto ao estado final.
+    page.wait_for_timeout(100)
+    assert_transition_locked(page, expected_active=True)
+    assert_focus_outside_auth(page)
     assert_stable_state(page, signup=True)
 
     page.locator("#btn-login").click(no_wait_after=True)
     assert_transition_locked(page, expected_active=False)
     page.keyboard.press("Tab")
-    assert not active_snapshot(page)["insideAuthRegion"], active_snapshot(page)
+    assert_focus_outside_auth(page)
+    page.wait_for_timeout(100)
+    assert_transition_locked(page, expected_active=False)
+    assert_focus_outside_auth(page)
     assert_stable_state(page, signup=False)
 
 
@@ -120,12 +161,62 @@ def exercise_rapid_switch(page: Page) -> None:
     page.wait_for_load_state("networkidle")
     page.evaluate(
         """() => {
+            const container = document.querySelector('#container');
+            const regions = {
+                signIn: container.querySelector('.sign-in'),
+                signUp: container.querySelector('.sign-up'),
+                left: container.querySelector('.toggle-left'),
+                right: container.querySelector('.toggle-right'),
+            };
+            const startedAt = performance.now();
+            let phase = 'opening-signup';
+            const sample = () => ({
+                elapsed: performance.now() - startedAt,
+                phase,
+                active: container.classList.contains('active'),
+                transitioning: container.dataset.authTransition === 'true',
+                signInInert: regions.signIn.inert,
+                signUpInert: regions.signUp.inert,
+                leftInert: regions.left.inert,
+                rightInert: regions.right.inert,
+            });
+            window.__authRapidSamples = [sample()];
+            window.__authRapidInterval = setInterval(
+                () => window.__authRapidSamples.push(sample()),
+                5,
+            );
             sincronizarEstadoAuth(true, { moverFoco: true });
-            setTimeout(() => sincronizarEstadoAuth(false, { moverFoco: true }), 40);
+            setTimeout(() => {
+                phase = 'returning-login';
+                sincronizarEstadoAuth(false, { moverFoco: true });
+                window.__authRapidSamples.push(sample());
+            }, 40);
         }"""
     )
     assert_stable_state(page, signup=False)
-    page.wait_for_timeout(550)
+    # Mantem o observador alem dos dois fallbacks potenciais. Se o callback
+    # antigo escapar do cancelamento, alguma amostra libera cadastro/left.
+    page.wait_for_timeout(700)
+    samples = page.evaluate(
+        """() => {
+            clearInterval(window.__authRapidInterval);
+            return window.__authRapidSamples;
+        }"""
+    )
+    returning = [sample for sample in samples if sample["phase"] == "returning-login"]
+    assert len(returning) >= 50, len(returning)
+    for sample in returning:
+        assert sample["active"] is False, sample
+        if sample["transitioning"]:
+            assert all(
+                sample[key]
+                for key in ("signInInert", "signUpInert", "leftInert", "rightInert")
+            ), sample
+        else:
+            assert sample["signInInert"] is False, sample
+            assert sample["signUpInert"] is True, sample
+            assert sample["leftInert"] is True, sample
+            assert sample["rightInert"] is False, sample
     assert active_snapshot(page)["name"] == "username", active_snapshot(page)
 
 
@@ -156,6 +247,7 @@ def exercise_verification_return(page: Page) -> None:
 def run() -> None:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
+        computed_surfaces = {}
 
         for theme in ("dark", "light"):
             desktop = browser.new_page(
@@ -163,8 +255,9 @@ def run() -> None:
             )
             apply_theme(desktop, theme)
             exercise_desktop_transition(desktop)
-            assert_theme(desktop, theme)
+            computed_surfaces[theme] = assert_theme(desktop, theme)
             desktop.close()
+        assert computed_surfaces["dark"] != computed_surfaces["light"], computed_surfaces
 
         for theme in ("dark", "light"):
             page = browser.new_page(
@@ -175,8 +268,10 @@ def run() -> None:
             page.wait_for_load_state("networkidle")
             assert_theme(page, theme)
             page.locator("#btn-cadastro").click()
+            assert_immediate_stable_accessibility(page, signup=True)
             assert_stable_state(page, signup=True)
             page.locator("#btn-login").click()
+            assert_immediate_stable_accessibility(page, signup=False)
             assert_stable_state(page, signup=False)
             page.close()
 
@@ -187,8 +282,10 @@ def run() -> None:
         reduced.goto(BASE_URL)
         reduced.wait_for_load_state("networkidle")
         reduced.locator("#btn-cadastro").click()
+        assert_immediate_stable_accessibility(reduced, signup=True)
         assert_stable_state(reduced, signup=True)
         reduced.locator("#btn-login").click()
+        assert_immediate_stable_accessibility(reduced, signup=False)
         assert_stable_state(reduced, signup=False)
         reduced.close()
 
