@@ -19,6 +19,7 @@ let authTransitionVersion = 0;
 let authTransitionTimer = null;
 let authTransitionHandler = null;
 let authFocusFrame = null;
+const AUTH_TRANSITION_FALLBACK_MARGIN_MS = 250;
 
 function definirDisponibilidadeAuth(elemento, disponivel) {
     elemento.toggleAttribute('inert', !disponivel);
@@ -133,7 +134,10 @@ function sincronizarEstadoAuth(mostrarCadastro, { moverFoco = false, animar = tr
         if (evento.target === toggle && evento.propertyName === 'transform') concluir();
     };
     toggle.addEventListener('transitionend', authTransitionHandler);
-    authTransitionTimer = setTimeout(concluir, duracaoMovimentoAuth() + 100);
+    authTransitionTimer = setTimeout(
+        concluir,
+        duracaoMovimentoAuth() + AUTH_TRANSITION_FALLBACK_MARGIN_MS,
+    );
 }
 
 const cadastroViaSocial = authParams.get('criarConta') === '1';

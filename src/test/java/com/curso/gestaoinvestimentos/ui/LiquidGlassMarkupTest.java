@@ -281,7 +281,8 @@ class LiquidGlassMarkupTest {
         assertTrue(script.contains("container.focus({ preventScroll: true });"));
         assertTrue(script.contains("toggle.addEventListener('transitionend', authTransitionHandler);"));
         assertTrue(script.contains("toggle.removeEventListener('transitionend', authTransitionHandler);"));
-        assertTrue(script.contains("authTransitionTimer = setTimeout(concluir, duracaoMovimentoAuth() + 100);"));
+        assertTrue(script.contains("const AUTH_TRANSITION_FALLBACK_MARGIN_MS = 250;"));
+        assertTrue(script.contains("duracaoMovimentoAuth() + AUTH_TRANSITION_FALLBACK_MARGIN_MS"));
         assertTrue(script.contains("window.matchMedia('(prefers-reduced-motion: reduce)').matches"));
         assertTrue(script.contains("window.matchMedia('(max-width: 700px)').matches"));
         assertTrue(script.contains("if (versao !== authTransitionVersion) return;"));
