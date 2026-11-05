@@ -25,10 +25,10 @@
 <body class="rendo-page auth-page">
 <div th:replace="~{fragments/loading :: loading(startHidden=true)}"></div>
 <main class="login-page" data-motion>
-    <div class="login-container glass-surface-strong" id="container">
+    <div class="login-container glass-surface-strong" id="container" tabindex="-1">
 
         <!-- Cadastro -->
-        <div class="form-container sign-up">
+        <div class="form-container sign-up" inert aria-hidden="true">
             <form id="cadastro-form" novalidate>
                 <div th:replace="~{fragments/logo :: logo}"></div>
                 <h1>Criar conta</h1>
@@ -110,7 +110,7 @@
         </div>
 
         <!-- Login -->
-        <div class="form-container sign-in">
+        <div class="form-container sign-in" aria-hidden="false">
             <form th:action="@{/login}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <div th:replace="~{fragments/logo :: logo}"></div>

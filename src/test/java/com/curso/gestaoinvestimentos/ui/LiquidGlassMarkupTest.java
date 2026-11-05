@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -264,23 +265,30 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
-    void autenticacaoRetiraPainelToggleInativoDaArvoreDeAcessibilidade() throws IOException {
+    void autenticacaoCoordenaFocoEArvoreAcessivelComAnimacaoDoPainel() throws IOException {
         String login = template("login.html");
         String script = loginScript();
 
+        assertTrue(login.contains("id=\"container\" tabindex=\"-1\""));
+        assertTrue(login.contains("class=\"form-container sign-up\" inert aria-hidden=\"true\""));
+        assertTrue(login.contains("class=\"form-container sign-in\" aria-hidden=\"false\""));
         assertTrue(login.contains("class=\"toggle-panel toggle-left\" inert aria-hidden=\"true\""));
         assertTrue(login.contains("class=\"toggle-panel toggle-right\" aria-hidden=\"false\""));
-        assertTrue(script.contains("function sincronizarEstadoAuth(mostrarCadastro)"));
-        assertTrue(script.contains("toggleLeft.toggleAttribute('inert', !mostrarCadastro);"));
-        assertTrue(script.contains("toggleRight.toggleAttribute('inert', mostrarCadastro);"));
-        assertTrue(script.contains("toggleLeft.setAttribute('aria-hidden', String(!mostrarCadastro));"));
-        assertTrue(script.contains("toggleRight.setAttribute('aria-hidden', String(mostrarCadastro));"));
-        assertTrue(script.contains("const cadastroViaSocial = new URLSearchParams(window.location.search).get('criarConta') === '1';"));
-        assertTrue(script.contains("sincronizarEstadoAuth(cadastroViaSocial);"));
-        assertTrue(script.contains("btnCadastro.addEventListener('click', () => sincronizarEstadoAuth(true));"));
-        assertTrue(script.contains("btnLogin.addEventListener('click', () => sincronizarEstadoAuth(false));"));
-        assertTrue(script.contains("sincronizarEstadoAuth(false);"));
-        assertTrue(script.contains("sincronizarEstadoAuth(true);"));
+        assertTrue(script.contains("const authParams = new URLSearchParams(window.location.search);"));
+        assertEquals(1, script.split("new URLSearchParams", -1).length - 1);
+        assertTrue(script.contains("function bloquearRegioesAuth()"));
+        assertTrue(script.contains("[signIn, signUp, toggleLeft, toggleRight].forEach"));
+        assertTrue(script.contains("container.focus({ preventScroll: true });"));
+        assertTrue(script.contains("toggle.addEventListener('transitionend', authTransitionHandler);"));
+        assertTrue(script.contains("toggle.removeEventListener('transitionend', authTransitionHandler);"));
+        assertTrue(script.contains("authTransitionTimer = setTimeout(concluir, duracaoMovimentoAuth() + 100);"));
+        assertTrue(script.contains("window.matchMedia('(prefers-reduced-motion: reduce)').matches"));
+        assertTrue(script.contains("window.matchMedia('(max-width: 700px)').matches"));
+        assertTrue(script.contains("if (versao !== authTransitionVersion) return;"));
+        assertTrue(script.contains("agendarFocoLogicoAuth(mostrarCadastro)"));
+        assertTrue(script.contains("sincronizarEstadoAuth(cadastroViaSocial, { animar: false });"));
+        assertTrue(script.contains("sincronizarEstadoAuth(true, { moverFoco: true })"));
+        assertTrue(script.contains("sincronizarEstadoAuth(false, { moverFoco: true })"));
         assertFalse(script.contains("container.classList.remove('active')"));
         assertFalse(script.contains("container.classList.add('active')"));
     }

@@ -1,28 +1,146 @@
 const container = document.getElementById('container');
 const btnCadastro = document.getElementById('btn-cadastro');
 const btnLogin = document.getElementById('btn-login');
+const signUp = container.querySelector('.sign-up');
+const signIn = container.querySelector('.sign-in');
+const toggle = container.querySelector('.toggle');
+const toggleContainer = container.querySelector('.toggle-container');
 const toggleLeft = container.querySelector('.toggle-left');
 const toggleRight = container.querySelector('.toggle-right');
 const loadingOverlay = document.getElementById('loadingOverlay');
+const authParams = new URLSearchParams(window.location.search);
 
 const onlyDigits = (s) => (s || '').replace(/\D/g, '');
 
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
-function sincronizarEstadoAuth(mostrarCadastro) {
-    container.classList.toggle('active', mostrarCadastro);
-    toggleLeft.toggleAttribute('inert', !mostrarCadastro);
-    toggleRight.toggleAttribute('inert', mostrarCadastro);
-    toggleLeft.setAttribute('aria-hidden', String(!mostrarCadastro));
-    toggleRight.setAttribute('aria-hidden', String(mostrarCadastro));
+let authTransitionVersion = 0;
+let authTransitionTimer = null;
+let authTransitionHandler = null;
+let authFocusFrame = null;
+
+function definirDisponibilidadeAuth(elemento, disponivel) {
+    elemento.toggleAttribute('inert', !disponivel);
+    elemento.setAttribute('aria-hidden', String(!disponivel));
 }
 
-const cadastroViaSocial = new URLSearchParams(window.location.search).get('criarConta') === '1';
-sincronizarEstadoAuth(cadastroViaSocial);
+function aplicarEstadoAuthEstavel(mostrarCadastro) {
+    container.classList.toggle('active', mostrarCadastro);
+    definirDisponibilidadeAuth(signIn, !mostrarCadastro);
+    definirDisponibilidadeAuth(signUp, mostrarCadastro);
+    definirDisponibilidadeAuth(toggleLeft, mostrarCadastro);
+    definirDisponibilidadeAuth(toggleRight, !mostrarCadastro);
+    delete container.dataset.authTransition;
+}
 
-btnCadastro.addEventListener('click', () => sincronizarEstadoAuth(true));
-btnLogin.addEventListener('click', () => sincronizarEstadoAuth(false));
+function bloquearRegioesAuth() {
+    [signIn, signUp, toggleLeft, toggleRight].forEach((elemento) => {
+        definirDisponibilidadeAuth(elemento, false);
+    });
+    container.dataset.authTransition = 'true';
+}
+
+function milissegundos(valor) {
+    const numero = Number.parseFloat(valor) || 0;
+    return valor.trim().endsWith('ms') ? numero : numero * 1000;
+}
+
+function maiorTempo(duracoes, atrasos) {
+    const listaDuracoes = duracoes.split(',').map(milissegundos);
+    const listaAtrasos = atrasos.split(',').map(milissegundos);
+    return listaDuracoes.reduce((maior, duracao, indice) => {
+        const atraso = listaAtrasos[indice % listaAtrasos.length] || 0;
+        return Math.max(maior, duracao + atraso);
+    }, 0);
+}
+
+function duracaoMovimentoAuth() {
+    return [signIn, signUp, toggleContainer, toggle].reduce((maior, elemento) => {
+        const estilo = getComputedStyle(elemento);
+        const transicao = maiorTempo(estilo.transitionDuration, estilo.transitionDelay);
+        const animacao = maiorTempo(estilo.animationDuration, estilo.animationDelay);
+        return Math.max(maior, transicao, animacao);
+    }, 0);
+}
+
+function cancelarConclusaoAuth() {
+    authTransitionVersion += 1;
+    if (authFocusFrame !== null) {
+        cancelAnimationFrame(authFocusFrame);
+        authFocusFrame = null;
+    }
+    if (authTransitionTimer !== null) {
+        clearTimeout(authTransitionTimer);
+        authTransitionTimer = null;
+    }
+    if (authTransitionHandler) {
+        toggle.removeEventListener('transitionend', authTransitionHandler);
+        authTransitionHandler = null;
+    }
+}
+
+function focoLogicoAuth(mostrarCadastro) {
+    if (!mostrarCadastro) return signIn.querySelector('input[name="username"]');
+    const formulario = document.getElementById('verificacao-form').classList.contains('hidden')
+        ? document.getElementById('cadastro-form')
+        : document.getElementById('verificacao-form');
+    return formulario.querySelector('input:not([type="hidden"]):not([disabled])');
+}
+
+function agendarFocoLogicoAuth(mostrarCadastro) {
+    const versao = authTransitionVersion;
+    authFocusFrame = requestAnimationFrame(() => {
+        authFocusFrame = requestAnimationFrame(() => {
+            authFocusFrame = null;
+            if (versao === authTransitionVersion) {
+                focoLogicoAuth(mostrarCadastro)?.focus({ preventScroll: true });
+            }
+        });
+    });
+}
+
+function sincronizarEstadoAuth(mostrarCadastro, { moverFoco = false, animar = true } = {}) {
+    const estadoMudou = container.classList.contains('active') !== mostrarCadastro;
+    cancelarConclusaoAuth();
+    const versao = authTransitionVersion;
+
+    if (!animar || !estadoMudou) {
+        aplicarEstadoAuthEstavel(mostrarCadastro);
+        if (moverFoco) agendarFocoLogicoAuth(mostrarCadastro);
+        return;
+    }
+
+    if (moverFoco) container.focus({ preventScroll: true });
+    bloquearRegioesAuth();
+    container.classList.toggle('active', mostrarCadastro);
+
+    const concluir = () => {
+        if (versao !== authTransitionVersion) return;
+        cancelarConclusaoAuth();
+        aplicarEstadoAuthEstavel(mostrarCadastro);
+        if (moverFoco) agendarFocoLogicoAuth(mostrarCadastro);
+    };
+
+    const movimentoReduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const layoutSemSlide = window.matchMedia('(max-width: 700px)').matches;
+    if (movimentoReduzido || layoutSemSlide) {
+        concluir();
+        return;
+    }
+
+    authTransitionHandler = (evento) => {
+        if (evento.target === toggle && evento.propertyName === 'transform') concluir();
+    };
+    toggle.addEventListener('transitionend', authTransitionHandler);
+    authTransitionTimer = setTimeout(concluir, duracaoMovimentoAuth() + 100);
+}
+
+const cadastroViaSocial = authParams.get('criarConta') === '1';
+sincronizarEstadoAuth(cadastroViaSocial, { animar: false });
+
+btnCadastro.addEventListener('click', () => sincronizarEstadoAuth(true, { moverFoco: true }));
+btnLogin.addEventListener('click', () => sincronizarEstadoAuth(false, { moverFoco: true }));
 
 // Login (POST /login) e um form comum -- o proprio Spring Security processa.
 // Cadastro (POST /usuarios) espera JSON no corpo (@RequestBody), entao um
@@ -100,7 +218,7 @@ verificacaoForm.addEventListener('submit', async (evento) => {
             verificacaoForm.classList.add('hidden');
             cadastroForm.classList.remove('hidden');
             cadastroForm.reset();
-            sincronizarEstadoAuth(false);
+            sincronizarEstadoAuth(false, { moverFoco: true });
             return;
         }
 
@@ -200,12 +318,10 @@ if (loginEmailInput) ligarValidacaoAoVivo(loginEmailInput, validadores.email);
 // cá com ?criarConta=1&nome=...&email=... -- so pre-preenche o cadastro (CPF e
 // senha continuam sendo digitados pelo usuario, nenhuma conta e criada aqui).
 (function preencherCadastroViaSocial() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('criarConta') !== '1') return;
+    if (!cadastroViaSocial) return;
 
-    sincronizarEstadoAuth(true);
-    if (params.get('nome')) cadastroForm.nome.value = params.get('nome');
-    if (params.get('email')) cadastroForm.email.value = params.get('email');
+    if (authParams.get('nome')) cadastroForm.nome.value = authParams.get('nome');
+    if (authParams.get('email')) cadastroForm.email.value = authParams.get('email');
     cadastroMensagem.textContent = 'Complete seu cadastro (CPF e senha) pra continuar.';
     cadastroMensagem.className = 'form-mensagem info';
 })();
