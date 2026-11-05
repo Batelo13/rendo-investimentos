@@ -1,6 +1,8 @@
 const container = document.getElementById('container');
 const btnCadastro = document.getElementById('btn-cadastro');
 const btnLogin = document.getElementById('btn-login');
+const toggleLeft = container.querySelector('.toggle-left');
+const toggleRight = container.querySelector('.toggle-right');
 const loadingOverlay = document.getElementById('loadingOverlay');
 
 const onlyDigits = (s) => (s || '').replace(/\D/g, '');
@@ -8,8 +10,19 @@ const onlyDigits = (s) => (s || '').replace(/\D/g, '');
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
-btnCadastro.addEventListener('click', () => container.classList.add('active'));
-btnLogin.addEventListener('click', () => container.classList.remove('active'));
+function sincronizarEstadoAuth(mostrarCadastro) {
+    container.classList.toggle('active', mostrarCadastro);
+    toggleLeft.toggleAttribute('inert', !mostrarCadastro);
+    toggleRight.toggleAttribute('inert', mostrarCadastro);
+    toggleLeft.setAttribute('aria-hidden', String(!mostrarCadastro));
+    toggleRight.setAttribute('aria-hidden', String(mostrarCadastro));
+}
+
+const cadastroViaSocial = new URLSearchParams(window.location.search).get('criarConta') === '1';
+sincronizarEstadoAuth(cadastroViaSocial);
+
+btnCadastro.addEventListener('click', () => sincronizarEstadoAuth(true));
+btnLogin.addEventListener('click', () => sincronizarEstadoAuth(false));
 
 // Login (POST /login) e um form comum -- o proprio Spring Security processa.
 // Cadastro (POST /usuarios) espera JSON no corpo (@RequestBody), entao um
@@ -87,7 +100,7 @@ verificacaoForm.addEventListener('submit', async (evento) => {
             verificacaoForm.classList.add('hidden');
             cadastroForm.classList.remove('hidden');
             cadastroForm.reset();
-            container.classList.remove('active');
+            sincronizarEstadoAuth(false);
             return;
         }
 
@@ -190,7 +203,7 @@ if (loginEmailInput) ligarValidacaoAoVivo(loginEmailInput, validadores.email);
     const params = new URLSearchParams(window.location.search);
     if (params.get('criarConta') !== '1') return;
 
-    container.classList.add('active');
+    sincronizarEstadoAuth(true);
     if (params.get('nome')) cadastroForm.nome.value = params.get('nome');
     if (params.get('email')) cadastroForm.email.value = params.get('email');
     cadastroMensagem.textContent = 'Complete seu cadastro (CPF e senha) pra continuar.';

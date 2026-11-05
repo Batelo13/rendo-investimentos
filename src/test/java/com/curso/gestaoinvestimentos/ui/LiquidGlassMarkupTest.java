@@ -23,6 +23,10 @@ class LiquidGlassMarkupTest {
         return Files.readString(RESOURCES.resolve("static/js/dashboard.js"));
     }
 
+    private String loginScript() throws IOException {
+        return Files.readString(RESOURCES.resolve("static/js/login.js"));
+    }
+
     private String dashboardCss() throws IOException {
         return Files.readString(RESOURCES.resolve("static/css/dashboard.css"));
     }
@@ -257,5 +261,27 @@ class LiquidGlassMarkupTest {
                 + "opacity: 0;[^}]*visibility: hidden;[^}]*pointer-events: none;[^}]*}.*"));
         assertTrue(css.matches("(?s).*\\.login-container\\.active \\.sign-up \\{[^}]*"
                 + "opacity: 1;[^}]*visibility: visible;[^}]*pointer-events: auto;[^}]*}.*"));
+    }
+
+    @Test
+    void autenticacaoRetiraPainelToggleInativoDaArvoreDeAcessibilidade() throws IOException {
+        String login = template("login.html");
+        String script = loginScript();
+
+        assertTrue(login.contains("class=\"toggle-panel toggle-left\" inert aria-hidden=\"true\""));
+        assertTrue(login.contains("class=\"toggle-panel toggle-right\" aria-hidden=\"false\""));
+        assertTrue(script.contains("function sincronizarEstadoAuth(mostrarCadastro)"));
+        assertTrue(script.contains("toggleLeft.toggleAttribute('inert', !mostrarCadastro);"));
+        assertTrue(script.contains("toggleRight.toggleAttribute('inert', mostrarCadastro);"));
+        assertTrue(script.contains("toggleLeft.setAttribute('aria-hidden', String(!mostrarCadastro));"));
+        assertTrue(script.contains("toggleRight.setAttribute('aria-hidden', String(mostrarCadastro));"));
+        assertTrue(script.contains("const cadastroViaSocial = new URLSearchParams(window.location.search).get('criarConta') === '1';"));
+        assertTrue(script.contains("sincronizarEstadoAuth(cadastroViaSocial);"));
+        assertTrue(script.contains("btnCadastro.addEventListener('click', () => sincronizarEstadoAuth(true));"));
+        assertTrue(script.contains("btnLogin.addEventListener('click', () => sincronizarEstadoAuth(false));"));
+        assertTrue(script.contains("sincronizarEstadoAuth(false);"));
+        assertTrue(script.contains("sincronizarEstadoAuth(true);"));
+        assertFalse(script.contains("container.classList.remove('active')"));
+        assertFalse(script.contains("container.classList.add('active')"));
     }
 }
