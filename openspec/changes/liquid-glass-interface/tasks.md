@@ -29,7 +29,7 @@
 - [x] 5.2 Migrar sidebar, topbar, resumo financeiro, gráficos, painéis, filtros e tabelas em `dashboard.css` para a hierarquia glass responsiva.
 - [x] 5.3 Atualizar modal, menus, alertas, estados vazios e loading/skeleton para o mesmo sistema visual sem deslocar linhas de dados no hover.
 - [x] 5.4 Ajustar classes geradas em `dashboard.js` somente onde componentes dinâmicos precisarem das primitives compartilhadas.
-- [ ] 5.5 Validar navegação, filtros, períodos do gráfico, tooltip, modais e ações de corretora/ação/operação/transferência nos dois temas.
+- [x] 5.5 Validar navegação, filtros, períodos do gráfico, tooltip, modais e ações de corretora/ação/operação/transferência nos dois temas.
 
 ## 6. Acessibilidade, compatibilidade e desempenho
 
