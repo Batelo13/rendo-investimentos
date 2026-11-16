@@ -13,7 +13,7 @@
 
 ## 4. Validacao de entrada
 
-- [ ] 4.1 Senha <= 72 bytes UTF-8 e nome <= 120 caracteres no cadastro (`UsuarioAuthIntegrationTest`: 400 nos dois casos)
+- [x] 4.1 Senha <= 72 bytes UTF-8 e nome <= 120 caracteres no cadastro (`UsuarioAuthIntegrationTest`: 400 nos dois casos)
 
 ## 5. Dados sensiveis em log
 

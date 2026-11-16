@@ -351,6 +351,39 @@ class UsuarioAuthIntegrationTest {
                 .andExpect(jsonPath("$.email").doesNotExist());
     }
 
+    // Modulo 11 (validacao de entrada): BCrypt so aceita 72 bytes; sem limite
+    // na borda, senha longa virava erro interno em vez de 400. Medido em
+    // bytes UTF-8: 40 caracteres acentuados ja passam de 72 bytes.
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Senha acima de 72 bytes")
+    void cadastroRejeitaSenhaAcimaDe72Bytes() throws Exception {
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Senha Longa", "senha.longa@example.com",
+                CpfTestFixtures.proximoCpfValido(), "ç".repeat(40));
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Senha deve ter no maximo 72 bytes"));
+
+        org.junit.jupiter.api.Assertions.assertTrue(usuarioRepository.findByEmail("senha.longa@example.com").isEmpty());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Nome acima de 120 caracteres")
+    void cadastroRejeitaNomeAcimaDe120Caracteres() throws Exception {
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("N".repeat(121), "nome.longo@example.com",
+                CpfTestFixtures.proximoCpfValido(), "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Nome deve ter no maximo 120 caracteres"));
+
+        org.junit.jupiter.api.Assertions.assertTrue(usuarioRepository.findByEmail("nome.longo@example.com").isEmpty());
+    }
+
     @Test
     @org.junit.jupiter.api.DisplayName("Scenario: Administrador consulta registro de outro usuario")
     void adminLeRegistroDeOutroUsuario() throws Exception {
