@@ -1,4 +1,4 @@
-﻿## 1. Contexto e planejamento (Modulos 7 e 11)
+## 1. Contexto e planejamento (Modulos 7 e 11)
 
 - [x] 1.1 Preencher `openspec/config.yaml` com contexto, regras por artefato e guidance (revisao do diff)
 - [x] 1.2 Proposal, design com STRIDE e spec `seguranca-aplicacao` (`openspec validate endurecimento-seguranca --strict`)
@@ -9,7 +9,7 @@
 
 ## 3. Tratamento seguro de erros
 
-- [ ] 3.1 Fallbacks das 6 integracoes so com circuito aberto (`ViaCepClientIntegrationTest`: CEP inexistente 404)
+- [x] 3.1 Fallbacks das 6 integracoes so com circuito aberto (`ViaCepClientIntegrationTest`: CEP inexistente 404)
 
 ## 4. Validacao de entrada
 

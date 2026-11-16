@@ -3,6 +3,7 @@ package com.curso.gestaoinvestimentos.integration;
 import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -54,7 +55,7 @@ public class ViaCepClient implements CepClient {
         }
     }
 
-    private DadosCepResponse buscarFallback(String cep, Throwable t) {
+    private DadosCepResponse buscarFallback(String cep, CallNotPermittedException t) {
         throw new ServicoExternoIndisponivelException("ViaCEP indisponivel no momento (circuit breaker aberto)");
     }
 
