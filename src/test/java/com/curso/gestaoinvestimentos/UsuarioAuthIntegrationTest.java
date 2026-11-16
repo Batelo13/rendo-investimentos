@@ -181,6 +181,7 @@ class UsuarioAuthIntegrationTest {
     }
 
     @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta o proprio registro")
     void devePermitirAcessoAutorizadoAposLogin() throws Exception {
         Usuario usuario = cadastrarUsuario("autorizado@example.com", "senha1234", Role.USER);
 
@@ -333,5 +334,32 @@ class UsuarioAuthIntegrationTest {
                         .param("password", "senha1234"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/login?erro=email-nao-verificado")));
+    }
+
+    // Modulo 11 (STRIDE: information disclosure) -- antes desta regra qualquer
+    // usuario autenticado lia nome, email e CPF de outro pelo id (IDOR).
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta registro de outro usuario")
+    void usuarioComumNaoLeRegistroDeOutroUsuario() throws Exception {
+        Usuario outro = cadastrarUsuario("vitima.idor@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("curioso.idor@example.com", "senha1234", Role.USER);
+        MockHttpSession sessao = logar("curioso.idor@example.com", "senha1234");
+
+        mockMvc.perform(get("/usuarios/" + outro.getId()).session(sessao))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.cpf").doesNotExist())
+                .andExpect(jsonPath("$.email").doesNotExist());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Administrador consulta registro de outro usuario")
+    void adminLeRegistroDeOutroUsuario() throws Exception {
+        Usuario outro = cadastrarUsuario("consultado.admin@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.consulta@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.consulta@example.com", "senha1234");
+
+        mockMvc.perform(get("/usuarios/" + outro.getId()).session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("consultado.admin@example.com"));
     }
 }

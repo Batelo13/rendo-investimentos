@@ -1,11 +1,11 @@
-## 1. Contexto e planejamento (Modulos 7 e 11)
+﻿## 1. Contexto e planejamento (Modulos 7 e 11)
 
 - [x] 1.1 Preencher `openspec/config.yaml` com contexto, regras por artefato e guidance (revisao do diff)
 - [x] 1.2 Proposal, design com STRIDE e spec `seguranca-aplicacao` (`openspec validate endurecimento-seguranca --strict`)
 
 ## 2. Controle de acesso
 
-- [ ] 2.1 `GET /usuarios/{id}`: dono ou ADMIN, demais 403 (`UsuarioAuthIntegrationTest`: proprio 200, outro 403, admin 200)
+- [x] 2.1 `GET /usuarios/{id}`: dono ou ADMIN, demais 403 (`UsuarioAuthIntegrationTest`: proprio 200, outro 403, admin 200)
 
 ## 3. Tratamento seguro de erros
 

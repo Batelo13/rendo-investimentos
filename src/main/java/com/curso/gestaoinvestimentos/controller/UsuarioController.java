@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,9 +55,17 @@ public class UsuarioController {
         return service.listar(pageable);
     }
 
+    // Dono do registro ou ADMIN (Modulo 11: controle de acesso por propriedade,
+    // nao so por papel). AccessDeniedException vira 403 pelo Spring Security.
     @GetMapping("/{id}")
-    public UsuarioResponseDTO buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public UsuarioResponseDTO buscarPorId(@PathVariable Long id, Authentication autenticacao) {
+        UsuarioResponseDTO usuario = service.buscarPorId(id);
+        boolean admin = autenticacao.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if (!admin && !usuario.email().equalsIgnoreCase(autenticacao.getName())) {
+            throw new AccessDeniedException("Acesso negado ao registro de outro usuario");
+        }
+        return usuario;
     }
 
     @PatchMapping("/{id}/bloquear")
