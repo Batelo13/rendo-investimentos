@@ -26,5 +26,5 @@
 
 ## 7. Portao e triagem (Modulo 11 secoes 13, 16, 17, 18)
 
-- [ ] 7.1 SpotBugs + FindSecBugs no `pom.xml` com filtro de seguranca (`./mvnw compile spotbugs:check`)
+- [x] 7.1 SpotBugs + FindSecBugs no `pom.xml` com filtro de seguranca (`./mvnw compile spotbugs:check`)
 - [ ] 7.2 `scripts/security_gate.sh`, `.agents/prompts/triagem-seguranca.md` e `AGENTS.md` (execucao do portao)
