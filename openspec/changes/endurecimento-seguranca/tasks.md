@@ -21,7 +21,7 @@
 
 ## 6. Cabecalhos, cookie e configuracao de producao
 
-- [ ] 6.1 Cabecalhos de seguranca e cookie de sessao (`SecurityHeadersIntegrationTest`)
+- [x] 6.1 Cabecalhos de seguranca e cookie de sessao (`SecurityHeadersIntegrationTest`)
 - [ ] 6.2 Profile docker sem `show-sql`; compose com PostgreSQL em `127.0.0.1`; `.env.example` documentado (`docker compose config --quiet` + revisao do diff)
 
 ## 7. Portao e triagem (Modulo 11 secoes 13, 16, 17, 18)
