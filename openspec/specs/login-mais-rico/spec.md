@@ -3,9 +3,7 @@
 ## Purpose
 
 Makes the login/cadastro page feel less bare and gives users faster feedback while filling the cadastro form, without changing what's actually required to log in or sign up.
-
 ## Requirements
-
 ### Requirement: Toggle panels show feature highlights
 Each side of the sliding toggle panel SHALL display four short icon+text highlights in addition to its existing heading, paragraph, and button.
 
@@ -38,13 +36,6 @@ Cadastro's nome/email/senha fields and login's email field SHALL show visual fee
 #### Scenario: Submitting with client-side-invalid input
 - **WHEN** a field shows an invalid client-side state but the user submits anyway
 - **THEN** the submission still proceeds to the server exactly as before this change (client-side feedback is advisory, not a gate)
-
-### Requirement: Auth screen uses a fixed color identity
-The login/cadastro page SHALL use its own fixed color palette (dark panel, mint accent, light form side) independent of the dashboard's light/dark theme toggle.
-
-#### Scenario: Dashboard theme set to light before logging out
-- **WHEN** a user who previously set the dashboard to light theme logs out and lands on the login page
-- **THEN** the login page still renders with its own fixed dark-panel/light-form identity, not the dashboard's light theme colors
 
 ### Requirement: State-toggle trigger available at the top of the dark panel
 Each side of the sliding dark panel SHALL show a compact header ("Já tem uma conta? Entrar" / "Ainda não tem uma conta? Criar conta") whose button triggers the same slide transition as before, without a duplicate trigger below the form.
@@ -92,3 +83,21 @@ Below 700px viewport width, the dark panel SHALL collapse into a compact top are
 #### Scenario: Narrow viewport, initial render
 - **WHEN** the viewport is narrower than 700px
 - **THEN** the dark panel appears above the form as a compact band, and the form remains the primary, unobstructed focus of the page
+
+### Requirement: Auth screen follows the active theme while preserving brand identity
+The login/cadastro page SHALL provide equivalent liquid-glass variants for the
+active light and dark themes while preserving the mint accent, slate-purple
+brand panel, logo, sliding flow and form behavior.
+
+#### Scenario: Authentication page with dark theme active
+- **WHEN** a user whose stored preference is dark opens the authentication page
+- **THEN** the page renders a dark liquid-glass composition with the existing brand colors and readable form controls
+
+#### Scenario: Authentication page with light theme active
+- **WHEN** a user whose stored preference is light opens the authentication page
+- **THEN** the page renders an equally detailed light liquid-glass composition while the brand panel and all controls remain legible
+
+#### Scenario: Switching between login and cadastro
+- **WHEN** the user activates the existing state-toggle control
+- **THEN** the same login/cadastro forms and validation behavior are preserved while the panel transition uses the refined motion language
+

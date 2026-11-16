@@ -1,9 +1,7 @@
 ## Purpose
 
 Define a linguagem visual "fintech premium" do dashboard (tokens, densidade, hierarquia) e as duas capacidades interativas novas do gráfico de evolução patrimonial, preservando o comportamento e os dados já existentes.
-
 ## Requirements
-
 ### Requirement: Filtro de período no gráfico de evolução patrimonial
 O sistema SHALL permitir filtrar os pontos do gráfico de evolução patrimonial por período (1D, 1M, 3M, 6M, 1A ou Tudo), sem alterar os dados originais retornados pela API.
 
@@ -100,3 +98,30 @@ A lista de posições (Visão Geral e página completa) SHALL exibir um aviso in
 #### Scenario: Visualizando a lista de posições
 - **WHEN** o usuário visualiza a lista de posições
 - **THEN** um aviso "Os dados podem ter até 15 minutos de atraso." é exibido próximo à lista
+
+### Requirement: Dashboard organizado em planos de profundidade
+O dashboard SHALL organizar fundo, navegação, resumos, gráficos, tabelas e
+modais em planos visuais distintos de liquid glass, mantendo a ordem funcional,
+os dados e as ações já existentes.
+
+#### Scenario: Visualizar a Visão Geral
+- **WHEN** o usuário abre a Visão Geral
+- **THEN** sidebar, resumo financeiro, gráfico e posições apresentam profundidade e agrupamento claros sem remover indicadores ou alterar valores
+
+#### Scenario: Abrir um modal do dashboard
+- **WHEN** o usuário abre um modal de cadastro, compra, venda, transferência ou detalhe
+- **THEN** o modal aparece sobre um plano inferior suavemente desfocado e conserva os mesmos campos, validações e ações anteriores
+
+### Requirement: Microinterações preservam leitura de dados
+O dashboard SHALL usar elevação, reflexo e transições apenas em elementos
+interativos, sem deslocar linhas de tabela ou alterar a leitura de dados
+financeiros.
+
+#### Scenario: Passar o cursor sobre um card interativo
+- **WHEN** o usuário passa o cursor sobre um card que possui uma ação
+- **THEN** o card recebe elevação e destaque discretos sem mover elementos vizinhos
+
+#### Scenario: Passar o cursor sobre uma linha de tabela
+- **WHEN** o usuário passa o cursor sobre uma linha de dados
+- **THEN** a linha recebe somente realce de superfície ou borda, permanecendo alinhada com as demais colunas
+

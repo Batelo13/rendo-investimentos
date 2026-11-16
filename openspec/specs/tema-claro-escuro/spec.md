@@ -3,9 +3,7 @@
 ## Purpose
 
 Lets the user choose between a light and dark appearance for the whole app, defaulting to the existing dark identity, with the choice remembered across visits.
-
 ## Requirements
-
 ### Requirement: Dark is the default theme
 On a first visit with no stored preference, the system SHALL render in the existing dark theme.
 
@@ -41,3 +39,17 @@ Any text or graphic sitting on a background that does not change with the theme 
 #### Scenario: Light theme active — login sliding panel
 - **WHEN** the light theme is active
 - **THEN** the login page's colored sliding panel (heading, paragraph, "Entrar"/"Criar conta" button, wallet watermark) remains as legible as it is in dark theme, since that panel's background stays dark by design in both themes
+
+### Requirement: Light and dark themes have equivalent glass depth
+Both themes SHALL provide equivalent visual hierarchy, surface depth, focus
+visibility and interaction feedback across dashboard, authentication, landing
+and loading, while using values appropriate to each palette.
+
+#### Scenario: Compare the same component between themes
+- **WHEN** the user views the same card, form control, modal or navigation element in light and dark themes
+- **THEN** both variants provide equivalent depth, contrast and interaction feedback without requiring identical opacity or shadow values
+
+#### Scenario: Stored theme applies before authentication page paint
+- **WHEN** a user with a stored theme opens the authentication page
+- **THEN** the correct liquid-glass theme variant is applied before the first visible paint without a flash of the other theme
+
