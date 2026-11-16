@@ -49,3 +49,6 @@ graphify-out/
 
 ### Node (sweetalert2 vendorizado a partir daqui, node_modules nao e commitado) ###
 node_modules/
+
+### Relatorios do portao de seguranca (gerados por scripts/security_gate.sh) ###
+security/reports/
