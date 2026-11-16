@@ -27,4 +27,8 @@
 ## 7. Portao e triagem (Modulo 11 secoes 13, 16, 17, 18)
 
 - [x] 7.1 SpotBugs + FindSecBugs no `pom.xml` com filtro de seguranca (`./mvnw compile spotbugs:check`)
-- [ ] 7.2 `scripts/security_gate.sh`, `.agents/prompts/triagem-seguranca.md` e `AGENTS.md` (execucao do portao)
+- [x] 7.2 `scripts/security_gate.sh`, `.agents/prompts/triagem-seguranca.md` e `AGENTS.md` (execucao do portao)
+
+## 8. Dependencias vulneraveis (Modulo 11 secao 14)
+
+- [x] 8.1 Spring Boot 4.1.0 -> 4.1.2: OSV-Scanner de 20 CVEs para 0 com 131 pacotes verificados (`./mvnw test` 107 verdes + `scripts/security_gate.sh` APROVADO)

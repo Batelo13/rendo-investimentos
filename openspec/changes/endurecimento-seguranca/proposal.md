@@ -56,5 +56,6 @@ configuracao:
   recurso externo inexistente); `POST /usuarios` (400 para senha/nome acima do limite).
 - Banco: nenhum impacto de esquema.
 - Variaveis novas (documentadas em `.env.example`): `SESSION_COOKIE_SECURE`, `MAIL_LOG_CODE`.
-- Dependencias: nenhuma dependencia de runtime nova; SpotBugs/FindSecBugs entram so como plugin
+- Dependencias: Spring Boot 4.1.0 -> 4.1.2 (corrige 20 CVEs transitivas); nenhuma dependencia de
+  runtime nova; SpotBugs/FindSecBugs entram so como plugin
   de build executado sob demanda.

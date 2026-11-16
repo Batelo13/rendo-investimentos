@@ -9,7 +9,9 @@ Change OpenSpec: `endurecimento-seguranca`. Metodo: `.agents/prompts/triagem-seg
 | semgrep 1.x (`p/java`, `p/secrets`, `p/owasp-top-ten`) | 167 regras, 109 arquivos | 0 achados |
 | SpotBugs 4.10.4.1 + FindSecBugs 1.14.0 (SECURITY, Medium) | 101 classes | 1 achado, triado abaixo |
 | Busca de segredos no historico (padroes de chave/token via `git log -p`) | historico completo | 1 placeholder local, triado abaixo |
-| gitleaks / OSV-Scanner | -- | **nao executados**: Docker parado na maquina durante a mudanca |
+| gitleaks 8.30.1 (`git` + `dir src`) | 160 commits + `src/` | 0 vazamentos |
+| SBOM CycloneDX 2.9.1 + OSV-Scanner 2.6.0, Spring Boot 4.1.0 | 131 pacotes | **20 vulnerabilidades em 6 pacotes (7 criticas, 7 altas, 6 medias)** |
+| SBOM CycloneDX 2.9.1 + OSV-Scanner 2.6.0, Spring Boot 4.1.2 | 131 pacotes | 0 (`No issues found`) |
 
 ## Achados
 
@@ -23,6 +25,7 @@ Change OpenSpec: `endurecimento-seguranca`. Metodo: `.agents/prompts/triagem-seg
 | Senha > 72 bytes / nome sem limite (revisao manual) | VERDADEIRO, media | `IllegalArgumentException` do BCrypt virava erro interno | Corrigido + teste |
 | Cabecalhos e cookie de sessao (revisao manual, ZAP do Modulo 11) | VERDADEIRO, media | Sem Referrer-Policy, Permissions-Policy, CORP, CSP; cookie sem SameSite/Secure | Corrigido + teste |
 | `show-sql` no docker; PostgreSQL em `0.0.0.0` | VERDADEIRO, baixa | Configuracao de producao | Corrigido |
+| CVEs em `tomcat-embed-core` 11.0.22, `spring-webmvc` 7.0.8, `jackson-core`/`jackson-databind` 3.1.4, `postgresql` 42.7.11, `log4j-api` 2.25.4 (OSV) | VERDADEIRO, critica | Todas transitivas, versoes vindas do parent Spring Boot 4.1.0 | Spring Boot 4.1.0 -> 4.1.2 (patch); nenhuma sobrescrita de versao necessaria; 107 testes verdes |
 
 ## Riscos aceitos
 

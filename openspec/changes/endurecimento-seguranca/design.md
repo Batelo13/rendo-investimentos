@@ -65,5 +65,6 @@ vida -- so rodam via `spotbugs:check` no portao.
 - **H2 console liberado no profile dev:** banco em memoria, so em desenvolvimento; desligado no
   docker. Aceito.
 - **CSP sem `script-src`:** ver D5.
-- **SCA nao executado nesta maquina:** OSV-Scanner e gitleaks rodam via Docker no portao; o
-  Docker local estava parado durante a mudanca.
+- **Dependencias mudam sem commit:** a primeira execucao do portao achou 20 CVEs (7 criticas) no
+  Spring Boot 4.1.0, resolvidas pela atualizacao de patch para 4.1.2. Novas CVEs aparecem sem
+  mudanca de codigo; o portao precisa rodar periodicamente (proxima etapa: workflow agendado).
