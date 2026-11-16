@@ -17,7 +17,7 @@
 
 ## 5. Dados sensiveis em log
 
-- [ ] 5.1 Codigo de verificacao so com `app.mail.log-codigo=true`; email mascarado (`EmailServiceTest` com captura de log)
+- [x] 5.1 Codigo de verificacao so com `app.mail.log-codigo=true`; email mascarado (`EmailServiceTest` com captura de log)
 
 ## 6. Cabecalhos, cookie e configuracao de producao
 
