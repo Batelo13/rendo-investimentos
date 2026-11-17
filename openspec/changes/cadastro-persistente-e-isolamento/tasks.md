@@ -1,6 +1,6 @@
 ## 1. Persistencia
 
-- [ ] 1.1 Dev em H2 arquivo + `ddl-auto=update`; testes com H2 em memoria proprio (subir a app, cadastrar, reiniciar, cadastro presente)
+- [x] 1.1 Dev em H2 arquivo + `ddl-auto=update`; testes com H2 em memoria proprio (subir a app, cadastrar, reiniciar, cadastro presente)
 
 ## 2. CPF protegido
 
