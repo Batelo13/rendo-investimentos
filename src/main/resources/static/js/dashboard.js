@@ -151,9 +151,13 @@ function mercadoTag(m) {
     return m === "EUA" ? `<span class="tag">US EUA</span>` : `<span class="tag">BR Brasil</span>`;
 }
 
+// Monograma (inicial do ticker) sempre por baixo: se o logo falhar (bloqueador,
+// rede, ticker sem logo) o onerror tira so a <img> e a inicial continua ali.
 function acaoLogoHTML(a, size = 24) {
-    if (!a.logoUrl) return "";
-    return `<img class="acao-logo" src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`;
+    const img = a.logoUrl
+        ? `<img src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`
+        : "";
+    return `<span class="acao-logo" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.45)}px" aria-hidden="true">${esc((a.ticker || "?")[0])}${img}</span>`;
 }
 
 /* ---------------------------- Icones (SVG) ---------------------------- */
