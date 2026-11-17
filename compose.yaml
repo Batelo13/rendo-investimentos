@@ -44,6 +44,7 @@ services:
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_LOG_CODE: ${MAIL_LOG_CODE:-false}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      CPF_HASH_KEY: ${CPF_HASH_KEY:?defina CPF_HASH_KEY no .env (ver .env.example)}
       MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}

@@ -4,8 +4,8 @@
 
 ## 2. CPF protegido
 
-- [ ] 2.1 CPF como HMAC-SHA256 (`CPF_HASH_KEY`), fora da API e da mensagem 409 (`UsuarioAuthIntegrationTest`: resumo gravado, 409 sem numero, resposta sem cpf)
-- [ ] 2.2 Conversao na inicializacao de CPFs em texto puro (`ProtecaoCpfMigracaoTest`)
+- [x] 2.1 CPF como HMAC-SHA256 (`CPF_HASH_KEY`), fora da API e da mensagem 409 (`UsuarioAuthIntegrationTest`: resumo gravado, 409 sem numero, resposta sem cpf)
+- [x] 2.2 Conversao na inicializacao de CPFs em texto puro (`ProtecaoCpfMigracaoTest`)
 
 ## 3. Administrador por configuracao
 

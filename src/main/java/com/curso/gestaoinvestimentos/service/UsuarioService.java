@@ -11,6 +11,7 @@ import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import com.curso.gestaoinvestimentos.security.ProtecaoCpf;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,13 +33,16 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final CarteiraRepository carteiraRepository;
     private final EmailVerificationService emailVerificationService;
+    private final ProtecaoCpf protecaoCpf;
 
     public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder,
-                           CarteiraRepository carteiraRepository, EmailVerificationService emailVerificationService) {
+                           CarteiraRepository carteiraRepository, EmailVerificationService emailVerificationService,
+                           ProtecaoCpf protecaoCpf) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.carteiraRepository = carteiraRepository;
         this.emailVerificationService = emailVerificationService;
+        this.protecaoCpf = protecaoCpf;
     }
 
     @Transactional
@@ -46,14 +50,15 @@ public class UsuarioService {
         repository.findByEmail(dto.email()).ifPresent(existente -> {
             throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + dto.email());
         });
-        repository.findByCpf(dto.cpf()).ifPresent(existente -> {
-            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o CPF " + dto.cpf());
+        String cpfProtegido = protecaoCpf.resumo(dto.cpf());
+        repository.findByCpf(cpfProtegido).ifPresent(existente -> {
+            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com este CPF");
         });
 
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setCpf(dto.cpf());
+        usuario.setCpf(cpfProtegido);
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
         // Campos controlados pelo sistema, nunca pelo cliente:
@@ -113,7 +118,6 @@ public class UsuarioService {
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
-                usuario.getCpf(),
                 usuario.getRole(),
                 usuario.getAtivo(),
                 usuario.getDataCadastro()

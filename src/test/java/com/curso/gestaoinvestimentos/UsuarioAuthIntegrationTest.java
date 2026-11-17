@@ -134,7 +134,26 @@ class UsuarioAuthIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // Protecao de dados: o CPF nunca e gravado em claro -- so um HMAC com
+    // chave fora do banco (CPF tem poucas combinacoes; hash puro seria revertido).
     @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: CPF gravado como resumo")
+    void cpfGravadoSomenteComoResumo() throws Exception {
+        String cpf = CpfTestFixtures.proximoCpfValido();
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Cpf Protegido", "cpf.protegido@example.com", cpf, "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isAccepted());
+
+        String gravado = usuarioRepository.findByEmail("cpf.protegido@example.com").orElseThrow().getCpf();
+        org.junit.jupiter.api.Assertions.assertTrue(gravado.matches("[0-9a-f]{64}"), "esperado HMAC hex: " + gravado);
+        org.junit.jupiter.api.Assertions.assertFalse(gravado.contains(cpf));
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: CPF duplicado")
     void deveRejeitarCadastroComCpfDuplicado() throws Exception {
         String cpf = CpfTestFixtures.proximoCpfValido();
         UsuarioRequestDTO primeiro = new UsuarioRequestDTO(
@@ -150,7 +169,8 @@ class UsuarioAuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(segundo)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Ja existe um usuario cadastrado com o CPF " + cpf));
+                .andExpect(jsonPath("$.message").value("Ja existe um usuario cadastrado com este CPF"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(cpf))));
     }
 
     @Test
@@ -181,6 +201,19 @@ class UsuarioAuthIntegrationTest {
     }
 
     @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Resposta de usuario sem CPF")
+    void listagemAdministrativaNaoDevolveCpf() throws Exception {
+        cadastrarUsuario("listado@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.lista@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.lista@example.com", "senha1234");
+
+        mockMvc.perform(get("/usuarios").session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].email").exists())
+                .andExpect(jsonPath("$.content[*].cpf").isEmpty());
+    }
+
+    @Test
     @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta o proprio registro")
     void devePermitirAcessoAutorizadoAposLogin() throws Exception {
         Usuario usuario = cadastrarUsuario("autorizado@example.com", "senha1234", Role.USER);
@@ -193,7 +226,8 @@ class UsuarioAuthIntegrationTest {
 
         mockMvc.perform(get("/usuarios/" + usuario.getId()).session(sessao))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("autorizado@example.com"));
+                .andExpect(jsonPath("$.email").value("autorizado@example.com"))
+                .andExpect(jsonPath("$.cpf").doesNotExist());
     }
 
     @Test
