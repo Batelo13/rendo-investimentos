@@ -1,0 +1,432 @@
+/*
+ * Pagina inicial imersiva. Sempre escura (grafite), independente do tema da
+ * area logada: a narrativa do amanhecer depende do fundo escuro.
+ * Esmeralda = cor principal; dourado so em detalhes (etapas, marcadores).
+ */
+.landing-page {
+    --lp-fundo: #0A0C0D;
+    --lp-fundo-2: #0E1213;
+    --lp-texto: #F1F4F3;
+    --lp-texto-2: rgba(232, 238, 236, 0.72);
+    --lp-texto-3: rgba(232, 238, 236, 0.5);
+    --lp-linha: rgba(255, 255, 255, 0.08);
+    --lp-esmeralda: #34C99A;
+    --lp-esmeralda-claro: #5DE2BA;
+    --lp-ouro: #D4B07A;
+    --lp-gutter: clamp(20px, 6vw, 96px);
+    color-scheme: dark;
+    background: var(--lp-fundo);
+    color: var(--lp-texto);
+    font-family: var(--rendo-font-body);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* A atmosfera animada do glass.css competiria com a cena. */
+body.landing-page::before { display: none; }
+
+.lp-pular {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 100;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--lp-texto);
+    color: var(--lp-fundo);
+    font-weight: 600;
+    transform: translateY(-160%);
+    transition: transform 0.2s ease;
+}
+.lp-pular:focus { transform: none; }
+
+.landing-page a:focus-visible,
+.landing-page button:focus-visible {
+    outline: 2px solid var(--lp-ouro);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+/* ------------------------------ Botoes ------------------------------ */
+.lp-botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+.lp-botao-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
+.lp-botao-primario { background: var(--lp-esmeralda); color: #05110D; }
+.lp-botao-primario:hover { background: var(--lp-esmeralda-claro); color: #05110D; transform: translateY(-1px); }
+.lp-botao-secundario { border: 1px solid rgba(255, 255, 255, 0.22); color: var(--lp-texto); background: rgba(255, 255, 255, 0.02); }
+.lp-botao-secundario:hover { border-color: rgba(255, 255, 255, 0.45); color: var(--lp-texto); background: rgba(255, 255, 255, 0.06); }
+
+/* ----------------------------- Cabecalho ----------------------------- */
+.lp-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: calc(16px + env(safe-area-inset-top)) max(var(--lp-gutter), env(safe-area-inset-right)) 16px max(var(--lp-gutter), env(safe-area-inset-left));
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.4s ease, border-color 0.4s ease, padding 0.4s ease, backdrop-filter 0.4s ease;
+}
+.lp-header.rolado {
+    background: rgba(10, 12, 13, 0.72);
+    border-bottom-color: var(--lp-linha);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    padding-top: calc(10px + env(safe-area-inset-top));
+    padding-bottom: 10px;
+}
+.lp-marca { text-decoration: none; }
+.lp-header .rendo-logo svg { height: 26px; }
+.lp-header .rendo-logo-text { font-size: 21px; color: var(--lp-texto); }
+.lp-nav { display: flex; gap: 32px; }
+.lp-nav a, .lp-link-conta {
+    color: var(--lp-texto-2);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.lp-nav a:hover, .lp-link-conta:hover { color: var(--lp-texto); }
+.lp-header-acoes { display: flex; align-items: center; gap: 20px; }
+
+/* ------------------------------ Jornada ------------------------------ */
+.jornada { position: relative; height: 450vh; }
+.jornada-palco {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+}
+.jornada-midia { position: absolute; inset: 0; background: var(--lp-fundo); }
+.jornada-cena,
+.jornada-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.jornada-video {
+    object-fit: cover;
+    object-position: 70% 50%;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+.jornada.com-video .jornada-video { opacity: 1; }
+.jornada.com-video .jornada-cena { visibility: hidden; }
+
+/* Veu: garante contraste do texto a esquerda sem escurecer a acao a direita. */
+.jornada-veu {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(8, 10, 11, 0.86) 0%, rgba(8, 10, 11, 0.6) 32%, rgba(8, 10, 11, 0) 58%),
+        linear-gradient(180deg, rgba(8, 10, 11, 0.55) 0%, rgba(8, 10, 11, 0) 18%, rgba(8, 10, 11, 0) 78%, var(--lp-fundo) 100%);
+    pointer-events: none;
+}
+
+.jornada-momentos {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-items: center;
+    padding: 96px var(--lp-gutter) 72px max(var(--lp-gutter), env(safe-area-inset-left));
+    pointer-events: none;
+}
+.momento {
+    grid-area: 1 / 1;
+    max-width: 560px;
+    opacity: 0;
+    will-change: opacity, transform, filter;
+    pointer-events: none;
+}
+.momento.ativo { pointer-events: auto; }
+.momento-etapa {
+    display: block;
+    margin-bottom: 20px;
+    color: var(--lp-ouro);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.momento h1,
+.momento h2 {
+    margin: 0 0 22px;
+    font-size: clamp(2.3rem, 4.4vw, 4.1rem);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    color: var(--lp-texto);
+    text-wrap: balance;
+}
+.momento p {
+    max-width: 44ch;
+    margin: 0;
+    color: var(--lp-texto-2);
+    font-size: clamp(1rem, 1.2vw, 1.1rem);
+    font-weight: 400;
+    line-height: 1.65;
+}
+.momento-acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+
+.jornada-progresso {
+    position: absolute;
+    left: max(var(--lp-gutter), env(safe-area-inset-left));
+    bottom: calc(36px + env(safe-area-inset-bottom));
+    width: 140px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+.jornada-progresso span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--lp-esmeralda), var(--lp-ouro));
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+.jornada-dica {
+    position: absolute;
+    right: max(var(--lp-gutter), env(safe-area-inset-right));
+    bottom: calc(28px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--lp-texto-3);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: opacity 0.5s ease;
+}
+.jornada-dica i {
+    position: relative;
+    width: 1px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+}
+.jornada-dica i::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--lp-esmeralda-claro);
+    animation: lp-dica 2s ease-in-out infinite;
+}
+.jornada-dica.oculta { opacity: 0; }
+@keyframes lp-dica {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
+}
+
+/* ------------------------------ Secoes ------------------------------ */
+.lp-container {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 5vw, 48px);
+}
+.lp-secao {
+    position: relative;
+    padding: clamp(88px, 12vw, 152px) 0;
+    border-top: 1px solid var(--lp-linha);
+}
+.lp-visao { border-top: 0; }
+.lp-sobretitulo {
+    display: block;
+    margin-bottom: 18px;
+    color: var(--lp-ouro);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+.lp-secao h2,
+.lp-cta h2 {
+    margin: 0;
+    font-size: clamp(1.9rem, 3.3vw, 2.9rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--lp-texto);
+    text-wrap: balance;
+}
+.lp-titulo-secao { max-width: 22ch; margin-bottom: clamp(40px, 6vw, 72px) !important; }
+.lp-texto,
+.lp-visao-texto p {
+    color: var(--lp-texto-2);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 52ch;
+}
+.lp-secao h3 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--lp-texto);
+}
+.lp-secao li p { margin: 0; color: var(--lp-texto-2); font-size: 0.95rem; line-height: 1.6; }
+.lp-secao ul,
+.lp-secao ol { list-style: none; margin: 0; padding: 0; }
+
+.lp-visao-grade { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 96px); align-items: start; }
+.lp-visao-grade h2 { max-width: 16ch; }
+.lp-visao-texto p { margin: 0 0 40px; }
+.lp-fatos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 0; }
+.lp-fatos div { padding-top: 18px; border-top: 1px solid var(--lp-linha); }
+.lp-fatos dt { font-size: 1.15rem; font-weight: 600; color: var(--lp-texto); letter-spacing: -0.01em; }
+.lp-fatos dd { margin: 6px 0 0; color: var(--lp-texto-3); font-size: 0.9rem; line-height: 1.5; }
+
+.lp-passos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; counter-reset: passo; }
+.lp-passos li { padding-top: 24px; border-top: 1px solid var(--lp-linha); }
+.lp-passo-num {
+    display: block;
+    margin-bottom: 28px;
+    color: var(--lp-ouro);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+}
+
+.lp-recursos { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 40px; row-gap: 48px; }
+.lp-recursos li { padding-top: 22px; border-top: 1px solid var(--lp-linha); }
+.lp-recursos li h3::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 12px 2px 0;
+    border-radius: 50%;
+    background: var(--lp-esmeralda);
+}
+
+.lp-acompanhamento { background: linear-gradient(180deg, var(--lp-fundo), var(--lp-fundo-2)); }
+.lp-acompanhamento-grade { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(40px, 6vw, 96px); align-items: center; }
+.lp-acompanhamento .lp-titulo-secao { margin-bottom: 24px !important; }
+.lp-acompanhamento .lp-texto { margin: 0 0 36px; }
+.lp-ilustracao { margin: 0; }
+.lp-ilustracao svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 40px 90px -50px rgba(52, 201, 154, 0.35), 0 30px 60px -40px rgba(0, 0, 0, 0.9);
+}
+.lp-ilustracao figcaption { margin-top: 14px; color: var(--lp-texto-3); font-size: 0.8rem; }
+
+.lp-seguranca-grade { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(40px, 6vw, 96px); }
+.lp-seguranca-grade .lp-titulo-secao { margin-bottom: 24px !important; }
+.lp-seguranca-lista { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 40px; }
+.lp-seguranca-lista li { padding-top: 22px; border-top: 1px solid var(--lp-linha); }
+
+.lp-cta {
+    position: relative;
+    padding: clamp(96px, 14vw, 176px) 0;
+    border-top: 1px solid var(--lp-linha);
+    text-align: center;
+    overflow: hidden;
+}
+.lp-cta::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -40%;
+    width: min(900px, 120vw);
+    aspect-ratio: 2 / 1;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(52, 201, 154, 0.16), rgba(212, 176, 122, 0.05) 60%, transparent);
+    pointer-events: none;
+}
+.lp-cta .lp-container { position: relative; }
+.lp-cta p { margin: 18px 0 0; color: var(--lp-texto-2); font-size: 1.05rem; }
+.lp-cta-acoes { justify-content: center; }
+
+.lp-rodape {
+    padding: 56px 0 calc(40px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--lp-linha);
+}
+.lp-rodape-grade { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+.lp-rodape .rendo-logo svg { height: 24px; }
+.lp-rodape .rendo-logo-text { font-size: 19px; color: var(--lp-texto); }
+.lp-rodape p { max-width: 52ch; margin: 16px 0 0; color: var(--lp-texto-3); font-size: 0.85rem; line-height: 1.6; }
+.lp-rodape nav { display: grid; grid-template-columns: repeat(2, auto); gap: 12px 40px; align-content: start; }
+.lp-rodape nav a { color: var(--lp-texto-2); font-size: 0.9rem; text-decoration: none; }
+.lp-rodape nav a:hover { color: var(--lp-texto); }
+
+/* ---------------------------- Responsivo ---------------------------- */
+@media (max-width: 1000px) {
+    .lp-nav { display: none; }
+    .lp-passos { grid-template-columns: repeat(2, 1fr); row-gap: 48px; }
+    .lp-recursos { grid-template-columns: repeat(2, 1fr); }
+    .lp-visao-grade,
+    .lp-acompanhamento-grade,
+    .lp-seguranca-grade { grid-template-columns: 1fr; }
+}
+
+/* Retrato/celular: cena no alto (enquadrada na escada pelo landing.js),
+   texto embaixo sobre um veu vertical. */
+@media (max-width: 767px), (max-aspect-ratio: 9/10) {
+    .jornada { height: 320vh; }
+    .jornada-video { object-position: 72% 30%; }
+    .jornada-veu {
+        background: linear-gradient(180deg, rgba(8, 10, 11, 0.5) 0%, rgba(8, 10, 11, 0) 16%, rgba(8, 10, 11, 0) 40%, rgba(8, 10, 11, 0.88) 62%, var(--lp-fundo) 100%);
+    }
+    .jornada-momentos {
+        align-items: end;
+        padding: 88px max(20px, env(safe-area-inset-right)) calc(76px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    }
+    .momento h1,
+    .momento h2 { font-size: clamp(1.85rem, 8vw, 2.6rem); margin-bottom: 14px; }
+    .momento-etapa { margin-bottom: 12px; }
+    .momento-acoes { margin-top: 22px; }
+    .jornada-progresso { left: max(20px, env(safe-area-inset-left)); bottom: calc(32px + env(safe-area-inset-bottom)); }
+    .jornada-dica { right: max(20px, env(safe-area-inset-right)); bottom: calc(22px + env(safe-area-inset-bottom)); }
+    .jornada-dica i { height: 24px; }
+}
+
+@media (max-width: 560px) {
+    .lp-header { gap: 12px; }
+    .lp-header-acoes { gap: 14px; }
+    .lp-header .rendo-logo-text { display: none; }
+    .lp-passos,
+    .lp-recursos,
+    .lp-seguranca-lista,
+    .lp-fatos { grid-template-columns: 1fr; }
+    .momento-acoes .lp-botao { flex: 1 1 100%; }
+}
+
+/* Movimento reduzido: nada sincronizado com o scroll. Cena parada no estado
+   final e os quatro momentos como texto em sequencia. */
+@media (prefers-reduced-motion: reduce) {
+    .jornada { height: auto; }
+    .jornada-palco { position: relative; height: auto; overflow: visible; }
+    .jornada-midia { position: relative; height: 72vh; }
+    .jornada-veu { background: linear-gradient(180deg, rgba(8, 10, 11, 0.5) 0%, rgba(8, 10, 11, 0) 20%, rgba(8, 10, 11, 0) 70%, var(--lp-fundo) 100%); }
+    .jornada-momentos {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 72px;
+        padding: 24px var(--lp-gutter) 96px;
+        pointer-events: auto;
+    }
+    .momento { opacity: 1 !important; transform: none !important; filter: none !important; pointer-events: auto; }
+    .jornada-progresso,
+    .jornada-dica { display: none; }
+    .lp-botao:hover { transform: none; }
+}
