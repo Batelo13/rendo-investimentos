@@ -13,4 +13,4 @@
 
 ## 4. Isolamento entre contas
 
-- [ ] 4.1 Testes de isolamento de todas as rotas com id e de `/me`/`/dashboard` (`IsolamentoEntreContasIntegrationTest`)
+- [x] 4.1 Testes de isolamento de todas as rotas com id e de `/me`/`/dashboard` (`IsolamentoEntreContasIntegrationTest`)
