@@ -11,6 +11,7 @@ import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import com.curso.gestaoinvestimentos.security.AdministradoresConfigurados;
 import com.curso.gestaoinvestimentos.security.ProtecaoCpf;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,10 +35,12 @@ public class UsuarioService {
     private final CarteiraRepository carteiraRepository;
     private final EmailVerificationService emailVerificationService;
     private final ProtecaoCpf protecaoCpf;
+    private final AdministradoresConfigurados administradores;
 
     public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder,
                            CarteiraRepository carteiraRepository, EmailVerificationService emailVerificationService,
-                           ProtecaoCpf protecaoCpf) {
+                           ProtecaoCpf protecaoCpf, AdministradoresConfigurados administradores) {
+        this.administradores = administradores;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.carteiraRepository = carteiraRepository;
@@ -62,7 +65,7 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
         // Campos controlados pelo sistema, nunca pelo cliente:
-        usuario.setRole(Role.USER);
+        usuario.setRole(administradores.ehAdministrador(dto.email()) ? Role.ADMIN : Role.USER);
         usuario.setAtivo(true);
         usuario.setEmailVerified(false);
         usuario.setDataCadastro(LocalDate.now());

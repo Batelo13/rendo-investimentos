@@ -9,7 +9,7 @@
 
 ## 3. Administrador por configuracao
 
-- [ ] 3.1 `ADMIN_EMAILS` no cadastro e na inicializacao (`UsuarioAuthIntegrationTest`: email configurado ADMIN, comum USER)
+- [x] 3.1 `ADMIN_EMAILS` no cadastro e na inicializacao (`UsuarioAuthIntegrationTest`: email configurado ADMIN, comum USER)
 
 ## 4. Isolamento entre contas
 
