@@ -56,8 +56,8 @@ public class SecurityConfig {
                         // porque e o proprio caminho que leva o usuario a se autenticar.
                         .requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
                         // Landing page publica (secao 22 do escopo: paginas publicas) + os
-                        // assets estaticos que ela carrega (CSS/imagens).
-                        .requestMatchers(HttpMethod.GET, "/", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        // assets estaticos que ela carrega (CSS/imagens/video da jornada).
+                        .requestMatchers(HttpMethod.GET, "/", "/css/**", "/js/**", "/images/**", "/videos/**", "/webjars/**").permitAll()
                         // formLogin().permitAll() so libera "/login" com query string EXATA
                         // (o "?error"/"?logout" que ele mesmo gera) -- qualquer outra query
                         // string (ex.: "?criarConta=1" do fluxo de login social) cai no
