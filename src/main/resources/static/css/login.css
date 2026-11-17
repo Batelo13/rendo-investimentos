@@ -686,3 +686,7 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
     .login-container form { padding: 28px 24px 32px; }
     .login-container h1 { font-size: 24px; }
 }
+
+/* Linhas dos widgets se desenham via JS (stroke-dashoffset 1 -> 0, ver
+   animarPainelAuth em login.js); pathLength="1" no SVG normaliza o tamanho. */
+.auth-widgets polyline { stroke-dasharray: 1; }

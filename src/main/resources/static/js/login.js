@@ -115,6 +115,7 @@ function sincronizarEstadoAuth(mostrarCadastro, { moverFoco = false, animar = tr
     if (moverFoco) container.focus({ preventScroll: true });
     bloquearRegioesAuth();
     container.classList.toggle('active', mostrarCadastro);
+    animarPainelAuth(mostrarCadastro);
 
     const concluir = () => {
         if (versao !== authTransitionVersion) return;
@@ -347,3 +348,63 @@ document.querySelectorAll('.input-toggle-senha').forEach((botao) => {
         botao.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
     });
 });
+
+/* ---- Movimento do painel lateral (mesmo estilo do dashboard) ----
+   Textos entram em cascata, numeros dos widgets contam a partir de zero e os
+   graficos se desenham -- na primeira carga e a cada troca login/cadastro. */
+const NUMERO_BR = /\d{1,3}(?:\.\d{3})*(?:,\d+)?/g;
+
+function contarTextoAuth(no, duracao = 1100) {
+    const original = no.textContent;
+    if (!NUMERO_BR.test(original)) return;
+    NUMERO_BR.lastIndex = 0;
+    const inicio = performance.now();
+    const passo = (agora) => {
+        const k = Math.min((agora - inicio) / duracao, 1);
+        const fator = 1 - (1 - k) ** 3;
+        // Mesmo formato do original (milhar com ponto, mesmas casas decimais);
+        // no ultimo quadro volta o texto original, identico.
+        no.textContent = k < 1 ? original.replace(NUMERO_BR, (m) => {
+            const casas = (m.split(',')[1] || '').length;
+            const valor = Number(m.replace(/\./g, '').replace(',', '.')) * fator;
+            return valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+        }) : original;
+        if (k < 1) requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+}
+
+function animarPainelAuth(mostrarCadastro) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const painel = document.querySelector(mostrarCadastro ? '.toggle-left' : '.toggle-right');
+    if (!painel || typeof painel.animate !== 'function') return;
+
+    painel.querySelectorAll('.toggle-hero h1, .toggle-hero p, .toggle-highlights li, .auth-widget')
+        .forEach((el, i) => el.animate(
+            [
+                { opacity: 0, transform: 'translateY(14px)', filter: 'blur(6px)' },
+                { opacity: 1, transform: 'none', filter: 'blur(0)' },
+            ],
+            { duration: 560, delay: 120 + i * 55, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' }
+        ));
+
+    const caminhante = document.createTreeWalker(painel.querySelector('.auth-widgets') || painel, NodeFilter.SHOW_TEXT);
+    while (caminhante.nextNode()) {
+        const no = caminhante.currentNode;
+        // ticker e "SSL 256-bit" tem digitos mas nao sao valores
+        if (/^[A-Z]{4}\d$/.test(no.textContent.trim()) || no.parentElement.closest('.widget-ssl-badge')) continue;
+        contarTextoAuth(no);
+    }
+
+    painel.querySelectorAll('.auth-widgets polyline').forEach((linha) => linha.animate(
+        [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
+        { duration: 1200, delay: 350, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' }
+    ));
+    painel.querySelectorAll('.auth-widgets path').forEach((area) => area.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 900, delay: 700, easing: 'ease-out', fill: 'backwards' }
+    ));
+}
+
+window.addEventListener('rendo:page-ready',
+    () => animarPainelAuth(container.classList.contains('active')), { once: true });
