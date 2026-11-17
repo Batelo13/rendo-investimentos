@@ -1,32 +1,38 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Modulo 7 (desenvolvimento-assistido-IA): contexto e regras do projeto, lidos
+# pelo agente ao criar cada artefato OpenSpec.
+context: |
+  Projeto: Rendo -- carteira de investimentos (acoes Brasil/EUA, corretoras, operacoes).
+  Stack: Java 17, Spring Boot 4.1, Spring Web MVC, Spring Data JPA, Spring Security 7
+  (form login + OIDC opcional), Bean Validation, Thymeleaf + JS vanilla, Resilience4j.
+  Banco: H2 em memoria no profile dev; PostgreSQL 17 no profile docker (ddl-auto=update).
+  Arquitetura: controller -> service -> repository; DTOs como Java records.
+  Pacote raiz: com.curso.gestaoinvestimentos
+  Testes: JUnit 5, Mockito, @SpringBootTest + MockMvc com CSRF por padrao (CsrfTestConfig).
+  Erros: ErrorResponse JSON via GlobalExceptionHandler (404/409/422/503/400).
+  Seguranca: CSRF ativo, sessao HTTP, papeis USER e ADMIN; segredos so via .env (nunca versionado).
+  Idioma: codigo, mensagens e documentacao em portugues.
+  Conhecimento do codigo: consultar o grafo (graphify query/explain) antes de abrir arquivos.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Declarar impacto em endpoints publicos e no esquema do banco
+    - Marcar quebras de contrato da API com **BREAKING**
+  specs:
+    - Descrever status HTTP e formato de erro em cada cenario de falha
+    - Nao citar classes Java nem anotacoes Spring nas specs
+  design:
+    - Justificar toda dependencia Maven nova
+    - Mudancas que tocam autenticacao, dados pessoais ou contrato publico trazem tabela STRIDE (Modulo 11)
+  tasks:
+    - Cada tarefa deve citar o teste que a comprova
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Rodar ./mvnw -q test -Dtest=<ClasseAfetada> antes da suite completa
+      - Rodar graphify update . depois de alterar codigo
+  archive:
+    guidance:
+      - Resumo de conclusao curto, com a lista de endpoints alterados

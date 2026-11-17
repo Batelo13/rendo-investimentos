@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.header.writers.CrossOriginResourcePolicyHeaderWriter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
@@ -90,7 +92,19 @@ public class SecurityConfig {
                 // usuario precisa ser mandado pro formulario de login.
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(paginaOuApiEntryPoint()))
                 // H2 console roda dentro de um <frame>; sem isso o navegador bloqueia.
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+                // Demais cabecalhos: achados do OWASP ZAP no Modulo 11 (secao 15).
+                // CSP sem script-src de proposito: as paginas tem script inline
+                // (tema antes do primeiro paint) -- ver design.md D5.
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .referrerPolicy(referrer -> referrer.policy(
+                                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .permissionsPolicyHeader(permissions -> permissions.policy(
+                                "camera=(), microphone=(), geolocation=()"))
+                        .crossOriginResourcePolicy(corp -> corp.policy(
+                                CrossOriginResourcePolicyHeaderWriter.CrossOriginResourcePolicy.SAME_ORIGIN))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "object-src 'none'; base-uri 'self'; frame-ancestors 'self'")));
 
         // So ativa oauth2Login() quando ha pelo menos um provedor configurado
         // (ver OAuth2ClientRegistrations) -- sem isso, chamar .oauth2Login() sem

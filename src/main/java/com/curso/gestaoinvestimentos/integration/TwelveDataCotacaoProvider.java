@@ -4,6 +4,7 @@ import com.curso.gestaoinvestimentos.exception.RecursoNaoEncontradoException;
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.curso.gestaoinvestimentos.model.Mercado;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -77,7 +78,7 @@ public class TwelveDataCotacaoProvider implements CotacaoProvider {
         }
     }
 
-    private DadosCotacaoResponse buscarCotacaoFallback(String ticker, Throwable t) {
+    private DadosCotacaoResponse buscarCotacaoFallback(String ticker, CallNotPermittedException t) {
         throw new ServicoExternoIndisponivelException("Twelve Data indisponivel no momento (circuit breaker aberto)");
     }
 

@@ -2,6 +2,7 @@ package com.curso.gestaoinvestimentos.integration;
 
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -62,7 +63,7 @@ public class IbovespaClient {
         }
     }
 
-    private IndiceMercado buscarFallback(Throwable t) {
+    private IndiceMercado buscarFallback(CallNotPermittedException t) {
         throw new ServicoExternoIndisponivelException("IBOVESPA indisponivel no momento (circuit breaker aberto)");
     }
 

@@ -163,6 +163,11 @@ let emailEmVerificacao = '';
 
 cadastroForm.addEventListener('submit', async (evento) => {
     evento.preventDefault();
+    // Clique duplo mandava dois cadastros iguais ao mesmo tempo: trava o botao
+    // ate a resposta chegar (o backend tambem responde 409 se isso escapar).
+    const botao = cadastroForm.querySelector('button[type=submit]');
+    if (botao.disabled) return;
+    botao.disabled = true;
     cadastroMensagem.textContent = '';
     cadastroMensagem.className = 'form-mensagem';
 
@@ -197,6 +202,8 @@ cadastroForm.addEventListener('submit', async (evento) => {
     } catch (falha) {
         cadastroMensagem.textContent = 'Não foi possível conectar ao servidor.';
         cadastroMensagem.classList.add('erro');
+    } finally {
+        botao.disabled = false;
     }
 });
 

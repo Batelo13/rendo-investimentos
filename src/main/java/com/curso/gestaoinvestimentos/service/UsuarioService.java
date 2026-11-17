@@ -11,6 +11,10 @@ import com.curso.gestaoinvestimentos.model.Role;
 import com.curso.gestaoinvestimentos.model.Usuario;
 import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
+import com.curso.gestaoinvestimentos.security.AdministradoresConfigurados;
+import com.curso.gestaoinvestimentos.security.ProtecaoCpf;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,13 +36,18 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final CarteiraRepository carteiraRepository;
     private final EmailVerificationService emailVerificationService;
+    private final ProtecaoCpf protecaoCpf;
+    private final AdministradoresConfigurados administradores;
 
     public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder,
-                           CarteiraRepository carteiraRepository, EmailVerificationService emailVerificationService) {
+                           CarteiraRepository carteiraRepository, EmailVerificationService emailVerificationService,
+                           ProtecaoCpf protecaoCpf, AdministradoresConfigurados administradores) {
+        this.administradores = administradores;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.carteiraRepository = carteiraRepository;
         this.emailVerificationService = emailVerificationService;
+        this.protecaoCpf = protecaoCpf;
     }
 
     @Transactional
@@ -46,23 +55,32 @@ public class UsuarioService {
         repository.findByEmail(dto.email()).ifPresent(existente -> {
             throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + dto.email());
         });
-        repository.findByCpf(dto.cpf()).ifPresent(existente -> {
-            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o CPF " + dto.cpf());
+        String cpfProtegido = protecaoCpf.resumo(dto.cpf());
+        repository.findByCpf(cpfProtegido).ifPresent(existente -> {
+            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com este CPF");
         });
 
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setCpf(dto.cpf());
+        usuario.setCpf(cpfProtegido);
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
         // Campos controlados pelo sistema, nunca pelo cliente:
-        usuario.setRole(Role.USER);
+        usuario.setRole(administradores.ehAdministrador(dto.email()) ? Role.ADMIN : Role.USER);
         usuario.setAtivo(true);
         usuario.setEmailVerified(false);
         usuario.setDataCadastro(LocalDate.now());
 
-        Usuario salvo = repository.save(usuario);
+        // A checagem acima nao cobre dois cadastros iguais ao mesmo tempo (ex.:
+        // clique duplo): os dois passam por ela e quem barra e a restricao unique
+        // do banco. Essa colisao e conflito (409), nao erro interno (500).
+        Usuario salvo;
+        try {
+            salvo = repository.saveAndFlush(usuario);
+        } catch (DataIntegrityViolationException | PessimisticLockingFailureException concorrente) {
+            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com este email ou CPF");
+        }
 
         Carteira carteira = new Carteira();
         carteira.setUsuario(salvo);
@@ -113,7 +131,6 @@ public class UsuarioService {
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
-                usuario.getCpf(),
                 usuario.getRole(),
                 usuario.getAtivo(),
                 usuario.getDataCadastro()

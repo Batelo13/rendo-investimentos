@@ -134,7 +134,26 @@ class UsuarioAuthIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // Protecao de dados: o CPF nunca e gravado em claro -- so um HMAC com
+    // chave fora do banco (CPF tem poucas combinacoes; hash puro seria revertido).
     @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: CPF gravado como resumo")
+    void cpfGravadoSomenteComoResumo() throws Exception {
+        String cpf = CpfTestFixtures.proximoCpfValido();
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Cpf Protegido", "cpf.protegido@example.com", cpf, "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isAccepted());
+
+        String gravado = usuarioRepository.findByEmail("cpf.protegido@example.com").orElseThrow().getCpf();
+        org.junit.jupiter.api.Assertions.assertTrue(gravado.matches("[0-9a-f]{64}"), "esperado HMAC hex: " + gravado);
+        org.junit.jupiter.api.Assertions.assertFalse(gravado.contains(cpf));
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: CPF duplicado")
     void deveRejeitarCadastroComCpfDuplicado() throws Exception {
         String cpf = CpfTestFixtures.proximoCpfValido();
         UsuarioRequestDTO primeiro = new UsuarioRequestDTO(
@@ -150,7 +169,8 @@ class UsuarioAuthIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(segundo)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Ja existe um usuario cadastrado com o CPF " + cpf));
+                .andExpect(jsonPath("$.message").value("Ja existe um usuario cadastrado com este CPF"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(cpf))));
     }
 
     @Test
@@ -181,6 +201,20 @@ class UsuarioAuthIntegrationTest {
     }
 
     @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Resposta de usuario sem CPF")
+    void listagemAdministrativaNaoDevolveCpf() throws Exception {
+        cadastrarUsuario("listado@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.lista@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.lista@example.com", "senha1234");
+
+        mockMvc.perform(get("/usuarios").session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].email").exists())
+                .andExpect(jsonPath("$.content[*].cpf").isEmpty());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta o proprio registro")
     void devePermitirAcessoAutorizadoAposLogin() throws Exception {
         Usuario usuario = cadastrarUsuario("autorizado@example.com", "senha1234", Role.USER);
 
@@ -192,7 +226,8 @@ class UsuarioAuthIntegrationTest {
 
         mockMvc.perform(get("/usuarios/" + usuario.getId()).session(sessao))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("autorizado@example.com"));
+                .andExpect(jsonPath("$.email").value("autorizado@example.com"))
+                .andExpect(jsonPath("$.cpf").doesNotExist());
     }
 
     @Test
@@ -333,5 +368,65 @@ class UsuarioAuthIntegrationTest {
                         .param("password", "senha1234"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/login?erro=email-nao-verificado")));
+    }
+
+    // Modulo 11 (STRIDE: information disclosure) -- antes desta regra qualquer
+    // usuario autenticado lia nome, email e CPF de outro pelo id (IDOR).
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta registro de outro usuario")
+    void usuarioComumNaoLeRegistroDeOutroUsuario() throws Exception {
+        Usuario outro = cadastrarUsuario("vitima.idor@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("curioso.idor@example.com", "senha1234", Role.USER);
+        MockHttpSession sessao = logar("curioso.idor@example.com", "senha1234");
+
+        mockMvc.perform(get("/usuarios/" + outro.getId()).session(sessao))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.cpf").doesNotExist())
+                .andExpect(jsonPath("$.email").doesNotExist());
+    }
+
+    // Modulo 11 (validacao de entrada): BCrypt so aceita 72 bytes; sem limite
+    // na borda, senha longa virava erro interno em vez de 400. Medido em
+    // bytes UTF-8: 40 caracteres acentuados ja passam de 72 bytes.
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Senha acima de 72 bytes")
+    void cadastroRejeitaSenhaAcimaDe72Bytes() throws Exception {
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Senha Longa", "senha.longa@example.com",
+                CpfTestFixtures.proximoCpfValido(), "ç".repeat(40));
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Senha deve ter no maximo 72 bytes"));
+
+        org.junit.jupiter.api.Assertions.assertTrue(usuarioRepository.findByEmail("senha.longa@example.com").isEmpty());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Nome acima de 120 caracteres")
+    void cadastroRejeitaNomeAcimaDe120Caracteres() throws Exception {
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("N".repeat(121), "nome.longo@example.com",
+                CpfTestFixtures.proximoCpfValido(), "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Nome deve ter no maximo 120 caracteres"));
+
+        org.junit.jupiter.api.Assertions.assertTrue(usuarioRepository.findByEmail("nome.longo@example.com").isEmpty());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("Scenario: Administrador consulta registro de outro usuario")
+    void adminLeRegistroDeOutroUsuario() throws Exception {
+        Usuario outro = cadastrarUsuario("consultado.admin@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("admin.consulta@example.com", "senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.consulta@example.com", "senha1234");
+
+        mockMvc.perform(get("/usuarios/" + outro.getId()).session(sessaoAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("consultado.admin@example.com"));
     }
 }

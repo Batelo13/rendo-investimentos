@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Modulo 11: toda excecao do portao tem motivo, dono e historico no Git.
+  Triagem completa em security/triagem.md.
+-->
+<FindBugsFilter>
+    <!--
+      UNVALIDATED_REDIRECT em LoginSocialFailureHandler: NAO EXPLORAVEL.
+      O destino e o caminho fixo "/login" (UriComponentsBuilder.fromPath); nome e
+      email vem do ID token assinado pelo provedor OIDC e entram so como parametros
+      de query codificados, sem alterar host nem caminho. Revisado em 2026-11-16.
+    -->
+    <Match>
+        <Class name="com.curso.gestaoinvestimentos.security.oauth2.LoginSocialFailureHandler"/>
+        <Bug pattern="UNVALIDATED_REDIRECT"/>
+    </Match>
+</FindBugsFilter>

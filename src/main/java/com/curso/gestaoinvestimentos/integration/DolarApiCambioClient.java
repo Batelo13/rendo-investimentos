@@ -2,6 +2,7 @@ package com.curso.gestaoinvestimentos.integration;
 
 import com.curso.gestaoinvestimentos.exception.ServicoExternoIndisponivelException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -50,7 +51,7 @@ public class DolarApiCambioClient {
         }
     }
 
-    private BigDecimal buscarTaxaUsdParaBrlFallback(Throwable t) {
+    private BigDecimal buscarTaxaUsdParaBrlFallback(CallNotPermittedException t) {
         throw new ServicoExternoIndisponivelException("dolarapi indisponivel no momento (circuit breaker aberto)");
     }
 
