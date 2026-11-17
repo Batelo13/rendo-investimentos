@@ -32,8 +32,11 @@
 .login-page::after {
     content: "";
     position: absolute;
-    width: 55vmax;
-    height: 55vmax;
+    /* Teto de 80vh e o blob de baixo ancorado em bottom: 0: com 55vmax puro
+       eles passavam da altura da janela, criavam rolagem vertical e mostravam
+       a borda do fundo. */
+    width: min(55vmax, 80vh);
+    height: min(55vmax, 80vh);
     border-radius: 50%;
     filter: blur(90px);
     pointer-events: none;
@@ -49,7 +52,7 @@
 }
 
 .login-page::after {
-    bottom: -15%;
+    bottom: 0;
     right: -10%;
     background: rgba(36, 36, 58, 0.08);
     animation: rendo-blob-b 30s ease-in-out infinite alternate;
@@ -433,42 +436,16 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    /* safe: se o conteudo nao couber, corta embaixo -- nunca o botao do topo. */
+    justify-content: safe center;
     flex-direction: column;
-    padding: 30px 30px 26px;
+    padding: 24px 30px 20px;
     text-align: left;
     top: 0;
     transform: translateX(0);
     transition: transform var(--motion-medium) var(--ease-emphasized);
     overflow: hidden;
 }
-
-/* Marca d'agua da carteira (ja existente) + decoracao nova (barras muito
-   discretas, sugerindo grafico, sem competir com o conteudo). */
-.toggle-watermark {
-    position: absolute;
-    width: 220px;
-    height: auto;
-    fill: #FFFFFF;
-    stroke: #FFFFFF;
-    opacity: 0.05;
-    bottom: -30px;
-    right: -30px;
-    transform: rotate(-6deg);
-    pointer-events: none;
-}
-
-.toggle-bars {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    align-items: flex-end;
-    gap: 6px;
-    opacity: 0.07;
-    pointer-events: none;
-}
-.toggle-bars span { display: block; width: 7px; background: #FFFFFF; border-radius: 2px 2px 0 0; }
 
 /* Cabecalho da lateral: "Ja tem conta? / Ainda nao tem conta?" + botao que
    dispara a mesma animacao (id identicos aos ja usados por login.js). */
@@ -506,7 +483,7 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .toggle-head button svg { width: 13px; height: 13px; }
 
-.toggle-hero { position: relative; margin-top: 18px; }
+.toggle-hero { position: relative; margin-top: 10px; }
 .toggle-hero h1 {
     font-size: 30px;
     font-weight: 700;
@@ -526,11 +503,11 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .toggle-highlights {
     list-style: none;
-    margin: 18px 0 0;
+    margin: 14px 0 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 7px;
     position: relative;
 }
 
@@ -606,14 +583,14 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
 /* Composicao rica (painel de Login/"Olá investidor") -- Patrimonio+grafico
    maior, Ibovespa, Maiores altas, faixa de seguranca+SSL. Mesmos dados
    estaticos/ilustrativos, sem chamada de API. */
-.auth-widgets-rich { gap: 8px; margin-top: 16px; }
+.auth-widgets-rich { gap: 8px; margin-top: 12px; }
 .widget-label { display: block; font-size: 11px; color: rgba(255,255,255,0.55); margin-bottom: 3px; }
 .widget-trend-badge { display: inline-block; font-size: 11px; font-weight: 700; color: var(--brand); background: rgba(93,226,186,0.14); border-radius: 999px; padding: 2px 8px; margin-top: 4px; }
 
 .auth-widget-row { display: flex; gap: 8px; }
 .auth-widget-patrimonio-grande { flex: 1.5; position: relative; padding-bottom: 8px; overflow: hidden; }
 .widget-patrimonio-valor-grande { font-size: 18px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.01em; }
-.widget-area-chart { display: block; width: 100%; height: 46px; margin-top: 6px; }
+.widget-area-chart { display: block; width: 100%; height: 38px; margin-top: 6px; }
 
 .auth-widget-ibov { flex: 1; display: flex; flex-direction: column; }
 .widget-ibov-valor { font-size: 16px; font-weight: 700; color: #FFFFFF; }
@@ -709,3 +686,7 @@ button.link-discreto:disabled { opacity: 0.5; cursor: not-allowed; }
     .login-container form { padding: 28px 24px 32px; }
     .login-container h1 { font-size: 24px; }
 }
+
+/* Linhas dos widgets se desenham via JS (stroke-dashoffset 1 -> 0, ver
+   animarPainelAuth em login.js); pathLength="1" no SVG normaliza o tamanho. */
+.auth-widgets polyline { stroke-dasharray: 1; }

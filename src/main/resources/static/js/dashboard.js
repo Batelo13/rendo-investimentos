@@ -151,9 +151,13 @@ function mercadoTag(m) {
     return m === "EUA" ? `<span class="tag">US EUA</span>` : `<span class="tag">BR Brasil</span>`;
 }
 
+// Monograma (inicial do ticker) sempre por baixo: se o logo falhar (bloqueador,
+// rede, ticker sem logo) o onerror tira so a <img> e a inicial continua ali.
 function acaoLogoHTML(a, size = 24) {
-    if (!a.logoUrl) return "";
-    return `<img class="acao-logo" src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`;
+    const img = a.logoUrl
+        ? `<img src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`
+        : "";
+    return `<span class="acao-logo" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.45)}px" aria-hidden="true">${esc((a.ticker || "?")[0])}${img}</span>`;
 }
 
 /* ---------------------------- Icones (SVG) ---------------------------- */
@@ -303,10 +307,51 @@ function syncSidebarForMediaChange() {
     }
 }
 
+/* ---------------------------- Movimento ---------------------------- */
+const reduzMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+// Conta do ultimo valor mostrado ate o novo (easeOutCubic). O ultimo quadro
+// usa o proprio valor, entao o texto final e identico ao formatador.
+function contar(el, valor, formatar, html = false) {
+    const mostrar = (v) => { if (html) el.innerHTML = formatar(v); else el.textContent = formatar(v); };
+    const ate = Number(valor);
+    const de = Number(el.dataset.valor ?? 0);
+    el.dataset.valor = ate;
+    cancelAnimationFrame(el._contagem);
+    if (reduzMovimento.matches || de === ate || !Number.isFinite(ate)) { mostrar(ate); return; }
+    const inicio = performance.now(), duracao = 900;
+    const passo = (agora) => {
+        const k = Math.min((agora - inicio) / duracao, 1);
+        mostrar(k < 1 ? de + (ate - de) * (1 - (1 - k) ** 3) : ate);
+        if (k < 1) el._contagem = requestAnimationFrame(passo);
+    };
+    el._contagem = requestAnimationFrame(passo);
+}
+
+function semValor(el) {
+    cancelAnimationFrame(el._contagem);
+    delete el.dataset.valor;
+    el.textContent = "—";
+}
+
+// Blocos da secao entram em cascata (fade + blur), como no video de referencia.
+function entrarEmCascata(view) {
+    if (reduzMovimento.matches || typeof view.animate !== "function") return;
+    view.querySelectorAll(":scope > :not(.stats-grid):not(.pl-grid):not(.insights-grid), .stats-grid > *, .pl-grid > *, .insights-grid > *")
+        .forEach((el, i) => el.animate(
+            [
+                { opacity: 0, transform: "translateY(16px) scale(0.98)", filter: "blur(8px)" },
+                { opacity: 1, transform: "none", filter: "blur(0)" },
+            ],
+            { duration: 560, delay: Math.min(i, 10) * 60, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "backwards" }
+        ));
+}
+
 function setView(view) {
     $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
     $$(".view").forEach((v) => v.classList.add("hidden"));
     $(`#view-${view}`).classList.remove("hidden");
+    entrarEmCascata($(`#view-${view}`));
     const [t, s] = VIEW_META[view] || VIEW_META["visao-geral"];
     $("#viewTitle").textContent = t;
     $("#viewSubtitle").textContent = s;
@@ -315,10 +360,17 @@ function setView(view) {
 
 /* ---------------------------- Render ------------------------------ */
 function renderVisaoGeral() {
-    $("#statSaldoDisponivel").textContent = state.saldo ? fmtMoeda(state.saldo.saldoDisponivel, "BRL") : "—";
-    $("#statSaldoInicial").textContent = state.saldo ? fmtMoeda(state.saldo.saldoInicial, "BRL") : "—";
-    $("#statPosicoes").textContent = state.posicoes.length;
-    $("#statCorretoras").textContent = state.corretoras.length;
+    const brl = (v) => fmtMoeda(v, "BRL");
+    const inteiro = (v) => String(Math.round(v));
+    if (state.saldo) {
+        contar($("#statSaldoDisponivel"), state.saldo.saldoDisponivel, brl);
+        contar($("#statSaldoInicial"), state.saldo.saldoInicial, brl);
+    } else {
+        semValor($("#statSaldoDisponivel"));
+        semValor($("#statSaldoInicial"));
+    }
+    contar($("#statPosicoes"), state.posicoes.length, inteiro);
+    contar($("#statCorretoras"), state.corretoras.length, inteiro);
 
     let naoRealizado = 0;
     let valorPosicoesBRL = 0;
@@ -333,17 +385,18 @@ function renderVisaoGeral() {
         naoRealizado += (Number(p.valorAtual) - Number(p.valorInvestido)) * taxa;
         valorPosicoesBRL += Number(p.valorAtual) * taxa;
     }
-    $("#statPatrimonioTotal").textContent = state.saldo
-        ? fmtMoeda(Number(state.saldo.saldoDisponivel) + valorPosicoesBRL, "BRL")
-        : "—";
+    if (state.saldo) contar($("#statPatrimonioTotal"), Number(state.saldo.saldoDisponivel) + valorPosicoesBRL, brl);
+    else semValor($("#statPatrimonioTotal"));
     const realizado = state.operacoes
         .filter((o) => o.tipo === "VENDA" && o.status === "ATIVA")
         .reduce((s, o) => s + Number(o.lucroPrejuizoRealizado || 0) * Number(o.taxaCambio || 1), 0);
 
-    $("#statNaoRealizado").innerHTML = fmtResultado(naoRealizado, "BRL");
-    $("#statRealizado").innerHTML = fmtResultado(realizado, "BRL");
+    const resultado = (v) => fmtResultado(v, "BRL");
+    contar($("#statNaoRealizado"), naoRealizado, resultado, true);
+    contar($("#statRealizado"), realizado, resultado, true);
 
     renderRendimentoChart();
+    renderBarrasEAnel(valorPosicoesBRL);
 
     const dash = $("#dashPosicoes");
     const consolidado = consolidarPosicoesPorAcao(state.posicoes);
@@ -403,7 +456,42 @@ function renderSparklineNaoRealizado() {
     const cor = valores[valores.length - 1] >= valores[0]
         ? semanticColor("--success-text")
         : semanticColor("--danger-text");
-    svg.innerHTML = `<polyline points="${coords.join(" ")}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+    svg.innerHTML = `<polyline pathLength="1" points="${coords.join(" ")}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+}
+
+// Barras: valor atual de cada acao em R$ (USD convertido pela taxa da propria
+// acao); a maior fica em destaque. Anel: fatia do patrimonio que esta em acoes.
+function renderBarrasEAnel(valorPosicoesBRL) {
+    const barras = consolidarPosicoesPorAcao(state.posicoes)
+        .map((g) => {
+            const taxa = moedaPorTicker(g.acaoTicker) === "USD" ? taxaCambioPorTicker(g.acaoTicker) : 1;
+            return { ticker: g.acaoTicker, valor: g.valorAtual != null && taxa != null ? g.valorAtual * taxa : 0 };
+        })
+        .filter((b) => b.valor > 0)
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 8);
+
+    const wrap = $("#barrasCarteira");
+    $("#barrasResumo").textContent = barras.length ? `${barras.length} ${barras.length === 1 ? "ação" : "ações"}` : "";
+    if (!barras.length) {
+        wrap.innerHTML = `<div class="empty">Nenhuma posição ainda. Vá em <b>Ações</b> para comprar.</div>`;
+    } else {
+        const max = barras[0].valor;
+        wrap.innerHTML = barras.map((b, i) => `
+            <div class="barra${i === 0 ? " destaque" : ""}" style="--i:${i}" title="${esc(b.ticker)}: ${esc(fmtMoeda(b.valor, "BRL"))}">
+                <span class="barra-valor">${esc(fmtMoeda(b.valor, "BRL"))}</span>
+                <span class="barra-coluna" style="height:${Math.max((b.valor / max) * 100, 4).toFixed(1)}%"></span>
+                <span class="barra-rotulo">${esc(b.ticker)}</span>
+            </div>`).join("");
+    }
+
+    const patrimonio = state.saldo ? Number(state.saldo.saldoDisponivel) + valorPosicoesBRL : 0;
+    const pct = patrimonio > 0 ? (valorPosicoesBRL / patrimonio) * 100 : 0;
+    contar($("#anelPercentual"), pct, (v) => `${Math.round(v)}%`);
+    $("#anelLegenda").textContent = patrimonio > 0 ? `de ${fmtMoeda(patrimonio, "BRL")}` : "do patrimônio";
+    const anel = $("#anelProgresso");
+    // Proximo quadro: garante que a transicao parte do valor anterior.
+    requestAnimationFrame(() => { anel.style.strokeDashoffset = String(100 - pct); });
 }
 
 /* ------------------------------- IBOV ------------------------------- */
@@ -497,7 +585,7 @@ function renderRendimentoChart() {
         <line x1="0" y1="${yZero.toFixed(1)}" x2="${W}" y2="${yZero.toFixed(1)}" class="rendimento-zero"></line>
         <path d="${area}" class="rendimento-area" fill="url(#${areaId})"></path>
         <line class="rendimento-guide hidden" id="rendimentoGuide" x1="0" y1="0" x2="0" y2="${H}"></line>
-        <polyline points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
+        <polyline pathLength="1" points="${coords.join(" ")}" class="rendimento-linha" style="stroke:${cor}"></polyline>
         <circle class="rendimento-ponto-hover hidden" id="rendimentoPontoHover" style="stroke:${cor}" cx="0" cy="0"></circle>
     `;
 
@@ -1371,4 +1459,15 @@ function bind() {
 
 /* ----------------------------- Init ------------------------------------ */
 bind();
+// Primeira entrada: o app se revela num circulo a partir do centro enquanto o
+// splash some, e os cards da visao geral entram em cascata.
+window.addEventListener("rendo:page-ready", () => {
+    if (!reduzMovimento.matches && typeof Element.prototype.animate === "function") {
+        $(".app").animate(
+            [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }],
+            { duration: 900, easing: "cubic-bezier(0.65, 0, 0.35, 1)" }
+        );
+    }
+    entrarEmCascata($(".view:not(.hidden)"));
+}, { once: true });
 carregarTudo();

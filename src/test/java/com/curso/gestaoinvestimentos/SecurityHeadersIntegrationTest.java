@@ -45,6 +45,17 @@ class SecurityHeadersIntegrationTest {
     }
 
     @Test
+    @DisplayName("Scenario: Assets da pagina inicial sao publicos")
+    void videosDaPaginaInicialSaoPublicos() throws Exception {
+        // Sem login: o video da jornada e conteudo publico como /images e /css
+        // (arquivo ficticio em src/test/resources/static/videos).
+        assertThat(get("/videos/teste-publico.mp4").statusCode()).isEqualTo(200);
+        assertThat(get("/js/landing.js").statusCode()).isEqualTo(200);
+        assertThat(get("/css/landing.css").statusCode()).isEqualTo(200);
+        assertThat(get("/images/rendo-jornada-poster.webp").statusCode()).isEqualTo(200);
+    }
+
+    @Test
     void apiSemSessaoTambemRecebeCabecalhos() throws Exception {
         HttpResponse<Void> resposta = get("/carteiras/me");
 

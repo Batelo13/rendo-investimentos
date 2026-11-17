@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Rendo: simule uma carteira de ações do Brasil e dos EUA com saldo fictício e acompanhe a evolução do seu patrimônio.">
+    <meta name="theme-color" content="#0A0C0D">
     <script>
         (function () {
             if (localStorage.getItem('rendo-theme') === 'light') {
@@ -10,25 +12,300 @@
             }
         })();
     </script>
-    <title>Rendo</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <title>Rendo — Sua jornada financeira, um degrau de cada vez</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Baloo+2:wght@700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Baloo+2:wght@700;800&display=swap">
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/tokens.css}">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/glass.css}">
     <link rel="stylesheet" th:href="@{/css/loading.css}">
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
 </head>
 <body class="rendo-page landing-page">
 <div th:replace="~{fragments/loading :: loading(startHidden=false)}"></div>
-<main class="landing-shell glass-surface glass-surface-strong" data-motion>
-    <div th:replace="~{fragments/logo :: logo}"></div>
-    <span class="landing-eyebrow">Sua carteira, com clareza</span>
-    <h1>Decisões melhores começam com uma visão completa.</h1>
-    <p>Organize ativos, corretoras e operações em uma experiência simples, segura e feita para acompanhar sua evolução.</p>
-    <a class="landing-cta glass-focus" th:href="@{/login}">Acessar minha carteira</a>
+<a class="lp-pular" href="#visao-geral">Pular para o conteúdo</a>
+
+<header class="lp-header" id="lpHeader">
+    <a class="lp-marca" th:href="@{/}" aria-label="Rendo, página inicial">
+        <div th:replace="~{fragments/logo :: logo}"></div>
+    </a>
+    <nav class="lp-nav" aria-label="Seções da página">
+        <a href="#visao-geral">A Rendo</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#recursos">Recursos</a>
+        <a href="#seguranca">Segurança</a>
+    </nav>
+    <div class="lp-header-acoes">
+        <a class="lp-link-conta" th:href="@{/login}">Entrar</a>
+        <a class="lp-botao lp-botao-primario lp-botao-sm" th:href="@{/login(criarConta=1)}">Criar conta</a>
+    </div>
+</header>
+
+<main>
+    <!--
+      Jornada controlada pelo scroll (ver landing.js). Para usar o video final,
+      coloque os arquivos em src/main/resources/static/videos/ e preencha:
+        data-video="/videos/rendo-jornada.mp4"
+        data-video-mobile="/videos/rendo-jornada-mobile.mp4"  (opcional, < 768px)
+      Vazios = nenhum download; a narrativa usa a cena ilustrada em SVG.
+    -->
+    <section class="jornada" id="jornada" aria-label="A jornada Rendo"
+             data-video="" data-video-mobile="">
+        <div class="jornada-palco">
+            <div class="jornada-midia" aria-hidden="true">
+                <svg class="jornada-cena" id="jornadaCena" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">
+                    <defs>
+                        <linearGradient id="ceuNoite" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#060708"/>
+                            <stop offset="0.6" stop-color="#0A0E0E"/>
+                            <stop offset="1" stop-color="#0E1513"/>
+                        </linearGradient>
+                        <linearGradient id="ceuAurora" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#081211"/>
+                            <stop offset="0.45" stop-color="#0F2722"/>
+                            <stop offset="0.72" stop-color="#3A4A36"/>
+                            <stop offset="0.9" stop-color="#B58A4C"/>
+                            <stop offset="1" stop-color="#E2B66E"/>
+                        </linearGradient>
+                        <radialGradient id="sol" cx="0.5" cy="0.5" r="0.5">
+                            <stop offset="0" stop-color="#FFE3A8" stop-opacity="0.95"/>
+                            <stop offset="0.35" stop-color="#F0C072" stop-opacity="0.45"/>
+                            <stop offset="1" stop-color="#E2B66E" stop-opacity="0"/>
+                        </radialGradient>
+                        <linearGradient id="barraFrente" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#3FD3A3"/>
+                            <stop offset="0.25" stop-color="#1F8C6C"/>
+                            <stop offset="1" stop-color="#0C2A22" stop-opacity="0.35"/>
+                        </linearGradient>
+                        <linearGradient id="barraLado" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#1A6B54"/>
+                            <stop offset="1" stop-color="#081A15" stop-opacity="0.3"/>
+                        </linearGradient>
+                        <linearGradient id="chao" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#0A0D0E" stop-opacity="0"/>
+                            <stop offset="1" stop-color="#0A0C0D"/>
+                        </linearGradient>
+                        <linearGradient id="linhaFutura" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#5DE2BA"/>
+                            <stop offset="1" stop-color="#E9C27A"/>
+                        </linearGradient>
+                        <filter id="brilho" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="6"/>
+                        </filter>
+                    </defs>
+
+                    <rect x="-2000" y="-2000" width="5600" height="5000" fill="url(#ceuNoite)"/>
+                    <rect id="cenaAurora" x="-2000" y="-2000" width="5600" height="2920" fill="url(#ceuAurora)" opacity="0"/>
+                    <g id="cenaEstrelas" fill="#DCE6E2"></g>
+                    <circle id="cenaSol" cx="1360" cy="720" r="230" fill="url(#sol)" opacity="0"/>
+
+                    <g id="cenaMundo">
+                        <g id="cenaCidade" opacity="0"></g>
+                        <g id="cenaGrade" opacity="0"></g>
+                        <g id="cenaBarras"></g>
+                        <polyline id="cenaLinha" fill="none" stroke="url(#linhaFutura)" stroke-width="5"
+                                  stroke-linecap="round" stroke-linejoin="round" pathLength="1"
+                                  stroke-dasharray="1" stroke-dashoffset="1"/>
+                        <polyline id="cenaLinhaBrilho" fill="none" stroke="#5DE2BA" stroke-width="14"
+                                  stroke-linecap="round" stroke-linejoin="round" pathLength="1"
+                                  stroke-dasharray="1" stroke-dashoffset="1" opacity="0.35" filter="url(#brilho)"/>
+                        <g id="cenaPessoa">
+                            <ellipse cx="0" cy="1" rx="18" ry="3" fill="#000" opacity="0.35"/>
+                            <g class="pessoa" fill="rgb(226,231,228)" stroke="#E9C27A" stroke-opacity="0.35" stroke-width="0.8" stroke-linejoin="round">
+                                <rect id="pernaTras" x="-4.5" y="-31" width="9" height="32" rx="4.5" opacity="0.8"/>
+                                <rect id="bracoTras" x="-3.8" y="-57" width="7.6" height="28" rx="3.8" opacity="0.8"/>
+                                <path d="M-10 -58 C-12.5 -50 -11.5 -38 -9 -28 L9 -28 C11.5 -38 12.5 -50 10 -58 Q0 -62.5 -10 -58 Z"/>
+                                <rect id="pernaFrente" x="-4.5" y="-31" width="9" height="32" rx="4.5"/>
+                                <rect id="bracoFrente" x="-3.8" y="-57" width="7.6" height="28" rx="3.8"/>
+                                <rect x="-2.6" y="-63" width="5.2" height="6" rx="2"/>
+                                <circle cx="0" cy="-70" r="8"/>
+                            </g>
+                        </g>
+                        <rect x="-2000" y="790" width="5600" height="600" fill="url(#chao)"/>
+                    </g>
+                </svg>
+                <video class="jornada-video" id="jornadaVideo" muted playsinline preload="none"
+                       th:poster="@{/images/rendo-jornada-poster.webp}" tabindex="-1"></video>
+                <div class="jornada-veu"></div>
+            </div>
+
+            <div class="jornada-momentos">
+                <article class="momento" data-inicio="0" data-fim="0.2">
+                    <span class="momento-etapa">01 · Começo da jornada</span>
+                    <h1>Seu futuro é construído, um degrau de cada vez.</h1>
+                    <p>Simule uma carteira de ações com R$ 100.000 fictícios, acompanhe sua evolução e aprenda a tomar decisões mais conscientes, sem arriscar dinheiro real.</p>
+                    <div class="momento-acoes">
+                        <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Começar agora</a>
+                        <a class="lp-botao lp-botao-secundario" href="#visao-geral">Conhecer a Rendo</a>
+                    </div>
+                </article>
+                <article class="momento" data-inicio="0.2" data-fim="0.45">
+                    <span class="momento-etapa">02 · Planejamento</span>
+                    <h2>Transforme planos em estratégia.</h2>
+                    <p>Escolha ações do Brasil e dos EUA, registre cada compra e venda na corretora certa e entenda o preço médio de cada decisão.</p>
+                </article>
+                <article class="momento" data-inicio="0.45" data-fim="0.75">
+                    <span class="momento-etapa">03 · Evolução</span>
+                    <h2>Acompanhe a evolução do seu patrimônio.</h2>
+                    <p>Visualize posições, resultado realizado e não realizado e o gráfico de evolução da carteira, organizados para leitura rápida.</p>
+                </article>
+                <article class="momento" data-inicio="0.75" data-fim="1">
+                    <span class="momento-etapa">04 · Futuro</span>
+                    <h2>Decisões de hoje constroem o futuro de amanhã.</h2>
+                    <p>Pratique com clareza, entenda seus resultados e avance com mais confiança nos seus próximos passos.</p>
+                    <div class="momento-acoes">
+                        <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Construir meu futuro</a>
+                    </div>
+                </article>
+            </div>
+
+            <div class="jornada-progresso" aria-hidden="true"><span id="jornadaBarra"></span></div>
+            <div class="jornada-dica" id="jornadaDica" aria-hidden="true">
+                <span>Role para explorar</span>
+                <i></i>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-secao lp-visao" id="visao-geral" data-motion>
+        <div class="lp-container lp-visao-grade">
+            <div>
+                <span class="lp-sobretitulo">A Rendo</span>
+                <h2>Um simulador de carteira para aprender investindo, sem risco.</h2>
+            </div>
+            <div class="lp-visao-texto">
+                <p>A Rendo é uma plataforma de simulação. Você cria sua conta, recebe um saldo fictício e monta uma carteira com cotações reais de mercado, acompanhando cada resultado como faria com uma carteira de verdade.</p>
+                <dl class="lp-fatos">
+                    <div><dt>R$ 100.000</dt><dd>de saldo fictício para começar</dd></div>
+                    <div><dt>Brasil e EUA</dt><dd>ações da B3 e do mercado americano</dd></div>
+                    <div><dt>Zero dinheiro real</dt><dd>nenhuma transação financeira acontece</dd></div>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-secao" id="como-funciona" data-motion>
+        <div class="lp-container">
+            <span class="lp-sobretitulo">Como funciona</span>
+            <h2 class="lp-titulo-secao">Quatro passos, do cadastro à primeira análise.</h2>
+            <ol class="lp-passos">
+                <li>
+                    <span class="lp-passo-num">01</span>
+                    <h3>Crie sua conta</h3>
+                    <p>Cadastro com e-mail e confirmação por código. Sua carteira já nasce com o saldo fictício.</p>
+                </li>
+                <li>
+                    <span class="lp-passo-num">02</span>
+                    <h3>Cadastre corretoras</h3>
+                    <p>Informe o CNPJ: os dados são conferidos em fontes públicas, incluindo o cadastro da CVM.</p>
+                </li>
+                <li>
+                    <span class="lp-passo-num">03</span>
+                    <h3>Compre e venda ações</h3>
+                    <p>Use cotações de mercado, revise cada ordem numa tela de confirmação e mantenha o histórico completo.</p>
+                </li>
+                <li>
+                    <span class="lp-passo-num">04</span>
+                    <h3>Acompanhe a evolução</h3>
+                    <p>Veja posições, preço médio, resultado e a evolução patrimonial ao longo do tempo.</p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="lp-secao" id="recursos" data-motion>
+        <div class="lp-container">
+            <span class="lp-sobretitulo">Recursos</span>
+            <h2 class="lp-titulo-secao">O essencial para acompanhar uma carteira com clareza.</h2>
+            <ul class="lp-recursos">
+                <li><h3>Catálogo com cotações</h3><p>Ações brasileiras e americanas com nome, logo e cotação atualizável, além do histórico de preços.</p></li>
+                <li><h3>Conversão de câmbio</h3><p>Ativos em dólar exibem o valor convertido em reais pela cotação do dia.</p></li>
+                <li><h3>Preço médio consolidado</h3><p>Uma visão por ação, mesmo quando a posição está distribuída entre corretoras.</p></li>
+                <li><h3>Histórico de operações</h3><p>Compras e vendas paginadas, com cancelamento que recalcula a posição.</p></li>
+                <li><h3>Evolução patrimonial</h3><p>Gráfico do rendimento da carteira com períodos de um dia até todo o histórico.</p></li>
+                <li><h3>Tema claro e escuro</h3><p>A área logada se adapta à sua preferência de leitura.</p></li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="lp-secao lp-acompanhamento" data-motion>
+        <div class="lp-container lp-acompanhamento-grade">
+            <div>
+                <span class="lp-sobretitulo">Acompanhamento</span>
+                <h2 class="lp-titulo-secao">Seus números, organizados para você decidir.</h2>
+                <p class="lp-texto">Patrimônio total, saldo disponível, resultado realizado e não realizado, valor por ação e fatia do patrimônio investida aparecem juntos na visão geral, atualizados a cada operação.</p>
+                <a class="lp-botao lp-botao-secundario" th:href="@{/login}">Acessar minha carteira</a>
+            </div>
+            <figure class="lp-ilustracao" aria-label="Ilustração da visão geral da carteira">
+                <svg viewBox="0 0 420 260" role="img" aria-hidden="true" focusable="false">
+                    <rect x="0.5" y="0.5" width="419" height="259" rx="14" fill="#101415" stroke="rgba(255,255,255,0.08)"/>
+                    <text x="24" y="38" fill="#8E99A8" font-size="11" font-family="Inter, sans-serif">Patrimônio total</text>
+                    <text x="24" y="64" fill="#F4F6F8" font-size="22" font-weight="600" font-family="Inter, sans-serif">R$ 100.000,00</text>
+                    <polyline points="24,200 64,186 104,192 144,160 184,168 224,134 264,142 304,108" fill="none" stroke="#5DE2BA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <g fill="#5DE2BA">
+                        <rect x="24" y="218" width="26" height="18" rx="3" opacity="0.35"/>
+                        <rect x="58" y="210" width="26" height="26" rx="3" opacity="0.45"/>
+                        <rect x="92" y="204" width="26" height="32" rx="3" opacity="0.55"/>
+                        <rect x="126" y="196" width="26" height="40" rx="3" opacity="0.7"/>
+                    </g>
+                    <circle cx="350" cy="168" r="38" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                    <circle cx="350" cy="168" r="38" fill="none" stroke="#E9C27A" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="64 100" transform="rotate(-90 350 168)"/>
+                    <text x="350" y="173" text-anchor="middle" fill="#F4F6F8" font-size="15" font-weight="600" font-family="Inter, sans-serif">64%</text>
+                </svg>
+                <figcaption>Ilustração com valores de exemplo.</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="lp-secao" id="seguranca" data-motion>
+        <div class="lp-container lp-seguranca-grade">
+            <div>
+                <span class="lp-sobretitulo">Segurança e privacidade</span>
+                <h2 class="lp-titulo-secao">Cuidados aplicados desde o cadastro.</h2>
+                <p class="lp-texto">Nenhum sistema é infalível, por isso tratamos proteção como prática contínua, com revisões e testes automatizados de segurança.</p>
+            </div>
+            <ul class="lp-seguranca-lista">
+                <li><h3>Senha protegida</h3><p>Armazenada apenas como hash BCrypt, nunca em texto puro.</p></li>
+                <li><h3>CPF não exposto</h3><p>Guardado só como resumo criptográfico com chave secreta e nunca devolvido pela API.</p></li>
+                <li><h3>E-mail verificado</h3><p>A conta só é ativada com o código enviado ao seu e-mail.</p></li>
+                <li><h3>Dados isolados</h3><p>Cada conta acessa apenas a própria carteira, posições e operações.</p></li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="lp-cta" data-motion>
+        <div class="lp-container">
+            <h2>Dê o primeiro passo da sua jornada.</h2>
+            <p>Crie sua conta e comece a simular hoje mesmo.</p>
+            <div class="momento-acoes lp-cta-acoes">
+                <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Criar minha conta</a>
+                <a class="lp-botao lp-botao-secundario" th:href="@{/login}">Já tenho conta</a>
+            </div>
+        </div>
+    </section>
 </main>
+
+<footer class="lp-rodape">
+    <div class="lp-container lp-rodape-grade">
+        <div>
+            <div th:replace="~{fragments/logo :: logo}"></div>
+            <p>Projeto acadêmico de simulação. Nenhum valor é real e nenhuma informação aqui é recomendação de investimento. Cotações podem ter até 15 minutos de atraso.</p>
+        </div>
+        <nav aria-label="Rodapé">
+            <a href="#visao-geral">A Rendo</a>
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#recursos">Recursos</a>
+            <a href="#seguranca">Segurança</a>
+            <a th:href="@{/login}">Entrar</a>
+            <a th:href="@{/login(criarConta=1)}">Criar conta</a>
+        </nav>
+    </div>
+</footer>
+
 <script th:src="@{/js/loading.js}"></script>
 <script th:src="@{/js/motion.js}"></script>
+<script th:src="@{/js/landing.js}"></script>
 </body>
 </html>

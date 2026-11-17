@@ -1,0 +1,16 @@
+## MODIFIED Requirements
+
+### Requirement: Logo da ação no catálogo e no detalhe
+O sistema SHALL exibir o logo da empresa, quando disponível, junto ao ticker no catálogo de ações e na tela de detalhe. Quando o logo não carregar, o sistema SHALL exibir no lugar um monograma com a inicial do ticker.
+
+#### Scenario: Ação do mercado Brasil com logo disponível
+- **WHEN** uma ação do mercado Brasil é cadastrada ou tem a cotação atualizada
+- **THEN** o sistema captura o logo retornado pela fonte de cotação e o exibe junto ao ticker
+
+#### Scenario: Ação do mercado EUA com logo disponível
+- **WHEN** uma ação do mercado EUA é cadastrada ou tem a cotação atualizada
+- **THEN** o sistema associa um logo baseado no ticker e o exibe junto ao ticker
+
+#### Scenario: Logo indisponível não quebra a exibição
+- **WHEN** o logo de uma ação não pode ser carregado (indisponível, bloqueado no navegador ou ticker sem logo correspondente)
+- **THEN** o catálogo e o detalhe exibem um monograma com a inicial do ticker no lugar do logo, sem espaço em branco nem ícone de imagem quebrada
