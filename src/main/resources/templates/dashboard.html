@@ -158,6 +158,31 @@
                 </div>
             </div>
 
+            <!-- Barras + anel (inspirado no video de referencia), com dado real:
+                 valor atual de cada acao em R$ e fatia do patrimonio investida. -->
+            <div class="insights-grid">
+                <div class="panel glass-surface glass-interactive">
+                    <div class="panel-head">
+                        <h2>Valor por ação</h2>
+                        <span class="insight-badge" id="barrasResumo"></span>
+                    </div>
+                    <div class="barras" id="barrasCarteira"></div>
+                </div>
+                <div class="panel glass-surface glass-interactive">
+                    <div class="panel-head"><h2>Capital investido</h2></div>
+                    <div class="anel-wrap">
+                        <svg class="anel" viewBox="0 0 120 120" aria-hidden="true">
+                            <circle class="anel-trilha" cx="60" cy="60" r="50" pathLength="100"></circle>
+                            <circle class="anel-progresso" id="anelProgresso" cx="60" cy="60" r="50" pathLength="100"></circle>
+                        </svg>
+                        <div class="anel-texto">
+                            <strong id="anelPercentual">0%</strong>
+                            <span id="anelLegenda">do patrimônio</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="panel glass-surface">
                 <div class="chart-head">
                     <h2>Evolução patrimonial</h2>

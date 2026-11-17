@@ -337,7 +337,7 @@ function semValor(el) {
 // Blocos da secao entram em cascata (fade + blur), como no video de referencia.
 function entrarEmCascata(view) {
     if (reduzMovimento.matches || typeof view.animate !== "function") return;
-    view.querySelectorAll(":scope > :not(.stats-grid):not(.pl-grid), .stats-grid > *, .pl-grid > *")
+    view.querySelectorAll(":scope > :not(.stats-grid):not(.pl-grid):not(.insights-grid), .stats-grid > *, .pl-grid > *, .insights-grid > *")
         .forEach((el, i) => el.animate(
             [
                 { opacity: 0, transform: "translateY(16px) scale(0.98)", filter: "blur(8px)" },
@@ -396,6 +396,7 @@ function renderVisaoGeral() {
     contar($("#statRealizado"), realizado, resultado, true);
 
     renderRendimentoChart();
+    renderBarrasEAnel(valorPosicoesBRL);
 
     const dash = $("#dashPosicoes");
     const consolidado = consolidarPosicoesPorAcao(state.posicoes);
@@ -456,6 +457,41 @@ function renderSparklineNaoRealizado() {
         ? semanticColor("--success-text")
         : semanticColor("--danger-text");
     svg.innerHTML = `<polyline pathLength="1" points="${coords.join(" ")}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>`;
+}
+
+// Barras: valor atual de cada acao em R$ (USD convertido pela taxa da propria
+// acao); a maior fica em destaque. Anel: fatia do patrimonio que esta em acoes.
+function renderBarrasEAnel(valorPosicoesBRL) {
+    const barras = consolidarPosicoesPorAcao(state.posicoes)
+        .map((g) => {
+            const taxa = moedaPorTicker(g.acaoTicker) === "USD" ? taxaCambioPorTicker(g.acaoTicker) : 1;
+            return { ticker: g.acaoTicker, valor: g.valorAtual != null && taxa != null ? g.valorAtual * taxa : 0 };
+        })
+        .filter((b) => b.valor > 0)
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 8);
+
+    const wrap = $("#barrasCarteira");
+    $("#barrasResumo").textContent = barras.length ? `${barras.length} ${barras.length === 1 ? "ação" : "ações"}` : "";
+    if (!barras.length) {
+        wrap.innerHTML = `<div class="empty">Nenhuma posição ainda. Vá em <b>Ações</b> para comprar.</div>`;
+    } else {
+        const max = barras[0].valor;
+        wrap.innerHTML = barras.map((b, i) => `
+            <div class="barra${i === 0 ? " destaque" : ""}" style="--i:${i}" title="${esc(b.ticker)}: ${esc(fmtMoeda(b.valor, "BRL"))}">
+                <span class="barra-valor">${esc(fmtMoeda(b.valor, "BRL"))}</span>
+                <span class="barra-coluna" style="height:${Math.max((b.valor / max) * 100, 4).toFixed(1)}%"></span>
+                <span class="barra-rotulo">${esc(b.ticker)}</span>
+            </div>`).join("");
+    }
+
+    const patrimonio = state.saldo ? Number(state.saldo.saldoDisponivel) + valorPosicoesBRL : 0;
+    const pct = patrimonio > 0 ? (valorPosicoesBRL / patrimonio) * 100 : 0;
+    contar($("#anelPercentual"), pct, (v) => `${Math.round(v)}%`);
+    $("#anelLegenda").textContent = patrimonio > 0 ? `de ${fmtMoeda(patrimonio, "BRL")}` : "do patrimônio";
+    const anel = $("#anelProgresso");
+    // Proximo quadro: garante que a transicao parte do valor anterior.
+    requestAnimationFrame(() => { anel.style.strokeDashoffset = String(100 - pct); });
 }
 
 /* ------------------------------- IBOV ------------------------------- */
