@@ -13,6 +13,8 @@ import com.curso.gestaoinvestimentos.repository.CarteiraRepository;
 import com.curso.gestaoinvestimentos.repository.UsuarioRepository;
 import com.curso.gestaoinvestimentos.security.AdministradoresConfigurados;
 import com.curso.gestaoinvestimentos.security.ProtecaoCpf;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -70,7 +72,15 @@ public class UsuarioService {
         usuario.setEmailVerified(false);
         usuario.setDataCadastro(LocalDate.now());
 
-        Usuario salvo = repository.save(usuario);
+        // A checagem acima nao cobre dois cadastros iguais ao mesmo tempo (ex.:
+        // clique duplo): os dois passam por ela e quem barra e a restricao unique
+        // do banco. Essa colisao e conflito (409), nao erro interno (500).
+        Usuario salvo;
+        try {
+            salvo = repository.saveAndFlush(usuario);
+        } catch (DataIntegrityViolationException | PessimisticLockingFailureException concorrente) {
+            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com este email ou CPF");
+        }
 
         Carteira carteira = new Carteira();
         carteira.setUsuario(salvo);
