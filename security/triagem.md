@@ -30,3 +30,17 @@ Change OpenSpec: `endurecimento-seguranca`. Metodo: `.agents/prompts/triagem-seg
 ## Riscos aceitos
 
 Ver `openspec/changes/endurecimento-seguranca/design.md`, secao Risks.
+
+# Triagem DAST -- 2026-11-20
+
+Change OpenSpec: `dast-zap-baseline`. Comando: `bash scripts/dast_zap.sh` (ZAP 2.16.1 baseline, passivo, instancia descartavel).
+
+| Achado ZAP | Classificacao | Justificativa | Acao |
+| --- | --- | --- | --- |
+| 10055 CSP sem `default-src`/`script-src`/`form-action` | VERDADEIRO, media | XSS nao era contido pela CSP | CSP restrita + teste; resta `style-src 'unsafe-inline'` e `img-src https:` (IGNORE justificado) |
+| 10024 Dados sensiveis na URL (`/login?...senha=...`) | VERDADEIRO, media | Formularios de cadastro/verificacao sem `method` = GET quando o JS nao roda | `method="post"` + `th:action` |
+| 10202 Formulario sem token CSRF | VERDADEIRO, baixa | Surgiu com o POST acima; o JS ja mandava o token no cabecalho | `th:action` injeta o token |
+| 90004 Isolamento contra Spectre | PARCIAL | COEP `require-corp` bloquearia Google Fonts e logos externos | `Cross-Origin-Opener-Policy: same-origin`; COEP aceito como risco |
+| 90003 SRI ausente | NAO EXPLORAVEL na pratica | CSS do Google Fonts varia por user-agent; hash fixo impossivel | IGNORE justificado |
+| 10116 ZAP desatualizado | NAO E VULNERABILIDADE | Versao fixada de proposito | IGNORE |
+| 10027, 10049, 10109, 10111, 10112 | INFORMATIVO | Ver `security/zap-baseline.conf` | IGNORE |
