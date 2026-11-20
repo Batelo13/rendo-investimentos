@@ -1,5 +1,5 @@
 // Alterna data-theme na <html> e persiste em localStorage. O flash de tema
-// errado ja e evitado por um script inline no <head> de cada pagina (roda
+// errado ja e evitado por js/tema-inicial.js no <head> de cada pagina (roda
 // antes deste arquivo, antes do primeiro paint) -- este arquivo so cuida do
 // botao de troca, que existe apenas no dashboard.
 const THEME_KEY = "rendo-theme";

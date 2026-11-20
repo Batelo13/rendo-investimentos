@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <script>
-        (function () {
-            if (localStorage.getItem('rendo-theme') === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        })();
-    </script>
+    <script th:src="@{/js/tema-inicial.js}"></script>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
     <title>Rendo — Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">

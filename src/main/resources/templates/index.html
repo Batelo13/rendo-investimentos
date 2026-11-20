@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Rendo: simule uma carteira de ações do Brasil e dos EUA com saldo fictício e acompanhe a evolução do seu patrimônio.">
     <meta name="theme-color" content="#0A0C0D">
-    <script>
-        (function () {
-            if (localStorage.getItem('rendo-theme') === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        })();
-    </script>
+    <script th:src="@{/js/tema-inicial.js}"></script>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
     <title>Rendo — Sua jornada financeira, um degrau de cada vez</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
