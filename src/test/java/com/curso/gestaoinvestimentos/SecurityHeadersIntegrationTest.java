@@ -56,6 +56,20 @@ class SecurityHeadersIntegrationTest {
     }
 
     @Test
+    @DisplayName("Scenario: Arquivo estatico publico inexistente")
+    void estaticoInexistenteDevolve404() throws Exception {
+        assertThat(get("/css/nao-existe.css").statusCode()).isEqualTo(404);
+        assertThat(get("/images/nao-existe.png").statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("Scenario: Rota protegida inexistente continua exigindo login")
+    void rotaProtegidaInexistenteSemSessaoDevolve401() throws Exception {
+        // Liberar /error nao pode revelar quais rotas protegidas existem.
+        assertThat(get("/rota-que-nao-existe").statusCode()).isEqualTo(401);
+    }
+
+    @Test
     void apiSemSessaoTambemRecebeCabecalhos() throws Exception {
         HttpResponse<Void> resposta = get("/carteiras/me");
 

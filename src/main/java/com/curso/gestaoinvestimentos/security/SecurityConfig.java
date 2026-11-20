@@ -63,6 +63,11 @@ public class SecurityConfig {
                         // string (ex.: "?criarConta=1" do fluxo de login social) cai no
                         // anyRequest().authenticated() e devolve 401 sem essa regra explicita.
                         .requestMatchers(HttpMethod.GET, "/login").permitAll()
+                        // Pagina de erro do Spring Boot: sem isso o dispatch interno para
+                        // /error de um estatico publico inexistente caia no
+                        // anyRequest().authenticated() e virava 401 em vez de 404. Rotas
+                        // protegidas sem sessao continuam 401 antes de chegar aqui.
+                        .requestMatchers("/error").permitAll()
                         // Dashboard mostra saldo/posicoes do usuario -- nao pode ser publica
                         // como "/", senao um visitante sem sessao veria a casca da pagina.
                         .requestMatchers(HttpMethod.GET, "/dashboard").authenticated()
