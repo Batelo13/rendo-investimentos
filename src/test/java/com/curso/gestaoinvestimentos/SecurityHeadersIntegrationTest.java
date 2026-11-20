@@ -40,8 +40,17 @@ class SecurityHeadersIntegrationTest {
         assertThat(resposta.headers().firstValue("Referrer-Policy")).hasValue("strict-origin-when-cross-origin");
         assertThat(resposta.headers().firstValue("Cross-Origin-Resource-Policy")).hasValue("same-origin");
         assertThat(resposta.headers().firstValue("Permissions-Policy")).hasValue("camera=(), microphone=(), geolocation=()");
-        assertThat(resposta.headers().firstValue("Content-Security-Policy"))
-                .hasValue("object-src 'none'; base-uri 'self'; frame-ancestors 'self'");
+        assertThat(resposta.headers().firstValue("Cross-Origin-Opener-Policy")).hasValue("same-origin");
+        assertThat(resposta.headers().firstValue("Content-Security-Policy")).hasValueSatisfying(csp -> assertThat(csp)
+                .contains("default-src 'self'", "script-src 'self';", "form-action 'self'", "object-src 'none'")
+                .doesNotContain("'unsafe-eval'")
+                .doesNotContainPattern("script-src[^;]*'unsafe-inline'"));
+    }
+
+    @Test
+    @DisplayName("Scenario: Console H2 de desenvolvimento fora da CSP restrita")
+    void consoleH2NaoRecebeCspRestrita() throws Exception {
+        assertThat(get("/h2-console/").headers().firstValue("Content-Security-Policy")).isEmpty();
     }
 
     @Test

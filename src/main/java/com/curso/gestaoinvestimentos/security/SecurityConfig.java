@@ -16,9 +16,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.header.writers.CrossOriginOpenerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.CrossOriginResourcePolicyHeaderWriter;
+import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.LinkedHashMap;
@@ -27,6 +31,14 @@ import java.util.Optional;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    // Google Fonts (CSS + arquivos de fonte) e logos de acoes externos (https:)
+    // sao as unicas origens de fora; 'unsafe-inline' so em estilo (atributos
+    // style= gerados pelo JS e pelo SweetAlert2), nunca em script.
+    static final String CSP = "default-src 'self'; script-src 'self'; "
+            + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            + "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; "
+            + "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -98,8 +110,9 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(paginaOuApiEntryPoint()))
                 // H2 console roda dentro de um <frame>; sem isso o navegador bloqueia.
                 // Demais cabecalhos: achados do OWASP ZAP no Modulo 11 (secao 15).
-                // CSP sem script-src de proposito: as paginas tem script inline
-                // (tema antes do primeiro paint) -- ver design.md D5.
+                // CSP restrita (achado ZAP 10055, change dast-zap-baseline): nenhum
+                // script inline nas paginas. Fora do /h2-console, que so existe no
+                // profile dev e depende de script inline proprio.
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                         .referrerPolicy(referrer -> referrer.policy(
@@ -108,8 +121,11 @@ public class SecurityConfig {
                                 "camera=(), microphone=(), geolocation=()"))
                         .crossOriginResourcePolicy(corp -> corp.policy(
                                 CrossOriginResourcePolicyHeaderWriter.CrossOriginResourcePolicy.SAME_ORIGIN))
-                        .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "object-src 'none'; base-uri 'self'; frame-ancestors 'self'")));
+                        .crossOriginOpenerPolicy(coop -> coop.policy(
+                                CrossOriginOpenerPolicyHeaderWriter.CrossOriginOpenerPolicy.SAME_ORIGIN))
+                        .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
+                                new NegatedRequestMatcher(PathPatternRequestMatcher.pathPattern("/h2-console/**")),
+                                new StaticHeadersWriter("Content-Security-Policy", CSP))));
 
         // So ativa oauth2Login() quando ha pelo menos um provedor configurado
         // (ver OAuth2ClientRegistrations) -- sem isso, chamar .oauth2Login() sem
