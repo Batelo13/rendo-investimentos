@@ -12,4 +12,4 @@
 
 ## 4. Validação
 
-- [ ] 4.1 Suíte, roteiro Playwright, gate e DAST aprovados.
+- [x] 4.1 Suíte, roteiro Playwright, gate e DAST aprovados. Resultado: 135 testes, 30 testes Playwright, CLS 0,0016, sem tarefas longas no scroll nem no arraste.
