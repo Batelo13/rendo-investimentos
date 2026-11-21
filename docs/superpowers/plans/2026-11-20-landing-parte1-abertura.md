@@ -32,7 +32,7 @@
 
 ---
 
-### Tarefa 1: Change OpenSpec + remoção do vídeo
+### Task 1: Change OpenSpec + remoção do vídeo
 
 **Arquivos:**
 - Criar: `openspec/changes/landing-abertura-carteira/{proposal.md,design.md,tasks.md,specs/pagina-inicial-imersiva/spec.md}`
@@ -83,7 +83,7 @@
 
 ---
 
-### Tarefa 2: Sistema de movimento (`data-contador`, `data-luz`, `data-inclina`) + fatos animados
+### Task 2: Sistema de movimento (`data-contador`, `data-luz`, `data-inclina`) + fatos animados
 
 **Arquivos:**
 - Modificar: `src/main/resources/static/js/motion.js`
@@ -147,7 +147,7 @@
 
 ---
 
-### Tarefa 3: Abertura "carteira ganhando forma"
+### Task 3: Abertura "carteira ganhando forma"
 
 **Arquivos:**
 - Modificar: `src/main/resources/templates/index.html` (conteúdo de `.jornada-palco`: sai todo o `<svg id="jornadaCena">` antigo e entra a estrutura abaixo)
@@ -234,7 +234,7 @@ const SERIE = [100000, 101200, 99800, 102600, 104100, 103000, 105800,
 
 ---
 
-### Tarefa 4: Cabeçalho vivo (link da seção ativa + luz no CTA) + Open Graph
+### Task 4: Cabeçalho vivo (link da seção ativa + luz no CTA) + Open Graph
 
 **Arquivos:**
 - Modificar: `src/main/resources/static/js/landing.js` (pequeno bloco "cabecalho" no fim do IIFE, antes do `if (reduzMovimento)`, para valer também com movimento reduzido)
@@ -263,7 +263,7 @@ const SERIE = [100000, 101200, 99800, 102600, 104100, 103000, 105800,
 
 ---
 
-### Tarefa 5: Verificação final, arquivamento e PR
+### Task 5: Verificação final, arquivamento e PR
 
 - [ ] **Passo 1:** `./mvnw test` → `Tests run: N, Failures: 0`, `BUILD SUCCESS`.
 - [ ] **Passo 2:** Rodar `landing_regression.py` inteiro contra a 8081 → todas as funções passam e não há erro de console nem de CSP.

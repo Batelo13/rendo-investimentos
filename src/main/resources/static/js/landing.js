@@ -4,9 +4,8 @@
  * Um progresso p (0..1) sai da posicao da pagina dentro de #jornada e e
  * interpolado a cada quadro (requestAnimationFrame so roda enquanto ha
  * movimento). Esse mesmo p dirige:
- *   - o video, quando configurado: currentTime = p * duration;
- *   - a cena ilustrada em SVG (fallback sem video): barras, personagem,
- *     linha de crescimento, ceu e cidade;
+ *   - a cena ilustrada em SVG: barras, personagem, linha de crescimento,
+ *     ceu e cidade;
  *   - os quatro momentos de texto.
  * Com prefers-reduced-motion nada e sincronizado: a cena fica no estado final
  * e o CSS mostra os momentos como texto em fluxo normal.
@@ -17,11 +16,9 @@
 
     const SVG = 'http://www.w3.org/2000/svg';
     const reduzMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const celular = window.matchMedia('(max-width: 767px)');
     const header = document.getElementById('lpHeader');
     const dica = document.getElementById('jornadaDica');
     const barraProgresso = document.getElementById('jornadaBarra');
-    const video = document.getElementById('jornadaVideo');
     const momentos = [...secao.querySelectorAll('.momento')].map((el) => ({
         el,
         inicio: Number(el.dataset.inicio),
@@ -194,47 +191,6 @@
         });
     }
 
-    /* ------------------------------- Video -------------------------------- */
-    let duracao = 0;
-    let usarVideo = false;
-
-    function carregarVideo() {
-        const desktop = secao.dataset.video;
-        const mobile = secao.dataset.videoMobile;
-        const economia = navigator.connection && navigator.connection.saveData;
-        if (!desktop || economia || reduzMovimento || typeof video.canPlayType !== 'function') return;
-
-        const fontes = celular.matches && mobile ? [mobile, desktop] : [desktop];
-        let indice = 0;
-        const tentar = () => {
-            video.src = fontes[indice];
-            video.preload = 'metadata';
-            video.load();
-        };
-        video.addEventListener('loadedmetadata', () => {
-            if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-            duracao = video.duration;
-            usarVideo = true;
-            video.preload = 'auto';
-            secao.classList.add('com-video');
-            pedirQuadro();
-        });
-        video.addEventListener('error', () => {
-            indice += 1;
-            if (indice < fontes.length) tentar();
-            else { usarVideo = false; secao.classList.remove('com-video'); }
-        });
-        tentar();
-    }
-
-    function posicionarVideo(p) {
-        if (!usarVideo || !duracao) return false;
-        const alvo = Math.min(p * duracao, duracao - 0.05);
-        if (video.seeking) return true; // tenta de novo no proximo quadro
-        if (Math.abs(video.currentTime - alvo) > 1 / 60) video.currentTime = alvo;
-        return false;
-    }
-
     /* ------------------------------- Laco --------------------------------- */
     let alvo = 0, atual = 0, quadro = 0;
 
@@ -248,15 +204,14 @@
         cena.atualizar(p);
         aplicarMomentos(p);
         barraProgresso.style.transform = `scaleX(${p.toFixed(4)})`;
-        return posicionarVideo(p);
     }
 
     function passo() {
         quadro = 0;
         atual += (alvo - atual) * 0.14;
         if (Math.abs(alvo - atual) < 0.0004) atual = alvo;
-        const pendente = desenhar(atual);
-        if (atual !== alvo || pendente) quadro = requestAnimationFrame(passo);
+        desenhar(atual);
+        if (atual !== alvo) quadro = requestAnimationFrame(passo);
     }
 
     function pedirQuadro() {
@@ -308,7 +263,4 @@
     atual = alvo = progressoDoScroll();
     desenhar(atual);
     aoRolar();
-    // Video so depois da pagina pronta: nao disputa banda com o carregamento inicial.
-    window.addEventListener('rendo:page-ready', carregarVideo, { once: true });
-    if (document.documentElement.classList.contains('page-ready')) carregarVideo();
 })();

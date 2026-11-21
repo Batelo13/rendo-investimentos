@@ -38,15 +38,8 @@
 </header>
 
 <main>
-    <!--
-      Jornada controlada pelo scroll (ver landing.js). Para usar o video final,
-      coloque os arquivos em src/main/resources/static/videos/ e preencha:
-        data-video="/videos/rendo-jornada.mp4"
-        data-video-mobile="/videos/rendo-jornada-mobile.mp4"  (opcional, < 768px)
-      Vazios = nenhum download; a narrativa usa a cena ilustrada em SVG.
-    -->
-    <section class="jornada" id="jornada" aria-label="A jornada Rendo"
-             data-video="" data-video-mobile="">
+    <!-- Jornada controlada pelo scroll (ver landing.js): cena ilustrada. -->
+    <section class="jornada" id="jornada" aria-label="A jornada Rendo">
         <div class="jornada-palco">
             <div class="jornada-midia" aria-hidden="true">
                 <svg class="jornada-cena" id="jornadaCena" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">
@@ -120,8 +113,6 @@
                         <rect x="-2000" y="790" width="5600" height="600" fill="url(#chao)"/>
                     </g>
                 </svg>
-                <video class="jornada-video" id="jornadaVideo" muted playsinline preload="none"
-                       th:poster="@{/images/rendo-jornada-poster.webp}" tabindex="-1"></video>
                 <div class="jornada-veu"></div>
             </div>
 

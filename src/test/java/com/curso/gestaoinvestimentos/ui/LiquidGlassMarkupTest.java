@@ -191,6 +191,15 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingNaoTemVideo() throws IOException {
+        String index = template("index.html");
+        assertFalse(index.contains("<video"));
+        assertFalse(index.contains("data-video"));
+        assertFalse(index.contains("jornada-poster"));
+        assertFalse(Files.readString(RESOURCES.resolve("static/js/landing.js")).contains("video"));
+    }
+
+    @Test
     void tituloDoGraficoTemOMesmoTamanhoDosOutrosPaineis() throws IOException {
         // Sem isso o h2 de .chart-head cai no h2 do Bootstrap (~32px).
         assertTrue(dashboardCss().matches("(?s).*\\.chart-head h2[^{]*\\{[^}]*font-size: 16px;.*"));

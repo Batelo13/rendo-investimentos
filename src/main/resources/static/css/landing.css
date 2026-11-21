@@ -111,21 +111,12 @@ body.landing-page::before { display: none; }
     overflow: hidden;
 }
 .jornada-midia { position: absolute; inset: 0; background: var(--lp-fundo); }
-.jornada-cena,
-.jornada-video {
+.jornada-cena {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
 }
-.jornada-video {
-    object-fit: cover;
-    object-position: 70% 50%;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-}
-.jornada.com-video .jornada-video { opacity: 1; }
-.jornada.com-video .jornada-cena { visibility: hidden; }
 
 /* Veu: garante contraste do texto a esquerda sem escurecer a acao a direita. */
 .jornada-veu {
@@ -382,7 +373,6 @@ body.landing-page::before { display: none; }
    texto embaixo sobre um veu vertical. */
 @media (max-width: 767px), (max-aspect-ratio: 9/10) {
     .jornada { height: 320vh; }
-    .jornada-video { object-position: 72% 30%; }
     .jornada-veu {
         background: linear-gradient(180deg, rgba(8, 10, 11, 0.5) 0%, rgba(8, 10, 11, 0) 16%, rgba(8, 10, 11, 0) 40%, rgba(8, 10, 11, 0.88) 62%, var(--lp-fundo) 100%);
     }
