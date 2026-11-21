@@ -191,6 +191,107 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingUsaContadorNosFatos() throws IOException {
+        assertTrue(template("index.html").contains("data-contador=\"100000\" data-formato=\"brl0\""));
+        String motion = Files.readString(RESOURCES.resolve("static/js/motion.js"));
+        for (String contrato : List.of("RendoMotion", "data-contador", "data-luz", "data-inclina")) {
+            assertTrue(motion.contains(contrato), contrato);
+        }
+    }
+
+    @Test
+    void aberturaTemCartaoDemonstrativo() throws IOException {
+        String index = template("index.html");
+        for (String contrato : List.of("id=\"cenaCarteira\"", "Dados demonstrativos",
+                "data-inclina=\"6\"", "data-inclina-area=\"#jornadaPalco\"", "id=\"jornadaPalco\"")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        assertFalse(index.contains("id=\"cenaPessoa\""));
+        assertFalse(index.contains("id=\"cenaCidade\""));
+        assertEquals(1, index.split("<h1", -1).length - 1, "um unico h1");
+    }
+
+    @Test
+    void landingTemSimuladorDemonstrativo() throws IOException {
+        String index = template("index.html");
+        for (String contrato : List.of("id=\"experimente\"", "href=\"#experimente\"", "Dados demonstrativos",
+                "Série ilustrativa: não é histórico real nem previsão.", "US$ 1 = R$ 5,40 (cotação demonstrativa)",
+                "aria-live=\"polite\"", "<noscript>")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        assertTrue(index.indexOf("@{/js/landing.js}") < index.indexOf("@{/js/landing-simulador.js}"));
+        assertEquals(3, index.split("name=\"cenario\"", -1).length - 1, "tres cenarios");
+    }
+
+    @Test
+    void landingTemSecaoProblema() throws IOException {
+        String index = template("index.html");
+        assertTrue(index.contains("id=\"problema\""));
+        assertEquals(3, index.split("data-resolve", -1).length - 1, "tres cards");
+        int problema = index.indexOf("id=\"problema\"");
+        assertTrue(index.indexOf("id=\"visao-geral\"") < problema && problema < index.indexOf("id=\"experimente\""));
+        assertTrue(Files.readString(RESOURCES.resolve("static/js/motion.js")).contains("data-resolve"));
+    }
+
+    @Test
+    void landingTemTourDoProduto() throws IOException {
+        String index = template("index.html");
+        assertEquals(4, index.split("class=\"tour-passo\"", -1).length - 1, "quatro passos");
+        for (String contrato : List.of("id=\"tour-1\"", "id=\"tour-2\"", "id=\"tour-3\"", "id=\"tour-4\"",
+                "Conferido na CVM", "Revise sua ordem")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        assertFalse(index.contains("lp-acompanhamento"));
+        assertTrue(index.indexOf("@{/js/landing-simulador.js}") < index.indexOf("@{/js/landing-tour.js}"));
+    }
+
+    @Test
+    void landingTemDiferenciaisDemonstrados() throws IOException {
+        String index = template("index.html");
+        assertEquals(3, index.split("class=\"dif-bloco", -1).length - 1, "tres blocos");
+        for (String contrato : List.of("Cotação ilustrativa", "Valores de exemplo", "Também na Rendo:")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        String nav = index.substring(index.indexOf("<nav class=\"lp-nav\""), index.indexOf("</nav>", index.indexOf("<nav class=\"lp-nav\"")));
+        assertFalse(nav.contains("href=\"#recursos\""), "cabecalho sem o link Recursos");
+        assertTrue(index.indexOf("@{/js/landing-tour.js}") < index.indexOf("@{/js/landing-diferenciais.js}"));
+    }
+
+    @Test
+    void landingTemSegurancaECtaFinal() throws IOException {
+        String index = template("index.html");
+        int inicioSeguranca = index.indexOf("id=\"seguranca\"");
+        String seguranca = index.substring(inicioSeguranca, index.indexOf("</section>", inicioSeguranca));
+        assertEquals(7, seguranca.split("<li", -1).length - 1, "sete protecoes");
+        assertTrue(seguranca.contains("Nenhum dinheiro real circula na Rendo."));
+        assertTrue(seguranca.contains("Limite de tentativas"));
+        // A janela conta da primeira falha: o texto nao pode prometer 15 min de bloqueio.
+        assertTrue(seguranca.contains("Após 5 senhas erradas em 15 minutos, o login fica bloqueado."));
+        int inicioCta = index.indexOf("class=\"lp-cta\"");
+        String cta = index.substring(inicioCta, index.indexOf("</section>", inicioCta));
+        assertTrue(cta.contains("data-contador=\"100000\""));
+        assertTrue(cta.contains("data-ima"));
+        assertTrue(Files.readString(RESOURCES.resolve("static/js/motion.js")).contains("data-ima"));
+    }
+
+    @Test
+    void landingTemOpenGraph() throws IOException {
+        String index = template("index.html");
+        assertTrue(index.contains("property=\"og:title\""));
+        assertTrue(index.contains("property=\"og:description\""));
+        assertTrue(index.contains("property=\"og:type\" content=\"website\""));
+    }
+
+    @Test
+    void landingNaoTemVideo() throws IOException {
+        String index = template("index.html");
+        assertFalse(index.contains("<video"));
+        assertFalse(index.contains("data-video"));
+        assertFalse(index.contains("jornada-poster"));
+        assertFalse(Files.readString(RESOURCES.resolve("static/js/landing.js")).contains("video"));
+    }
+
+    @Test
     void tituloDoGraficoTemOMesmoTamanhoDosOutrosPaineis() throws IOException {
         // Sem isso o h2 de .chart-head cai no h2 do Bootstrap (~32px).
         assertTrue(dashboardCss().matches("(?s).*\\.chart-head h2[^{]*\\{[^}]*font-size: 16px;.*"));

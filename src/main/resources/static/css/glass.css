@@ -99,3 +99,37 @@ body.rendo-page::before {
     body.rendo-page::before { animation: none; }
     .glass-interactive:hover { transform: none; }
 }
+
+/* Sistema de movimento (motion.js): contador, luz e inclinacao por atributo. */
+[data-contador] { font-variant-numeric: tabular-nums; }
+
+[data-luz] { position: relative; isolation: isolate; }
+[data-luz]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(240px circle at var(--luz-x, 50%) var(--luz-y, 50%), rgba(255, 255, 255, 0.08), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+[data-luz].com-luz::after { opacity: 1; }
+
+[data-inclina] {
+    transform-style: preserve-3d;
+    transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+}
+
+[data-ima] {
+    translate: var(--ima-x, 0) var(--ima-y, 0);
+    transition: translate 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-luz]::after { display: none; }
+    [data-ima] { translate: none; }
+    [data-inclina] { transition: none; }
+}

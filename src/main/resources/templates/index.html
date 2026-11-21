@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Rendo: simule uma carteira de ações do Brasil e dos EUA com saldo fictício e acompanhe a evolução do seu patrimônio.">
     <meta name="theme-color" content="#0A0C0D">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Rendo — Sua jornada financeira, um degrau de cada vez">
+    <meta property="og:description" content="Rendo: simule uma carteira de ações do Brasil e dos EUA com saldo fictício e acompanhe a evolução do seu patrimônio.">
     <script th:src="@{/js/tema-inicial.js}"></script>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
     <title>Rendo — Sua jornada financeira, um degrau de cada vez</title>
@@ -27,104 +30,87 @@
     </a>
     <nav class="lp-nav" aria-label="Seções da página">
         <a href="#visao-geral">A Rendo</a>
+        <a href="#experimente">Experimente</a>
         <a href="#como-funciona">Como funciona</a>
-        <a href="#recursos">Recursos</a>
         <a href="#seguranca">Segurança</a>
     </nav>
     <div class="lp-header-acoes">
         <a class="lp-link-conta" th:href="@{/login}">Entrar</a>
-        <a class="lp-botao lp-botao-primario lp-botao-sm" th:href="@{/login(criarConta=1)}">Criar conta</a>
+        <a class="lp-botao lp-botao-primario lp-botao-sm" th:href="@{/login(criarConta=1)}" data-luz>Criar conta</a>
     </div>
 </header>
 
 <main>
-    <!--
-      Jornada controlada pelo scroll (ver landing.js). Para usar o video final,
-      coloque os arquivos em src/main/resources/static/videos/ e preencha:
-        data-video="/videos/rendo-jornada.mp4"
-        data-video-mobile="/videos/rendo-jornada-mobile.mp4"  (opcional, < 768px)
-      Vazios = nenhum download; a narrativa usa a cena ilustrada em SVG.
-    -->
-    <section class="jornada" id="jornada" aria-label="A jornada Rendo"
-             data-video="" data-video-mobile="">
-        <div class="jornada-palco">
+    <!-- Jornada controlada pelo scroll (ver landing.js): cena ilustrada. -->
+    <section class="jornada" id="jornada" aria-label="A jornada Rendo">
+        <div class="jornada-palco" id="jornadaPalco">
             <div class="jornada-midia" aria-hidden="true">
-                <svg class="jornada-cena" id="jornadaCena" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">
+                <!-- Cena: carteira demonstrativa que ganha forma com o scroll (landing.js). -->
+                <svg class="jornada-fundo" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">
                     <defs>
-                        <linearGradient id="ceuNoite" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#060708"/>
-                            <stop offset="0.6" stop-color="#0A0E0E"/>
-                            <stop offset="1" stop-color="#0E1513"/>
-                        </linearGradient>
-                        <linearGradient id="ceuAurora" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#081211"/>
-                            <stop offset="0.45" stop-color="#0F2722"/>
-                            <stop offset="0.72" stop-color="#3A4A36"/>
-                            <stop offset="0.9" stop-color="#B58A4C"/>
-                            <stop offset="1" stop-color="#E2B66E"/>
-                        </linearGradient>
-                        <radialGradient id="sol" cx="0.5" cy="0.5" r="0.5">
-                            <stop offset="0" stop-color="#FFE3A8" stop-opacity="0.95"/>
-                            <stop offset="0.35" stop-color="#F0C072" stop-opacity="0.45"/>
-                            <stop offset="1" stop-color="#E2B66E" stop-opacity="0"/>
+                        <radialGradient id="fundoLuz" cx="0.7" cy="0.86" r="0.62">
+                            <stop offset="0" stop-color="#E9C27A" stop-opacity="0.5"/>
+                            <stop offset="0.42" stop-color="#5DE2BA" stop-opacity="0.1"/>
+                            <stop offset="1" stop-color="#0A0C0D" stop-opacity="0"/>
                         </radialGradient>
-                        <linearGradient id="barraFrente" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#3FD3A3"/>
-                            <stop offset="0.25" stop-color="#1F8C6C"/>
-                            <stop offset="1" stop-color="#0C2A22" stop-opacity="0.35"/>
+                        <linearGradient id="gradeFade" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+                            <stop offset="1" stop-color="#FFFFFF" stop-opacity="1"/>
                         </linearGradient>
-                        <linearGradient id="barraLado" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#1A6B54"/>
-                            <stop offset="1" stop-color="#081A15" stop-opacity="0.3"/>
-                        </linearGradient>
-                        <linearGradient id="chao" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#0A0D0E" stop-opacity="0"/>
-                            <stop offset="1" stop-color="#0A0C0D"/>
-                        </linearGradient>
-                        <linearGradient id="linhaFutura" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0" stop-color="#5DE2BA"/>
-                            <stop offset="1" stop-color="#E9C27A"/>
-                        </linearGradient>
-                        <filter id="brilho" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="6"/>
-                        </filter>
+                        <mask id="gradeMascara"><rect x="0" y="540" width="1600" height="360" fill="url(#gradeFade)"/></mask>
                     </defs>
-
-                    <rect x="-2000" y="-2000" width="5600" height="5000" fill="url(#ceuNoite)"/>
-                    <rect id="cenaAurora" x="-2000" y="-2000" width="5600" height="2920" fill="url(#ceuAurora)" opacity="0"/>
-                    <g id="cenaEstrelas" fill="#DCE6E2"></g>
-                    <circle id="cenaSol" cx="1360" cy="720" r="230" fill="url(#sol)" opacity="0"/>
-
-                    <g id="cenaMundo">
-                        <g id="cenaCidade" opacity="0"></g>
-                        <g id="cenaGrade" opacity="0"></g>
-                        <g id="cenaBarras"></g>
-                        <polyline id="cenaLinha" fill="none" stroke="url(#linhaFutura)" stroke-width="5"
-                                  stroke-linecap="round" stroke-linejoin="round" pathLength="1"
-                                  stroke-dasharray="1" stroke-dashoffset="1"/>
-                        <polyline id="cenaLinhaBrilho" fill="none" stroke="#5DE2BA" stroke-width="14"
-                                  stroke-linecap="round" stroke-linejoin="round" pathLength="1"
-                                  stroke-dasharray="1" stroke-dashoffset="1" opacity="0.35" filter="url(#brilho)"/>
-                        <g id="cenaPessoa">
-                            <ellipse cx="0" cy="1" rx="18" ry="3" fill="#000" opacity="0.35"/>
-                            <g class="pessoa" fill="rgb(226,231,228)" stroke="#E9C27A" stroke-opacity="0.35" stroke-width="0.8" stroke-linejoin="round">
-                                <rect id="pernaTras" x="-4.5" y="-31" width="9" height="32" rx="4.5" opacity="0.8"/>
-                                <rect id="bracoTras" x="-3.8" y="-57" width="7.6" height="28" rx="3.8" opacity="0.8"/>
-                                <path d="M-10 -58 C-12.5 -50 -11.5 -38 -9 -28 L9 -28 C11.5 -38 12.5 -50 10 -58 Q0 -62.5 -10 -58 Z"/>
-                                <rect id="pernaFrente" x="-4.5" y="-31" width="9" height="32" rx="4.5"/>
-                                <rect id="bracoFrente" x="-3.8" y="-57" width="7.6" height="28" rx="3.8"/>
-                                <rect x="-2.6" y="-63" width="5.2" height="6" rx="2"/>
-                                <circle cx="0" cy="-70" r="8"/>
-                            </g>
-                        </g>
-                        <rect x="-2000" y="790" width="5600" height="600" fill="url(#chao)"/>
-                    </g>
+                    <rect id="fundoAmanhecer" x="0" y="0" width="1600" height="900" fill="url(#fundoLuz)" opacity="0"/>
+                    <g id="fundoGrade" mask="url(#gradeMascara)" stroke="#DCE6E2" stroke-opacity="0.1" fill="none"></g>
                 </svg>
-                <video class="jornada-video" id="jornadaVideo" muted playsinline preload="none"
-                       th:poster="@{/images/rendo-jornada-poster.webp}" tabindex="-1"></video>
+                <div class="cena-camera" id="cenaCamera">
+                    <div class="cena-satelite cena-satelite-posicoes glass-surface">
+                        <span class="cena-rotulo">Posições</span>
+                        <ul>
+                            <li><b>PETR4</b><span>R$ 39.340</span></li>
+                            <li><b>VALE3</b><span>R$ 26.150</span></li>
+                            <li><b>WEGE3</b><span>R$ 23.480</span></li>
+                            <li><b>AAPL</b><span>R$ 23.430</span></li>
+                        </ul>
+                    </div>
+                    <div class="cena-satelite cena-satelite-operacoes glass-surface">
+                        <span class="cena-rotulo">Operações</span>
+                        <ul>
+                            <li><i class="op op-compra">Compra</i><b>PETR4</b><span>mês 1</span></li>
+                            <li><i class="op op-compra">Compra</i><b>WEGE3</b><span>mês 6</span></li>
+                            <li><i class="op op-venda">Venda</i><b>VALE3</b><span>mês 9</span></li>
+                        </ul>
+                    </div>
+                    <div class="cena-carteira glass-surface-strong" id="cenaCarteira" data-inclina="6" data-inclina-area="#jornadaPalco" data-luz>
+                        <div class="cena-topo">
+                            <span class="cena-rotulo">Patrimônio</span>
+                            <span class="cena-selo">Dados demonstrativos</span>
+                        </div>
+                        <strong class="cena-valor" id="cenaValor">R$ 100.000,00</strong>
+                        <svg class="cena-grafico" id="cenaGrafico" viewBox="0 0 480 200" focusable="false">
+                            <g id="cenaDegraus"></g>
+                            <polyline id="cenaLinha" pathLength="1" fill="none" stroke="#5DE2BA" stroke-width="2.5"
+                                      stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1" stroke-dashoffset="1"/>
+                            <g id="cenaMarcadores"></g>
+                        </svg>
+                        <div class="cena-alocacao">
+                            <svg class="cena-anel" id="cenaAnel" viewBox="0 0 120 120" focusable="false">
+                                <circle class="anel-trilho" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                            </svg>
+                            <ul class="cena-chips" id="cenaChips">
+                                <li><i></i><b>PETR4</b><span>35%</span></li>
+                                <li><i></i><b>VALE3</b><span>25%</span></li>
+                                <li><i></i><b>WEGE3</b><span>20%</span></li>
+                                <li><i></i><b>AAPL</b><span>20%</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <div class="jornada-veu"></div>
             </div>
-
             <div class="jornada-momentos">
                 <article class="momento" data-inicio="0" data-fim="0.2">
                     <span class="momento-etapa">01 · Começo da jornada</span>
@@ -172,7 +158,7 @@
             <div class="lp-visao-texto">
                 <p>A Rendo é uma plataforma de simulação. Você cria sua conta, recebe um saldo fictício e monta uma carteira com cotações reais de mercado, acompanhando cada resultado como faria com uma carteira de verdade.</p>
                 <dl class="lp-fatos">
-                    <div><dt>R$ 100.000</dt><dd>de saldo fictício para começar</dd></div>
+                    <div><dt data-contador="100000" data-formato="brl0">R$ 100.000</dt><dd>de saldo fictício para começar</dd></div>
                     <div><dt>Brasil e EUA</dt><dd>ações da B3 e do mercado americano</dd></div>
                     <div><dt>Zero dinheiro real</dt><dd>nenhuma transação financeira acontece</dd></div>
                 </dl>
@@ -180,76 +166,211 @@
         </div>
     </section>
 
-    <section class="lp-secao" id="como-funciona" data-motion>
+    <!-- O problema: cada card mostra o "antes" e se resolve ao entrar na tela (motion.js). -->
+    <section class="lp-secao lp-problema" id="problema" data-motion>
+        <div class="lp-container">
+            <span class="lp-sobretitulo">O problema</span>
+            <h2 class="lp-titulo-secao">Por que começar a investir trava tanta gente</h2>
+            <div class="problema-grade">
+                <article class="problema-card" data-resolve>
+                    <h3>Medo de errar com dinheiro real</h3>
+                    <div class="antes"><p class="problema-alerta">Seu dinheiro em risco a cada decisão</p></div>
+                    <div class="depois">
+                        <strong class="problema-destaque">R$ 0 em risco</strong>
+                        <p>R$ 100.000 de saldo fictício para praticar</p>
+                    </div>
+                </article>
+                <article class="problema-card" data-resolve>
+                    <h3>Informação espalhada</h3>
+                    <div class="antes">
+                        <ul class="problema-pilulas">
+                            <li>Corretora A</li><li>Corretora B</li><li>planilha</li><li>câmbio do dia</li>
+                        </ul>
+                    </div>
+                    <div class="depois">
+                        <p class="problema-linha"><b>PETR4</b> · 300 ações · preço médio R$ 31,20 · 2 corretoras</p>
+                    </div>
+                </article>
+                <article class="problema-card" data-resolve>
+                    <h3>Não saber se está indo bem</h3>
+                    <div class="antes"><p class="problema-duvida"><span>?</span> Lucro ou prejuízo?</p></div>
+                    <div class="depois problema-resultados">
+                        <p><span>Realizado</span><strong class="positivo">+ R$ 420</strong></p>
+                        <p><span>Não realizado</span><strong class="negativo">− R$ 85</strong></p>
+                    </div>
+                </article>
+            </div>
+            <p class="lp-rotulo-exemplo">Valores de exemplo</p>
+        </div>
+    </section>
+
+    <!-- Simulador demonstrativo (landing-simulador.js): nada sai do navegador. -->
+    <section class="lp-secao lp-simulador" id="experimente" data-motion>
+        <div class="lp-container">
+            <div class="sim-cabecalho">
+                <div>
+                    <span class="lp-sobretitulo">Experimente</span>
+                    <h2 class="lp-titulo-secao">Monte uma carteira de demonstração</h2>
+                </div>
+                <span class="cena-selo">Dados demonstrativos</span>
+            </div>
+            <noscript><p class="sim-sem-js">Ative o JavaScript para experimentar o simulador.</p></noscript>
+            <div class="sim-grade">
+                <div class="sim-controles">
+                    <p class="sim-passo">1. Escolha até 4 ações</p>
+                    <div class="sim-acoes" id="simAcoes"></div>
+                    <p class="sim-aviso" id="simAviso" hidden>Escolha até 4 ações.</p>
+                    <p class="sim-passo">2. Distribua os R$ 100.000</p>
+                    <div class="sim-sliders" id="simSliders"></div>
+                    <output class="sim-caixa" id="simCaixa" aria-live="off">Caixa: R$ 100.000</output>
+                    <p class="sim-nota">US$ 1 = R$ 5,40 (cotação demonstrativa)</p>
+                </div>
+                <div class="sim-resultado glass-surface-strong" data-luz>
+                    <fieldset class="sim-cenarios" id="simCenarios">
+                        <legend class="sim-passo">3. Escolha um cenário</legend>
+                        <label><input type="radio" name="cenario" value="alta" checked> Alta</label>
+                        <label><input type="radio" name="cenario" value="lateral"> Lateral</label>
+                        <label><input type="radio" name="cenario" value="queda"> Queda</label>
+                    </fieldset>
+                    <div class="sim-numeros">
+                        <svg class="sim-anel" id="simAnel" viewBox="0 0 120 120" aria-hidden="true" focusable="false"></svg>
+                        <div>
+                            <span class="cena-rotulo">Patrimônio após 12 meses</span>
+                            <strong class="sim-valor" id="simValor">R$ 100.000</strong>
+                        </div>
+                    </div>
+                    <svg class="sim-grafico" id="simGrafico" viewBox="0 0 560 220" aria-hidden="true" focusable="false"></svg>
+                    <p class="sim-legenda">Série ilustrativa: não é histórico real nem previsão.</p>
+                    <p class="sim-resumo" id="simResumo" aria-live="polite"></p>
+                    <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Criar conta e montar a carteira de verdade</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tour do produto: replicas ilustrativas das telas reais (landing-tour.js marca o passo ativo). -->
+    <section class="lp-secao lp-tour" id="como-funciona" data-motion>
         <div class="lp-container">
             <span class="lp-sobretitulo">Como funciona</span>
             <h2 class="lp-titulo-secao">Quatro passos, do cadastro à primeira análise.</h2>
-            <ol class="lp-passos">
-                <li>
-                    <span class="lp-passo-num">01</span>
-                    <h3>Crie sua conta</h3>
-                    <p>Cadastro com e-mail e confirmação por código. Sua carteira já nasce com o saldo fictício.</p>
-                </li>
-                <li>
-                    <span class="lp-passo-num">02</span>
-                    <h3>Cadastre corretoras</h3>
-                    <p>Informe o CNPJ: os dados são conferidos em fontes públicas, incluindo o cadastro da CVM.</p>
-                </li>
-                <li>
-                    <span class="lp-passo-num">03</span>
-                    <h3>Compre e venda ações</h3>
-                    <p>Use cotações de mercado, revise cada ordem numa tela de confirmação e mantenha o histórico completo.</p>
-                </li>
-                <li>
-                    <span class="lp-passo-num">04</span>
-                    <h3>Acompanhe a evolução</h3>
-                    <p>Veja posições, preço médio, resultado e a evolução patrimonial ao longo do tempo.</p>
-                </li>
-            </ol>
-        </div>
-    </section>
-
-    <section class="lp-secao" id="recursos" data-motion>
-        <div class="lp-container">
-            <span class="lp-sobretitulo">Recursos</span>
-            <h2 class="lp-titulo-secao">O essencial para acompanhar uma carteira com clareza.</h2>
-            <ul class="lp-recursos">
-                <li><h3>Catálogo com cotações</h3><p>Ações brasileiras e americanas com nome, logo e cotação atualizável, além do histórico de preços.</p></li>
-                <li><h3>Conversão de câmbio</h3><p>Ativos em dólar exibem o valor convertido em reais pela cotação do dia.</p></li>
-                <li><h3>Preço médio consolidado</h3><p>Uma visão por ação, mesmo quando a posição está distribuída entre corretoras.</p></li>
-                <li><h3>Histórico de operações</h3><p>Compras e vendas paginadas, com cancelamento que recalcula a posição.</p></li>
-                <li><h3>Evolução patrimonial</h3><p>Gráfico do rendimento da carteira com períodos de um dia até todo o histórico.</p></li>
-                <li><h3>Tema claro e escuro</h3><p>A área logada se adapta à sua preferência de leitura.</p></li>
-            </ul>
-        </div>
-    </section>
-
-    <section class="lp-secao lp-acompanhamento" data-motion>
-        <div class="lp-container lp-acompanhamento-grade">
-            <div>
-                <span class="lp-sobretitulo">Acompanhamento</span>
-                <h2 class="lp-titulo-secao">Seus números, organizados para você decidir.</h2>
-                <p class="lp-texto">Patrimônio total, saldo disponível, resultado realizado e não realizado, valor por ação e fatia do patrimônio investida aparecem juntos na visão geral, atualizados a cada operação.</p>
-                <a class="lp-botao lp-botao-secundario" th:href="@{/login}">Acessar minha carteira</a>
+            <div class="tour-grade">
+                <nav class="tour-indice" aria-label="Passos de como funciona">
+                    <a href="#tour-1"><span>01</span>Crie sua conta</a>
+                    <a href="#tour-2"><span>02</span>Cadastre corretoras</a>
+                    <a href="#tour-3"><span>03</span>Compre e venda ações</a>
+                    <a href="#tour-4"><span>04</span>Acompanhe a evolução</a>
+                </nav>
+                <div class="tour-passos">
+                    <article class="tour-passo" id="tour-1">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">01</span>
+                            <h3>Crie sua conta</h3>
+                            <p>Cadastro com e-mail e confirmação por código. Sua carteira já nasce com o saldo fictício.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Criar conta</p>
+                            <div class="rep-campo"><span>Nome</span><b>Ana Souza</b></div>
+                            <div class="rep-campo"><span>E-mail</span><b>ana@exemplo.com</b></div>
+                            <div class="rep-campo"><span>CPF</span><b>•••.•••.•••-••</b></div>
+                            <p class="rep-legenda">Código enviado ao seu e-mail</p>
+                            <div class="rep-digitos"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>7</i></div>
+                        </figure>
+                    </article>
+                    <article class="tour-passo" id="tour-2">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">02</span>
+                            <h3>Cadastre corretoras</h3>
+                            <p>Informe o CNPJ: os dados são conferidos em fontes públicas, incluindo o cadastro da CVM.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Nova corretora</p>
+                            <div class="rep-campo"><span>CNPJ</span><b>12.345.678/0001-90 (exemplo)</b></div>
+                            <div class="rep-campo"><span>Razão social</span><b>Corretora Exemplo S.A.</b></div>
+                            <span class="rep-selo">✓ Conferido na CVM</span>
+                        </figure>
+                    </article>
+                    <article class="tour-passo" id="tour-3">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">03</span>
+                            <h3>Compre e venda ações</h3>
+                            <p>Use cotações de mercado, revise cada ordem numa tela de confirmação e mantenha o histórico completo.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Revise sua ordem</p>
+                            <dl class="rep-ordem">
+                                <div><dt>Operação</dt><dd>Compra</dd></div>
+                                <div><dt>Ação</dt><dd>PETR4</dd></div>
+                                <div><dt>Quantidade</dt><dd>100 ações</dd></div>
+                                <div><dt>Preço</dt><dd>R$ 38,50</dd></div>
+                                <div><dt>Corretora</dt><dd>Corretora Exemplo</dd></div>
+                                <div class="rep-total"><dt>Total</dt><dd>R$ 3.850,00</dd></div>
+                            </dl>
+                            <div class="rep-botoes"><span class="rep-botao">Cancelar</span><span class="rep-botao rep-botao-primario">Confirmar</span></div>
+                        </figure>
+                    </article>
+                    <article class="tour-passo" id="tour-4">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">04</span>
+                            <h3>Acompanhe a evolução</h3>
+                            <p>Veja posições, preço médio, resultado e a evolução patrimonial ao longo do tempo.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Visão geral</p>
+                            <span class="rep-legenda">Patrimônio</span>
+                            <strong class="rep-patrimonio">R$ 103.240</strong>
+                            <svg class="rep-evolucao" viewBox="0 0 320 80" focusable="false">
+                                <polyline pathLength="1" points="0,64 30,58 60,61 90,48 120,52 150,40 180,43 210,30 240,34 270,22 300,25 320,14"/>
+                            </svg>
+                            <ul class="rep-posicoes">
+                                <li><b>PETR4</b><span>R$ 41.200</span></li>
+                                <li><b>VALE3</b><span>R$ 24.880</span></li>
+                                <li><b>AAPL</b><span>R$ 22.160</span></li>
+                            </ul>
+                        </figure>
+                    </article>
+                </div>
             </div>
-            <figure class="lp-ilustracao" aria-label="Ilustração da visão geral da carteira">
-                <svg viewBox="0 0 420 260" role="img" aria-hidden="true" focusable="false">
-                    <rect x="0.5" y="0.5" width="419" height="259" rx="14" fill="#101415" stroke="rgba(255,255,255,0.08)"/>
-                    <text x="24" y="38" fill="#8E99A8" font-size="11" font-family="Inter, sans-serif">Patrimônio total</text>
-                    <text x="24" y="64" fill="#F4F6F8" font-size="22" font-weight="600" font-family="Inter, sans-serif">R$ 100.000,00</text>
-                    <polyline points="24,200 64,186 104,192 144,160 184,168 224,134 264,142 304,108" fill="none" stroke="#5DE2BA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <g fill="#5DE2BA">
-                        <rect x="24" y="218" width="26" height="18" rx="3" opacity="0.35"/>
-                        <rect x="58" y="210" width="26" height="26" rx="3" opacity="0.45"/>
-                        <rect x="92" y="204" width="26" height="32" rx="3" opacity="0.55"/>
-                        <rect x="126" y="196" width="26" height="40" rx="3" opacity="0.7"/>
-                    </g>
-                    <circle cx="350" cy="168" r="38" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
-                    <circle cx="350" cy="168" r="38" fill="none" stroke="#E9C27A" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="64 100" transform="rotate(-90 350 168)"/>
-                    <text x="350" y="173" text-anchor="middle" fill="#F4F6F8" font-size="15" font-weight="600" font-family="Inter, sans-serif">64%</text>
-                </svg>
-                <figcaption>Ilustração com valores de exemplo.</figcaption>
-            </figure>
+        </div>
+    </section>
+
+    <!-- Diferenciais: microdemonstracoes (landing-diferenciais.js e data-contador). -->
+    <section class="lp-secao lp-diferenciais" id="recursos" data-motion>
+        <div class="lp-container">
+            <span class="lp-sobretitulo">Diferenciais</span>
+            <h2 class="lp-titulo-secao">Recursos que você vê funcionando.</h2>
+            <div class="dif-grade">
+                <article class="dif-bloco dif-cambio" data-luz data-inclina="3">
+                    <h3>Câmbio automático</h3>
+                    <p class="dif-sub">AAPL · 10 ações · US$ 228,00</p>
+                    <strong class="dif-valor" id="difCambioValor">US$ 2.280,00</strong>
+                    <button type="button" class="lp-botao lp-botao-secundario lp-botao-sm" id="difCambioBotao" aria-pressed="false">Ver em reais</button>
+                    <p class="dif-nota">US$ 1 = R$ 5,40 (cotação demonstrativa)</p>
+                </article>
+                <article class="dif-bloco dif-historico" data-luz data-inclina="3">
+                    <h3>Histórico de cotação</h3>
+                    <p class="dif-sub" id="difHistoricoTexto" aria-live="off">dia 30</p>
+                    <div class="dif-grafico">
+                        <svg id="difHistoricoGrafico" viewBox="0 0 600 160" aria-hidden="true" focusable="false"></svg>
+                        <input type="range" id="difHistorico" min="0" max="29" step="1" value="29" aria-describedby="difHistoricoTexto">
+                    </div>
+                    <label class="dif-nota" for="difHistorico">Percorrer a cotação · Cotação ilustrativa</label>
+                </article>
+                <article class="dif-bloco dif-preco" data-luz data-inclina="3">
+                    <h3>Preço médio consolidado</h3>
+                    <ul class="dif-compras">
+                        <li><span>100 ações a</span><b>R$ 30,00</b></li>
+                        <li><span>50 ações a</span><b>R$ 36,00</b></li>
+                    </ul>
+                    <p class="dif-sub">Preço médio</p>
+                    <strong class="dif-valor" id="difPrecoMedio" data-contador="32" data-formato="brl">R$ 32,00</strong>
+                    <p class="dif-nota">Valores de exemplo</p>
+                </article>
+            </div>
+            <p class="dif-tambem">Também na Rendo: histórico de operações com cancelamento, evolução patrimonial de 1 dia a todo o período e tema claro e escuro na área logada.</p>
         </div>
     </section>
 
@@ -257,24 +378,28 @@
         <div class="lp-container lp-seguranca-grade">
             <div>
                 <span class="lp-sobretitulo">Segurança e privacidade</span>
-                <h2 class="lp-titulo-secao">Cuidados aplicados desde o cadastro.</h2>
+                <h2 class="lp-titulo-secao">Por que confiar</h2>
+                <p class="lp-seguranca-destaque">Nenhum dinheiro real circula na Rendo.</p>
                 <p class="lp-texto">Nenhum sistema é infalível, por isso tratamos proteção como prática contínua, com revisões e testes automatizados de segurança.</p>
             </div>
             <ul class="lp-seguranca-lista">
-                <li><h3>Senha protegida</h3><p>Armazenada apenas como hash BCrypt, nunca em texto puro.</p></li>
-                <li><h3>CPF não exposto</h3><p>Guardado só como resumo criptográfico com chave secreta e nunca devolvido pela API.</p></li>
-                <li><h3>E-mail verificado</h3><p>A conta só é ativada com o código enviado ao seu e-mail.</p></li>
-                <li><h3>Dados isolados</h3><p>Cada conta acessa apenas a própria carteira, posições e operações.</p></li>
+                <li data-motion><h3>E-mail verificado</h3><p>A conta só é ativada com o código enviado ao seu e-mail.</p></li>
+                <li data-motion><h3>Limite de tentativas</h3><p>Após 5 senhas erradas em 15 minutos, o login fica bloqueado.</p></li>
+                <li data-motion><h3>Senha protegida</h3><p>Armazenada apenas como hash BCrypt, nunca em texto puro.</p></li>
+                <li data-motion><h3>CPF não exposto</h3><p>Guardado só como resumo criptográfico com chave secreta e nunca devolvido pela API.</p></li>
+                <li data-motion><h3>Dados isolados</h3><p>Cada conta acessa apenas a própria carteira, posições e operações.</p></li>
+                <li data-motion><h3>Cabeçalhos de segurança</h3><p>Política de conteúdo restrita, sem scripts de terceiros.</p></li>
+                <li data-motion><h3>Verificação semanal</h3><p>Testes automáticos de segurança rodam toda semana.</p></li>
             </ul>
         </div>
     </section>
 
     <section class="lp-cta" data-motion>
         <div class="lp-container">
-            <h2>Dê o primeiro passo da sua jornada.</h2>
+            <h2>Comece com <span data-contador="100000" data-formato="brl0">R$ 100.000</span> fictícios.</h2>
             <p>Crie sua conta e comece a simular hoje mesmo.</p>
             <div class="momento-acoes lp-cta-acoes">
-                <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Criar minha conta</a>
+                <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}" data-ima>Criar minha conta</a>
                 <a class="lp-botao lp-botao-secundario" th:href="@{/login}">Já tenho conta</a>
             </div>
         </div>
@@ -289,6 +414,7 @@
         </div>
         <nav aria-label="Rodapé">
             <a href="#visao-geral">A Rendo</a>
+            <a href="#experimente">Experimente</a>
             <a href="#como-funciona">Como funciona</a>
             <a href="#recursos">Recursos</a>
             <a href="#seguranca">Segurança</a>
@@ -301,5 +427,8 @@
 <script th:src="@{/js/loading.js}"></script>
 <script th:src="@{/js/motion.js}"></script>
 <script th:src="@{/js/landing.js}"></script>
+<script th:src="@{/js/landing-simulador.js}"></script>
+<script th:src="@{/js/landing-tour.js}"></script>
+<script th:src="@{/js/landing-diferenciais.js}"></script>
 </body>
 </html>

@@ -56,3 +56,7 @@ security/zap.yaml
 
 ### Banco H2 em arquivo do profile dev (dados locais, nunca commitar) ###
 data/
+
+### Python ###
+__pycache__/
+*.pyc
