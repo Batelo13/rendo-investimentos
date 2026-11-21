@@ -314,6 +314,120 @@ def simulador_converte_acoes_eua(browser: Browser) -> None:
     sem_erros(page)
 
 
+def numero(t: str) -> float:
+    return float(t.replace("R$", "").replace(".", "").replace(",", ".").strip())
+
+
+def cenario(page: Page, nome: str, espera: float = 0.8) -> float:
+    page.check(f'#simCenarios input[value="{nome}"]')
+    time.sleep(espera)
+    return numero(texto(page, "#simValor"))
+
+
+def simulador_tudo_em_caixa_nao_varia(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    for t in ("PETR4", "VALE3", "WEGE3"):
+        chip(page, t).click()
+    for nome in ("alta", "lateral", "queda"):
+        assert cenario(page, nome) == 100000.0, f"Tudo em caixa deveria dar R$ 100.000,00 em {nome}, veio {texto(page, '#simValor')!r}"
+    sem_erros(page)
+
+
+def simulador_cenarios_ordenados(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    alta, lateral, queda = (cenario(page, n) for n in ("alta", "lateral", "queda"))
+    assert alta > lateral > queda, f"Esperado alta > lateral > queda, veio {alta}, {lateral}, {queda}"
+    assert queda < 100000 < alta, f"Queda deveria ficar abaixo e alta acima de R$ 100.000: {queda}, {alta}"
+    sem_erros(page)
+
+
+def simulador_deterministico(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    primeiro = cenario(page, "alta")
+    cenario(page, "queda")
+    assert cenario(page, "alta") == primeiro, "Voltar ao cenario deveria mostrar o mesmo valor"
+    sem_erros(page)
+
+
+def simulador_troca_rapida_de_cenario(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    lateral = cenario(page, "lateral")
+    cenario(page, "alta")
+    page.check('#simCenarios input[value="queda"]')
+    time.sleep(0.1)
+    assert cenario(page, "lateral") == lateral, f"Troca no meio da animacao deveria terminar em lateral ({lateral}), veio {texto(page, '#simValor')!r}"
+    sem_erros(page)
+
+
+def simulador_resumo_aria_live(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    cenario(page, "queda")
+    resumo = texto(page, "#simResumo")
+    assert resumo.startswith("Cenário de queda: R$"), f"Resumo errado: {resumo!r}"
+    sem_erros(page)
+
+
+def simulador_movimento_reduzido(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    ir_para_simulador(page)
+    alta = numero(texto(page, "#simValor"))
+    imediato = cenario(page, "queda", espera=0.05)
+    time.sleep(1)
+    assert imediato == numero(texto(page, "#simValor")) != alta, "Com movimento reduzido o valor deveria mudar na hora"
+    sem_erros(page)
+
+
+def simulador_arrastar_sem_travar(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    inicial = texto(page, "#simValor")
+    page.evaluate(
+        """() => { window.__longas = [];
+                   new PerformanceObserver(l => l.getEntries().forEach(e => __longas.push(Math.round(e.duration))))
+                       .observe({ type: 'longtask' }); }"""
+    )
+    page.locator('#simSliders input[data-ticker="PETR4"]').scroll_into_view_if_needed()
+    time.sleep(0.3)
+    caixa = page.locator('#simSliders input[data-ticker="PETR4"]').bounding_box()
+    y = caixa["y"] + caixa["height"] / 2
+    page.mouse.move(caixa["x"] + 2, y)
+    page.mouse.down()
+    page.mouse.move(caixa["x"] + caixa["width"] - 2, y, steps=30)
+    page.mouse.up()
+    time.sleep(0.8)
+    longas = page.evaluate("__longas")
+    assert len(longas) <= 1, f"Tarefas longas ao arrastar: {longas}"
+    assert texto(page, "#simValor") != inicial, "O valor deveria acompanhar o slider"
+    sem_erros(page)
+
+
+def simulador_sem_overflow_no_celular(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 390, "height": 844})
+    ir_para_simulador(page)
+    largura = page.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+    assert largura[0] <= largura[1], f"Scroll horizontal no simulador: {largura}"
+    for entrada in page.locator("#experimente input").all():
+        caixa = entrada.bounding_box()
+        assert caixa and caixa["x"] >= 0 and caixa["x"] + caixa["width"] <= 390, f"Controle fora da tela: {caixa}"
+    sem_erros(page)
+
+
+def screenshots_simulador(browser: Browser) -> None:
+    pasta = os.path.join("target", "landing-screens")
+    os.makedirs(pasta, exist_ok=True)
+    for largura, altura in ((1280, 900), (768, 1024), (390, 844)):
+        page = abrir(browser, viewport={"width": largura, "height": altura})
+        ir_para_simulador(page)
+        cenario(page, "alta")
+        page.locator("#experimente").screenshot(path=os.path.join(pasta, f"simulador-{largura}.png"))
+        sem_erros(page)
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -369,6 +483,15 @@ TESTES = [
     simulador_escolhe_ate_4_acoes,
     simulador_desmarcar_devolve_ao_caixa,
     simulador_converte_acoes_eua,
+    simulador_tudo_em_caixa_nao_varia,
+    simulador_cenarios_ordenados,
+    simulador_deterministico,
+    simulador_troca_rapida_de_cenario,
+    simulador_resumo_aria_live,
+    simulador_movimento_reduzido,
+    simulador_arrastar_sem_travar,
+    simulador_sem_overflow_no_celular,
+    screenshots_simulador,
     desempenho_scroll,
     screenshots,
 ]

@@ -8,7 +8,7 @@
 
 ## 3. Cenários
 
-- [ ] 3.1 Gráfico, anel, contador e resumo. Teste: Playwright `simulador_tudo_em_caixa_nao_varia`, `simulador_cenarios_ordenados`, `simulador_deterministico`, `simulador_troca_rapida_de_cenario`, `simulador_resumo_aria_live`, `simulador_movimento_reduzido`, `simulador_arrastar_sem_travar` e `simulador_sem_overflow_no_celular`.
+- [x] 3.1 Gráfico, anel, contador e resumo. Teste: Playwright `simulador_tudo_em_caixa_nao_varia`, `simulador_cenarios_ordenados`, `simulador_deterministico`, `simulador_troca_rapida_de_cenario`, `simulador_resumo_aria_live`, `simulador_movimento_reduzido`, `simulador_arrastar_sem_travar` e `simulador_sem_overflow_no_celular`.
 
 ## 4. Validação
 
