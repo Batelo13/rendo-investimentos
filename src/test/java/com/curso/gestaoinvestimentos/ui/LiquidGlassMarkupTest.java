@@ -191,6 +191,15 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingUsaContadorNosFatos() throws IOException {
+        assertTrue(template("index.html").contains("data-contador=\"100000\" data-formato=\"brl0\""));
+        String motion = Files.readString(RESOURCES.resolve("static/js/motion.js"));
+        for (String contrato : List.of("RendoMotion", "data-contador", "data-luz", "data-inclina")) {
+            assertTrue(motion.contains(contrato), contrato);
+        }
+    }
+
+    @Test
     void landingNaoTemVideo() throws IOException {
         String index = template("index.html");
         assertFalse(index.contains("<video"));

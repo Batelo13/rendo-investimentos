@@ -4,7 +4,7 @@
 
 ## 2. Sistema de movimento
 
-- [ ] 2.1 `data-contador`, `data-luz` e `data-inclina` + fatos com contador. Teste: `LiquidGlassMarkupTest.landingUsaContadorNosFatos`; Playwright `contador_anima_ate_valor_final`, `contador_respeita_movimento_reduzido`, `toque_nao_inclina` e `sem_js_mostra_valores_finais`.
+- [x] 2.1 `data-contador`, `data-luz` e `data-inclina` + fatos com contador. Teste: `LiquidGlassMarkupTest.landingUsaContadorNosFatos`; Playwright `contador_anima_ate_valor_final`, `contador_respeita_movimento_reduzido`, `toque_nao_inclina` e `sem_js_mostra_valores_finais`.
 
 ## 3. Abertura
 
