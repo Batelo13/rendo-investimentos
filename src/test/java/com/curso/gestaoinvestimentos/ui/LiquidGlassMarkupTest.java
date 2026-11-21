@@ -191,6 +191,12 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void tituloDoGraficoTemOMesmoTamanhoDosOutrosPaineis() throws IOException {
+        // Sem isso o h2 de .chart-head cai no h2 do Bootstrap (~32px).
+        assertTrue(dashboardCss().matches("(?s).*\\.chart-head h2[^{]*\\{[^}]*font-size: 16px;.*"));
+    }
+
+    @Test
     void dashboardMantemContrasteSemanticoECabeEmViewportMovel() throws IOException {
         String css = dashboardCss();
         String tokens = tokensCss();
