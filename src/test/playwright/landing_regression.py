@@ -186,6 +186,20 @@ def screenshots(browser: Browser) -> None:
         sem_erros(page)
 
 
+# -------------------------------- Cabecalho ---------------------------------
+
+def cabecalho_marca_secao_ativa(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    page.locator("#como-funciona").scroll_into_view_if_needed()
+    page.evaluate("document.getElementById('como-funciona').scrollIntoView({block: 'center'})")
+    time.sleep(0.6)
+    ativos = page.evaluate(
+        "[...document.querySelectorAll('.lp-nav a[aria-current=\"true\"]')].map(a => a.getAttribute('href'))"
+    )
+    assert ativos == ["#como-funciona"], f"So o link de #como-funciona deveria estar ativo, veio {ativos}"
+    sem_erros(page)
+
+
 TESTES = [
     contador_anima_ate_valor_final,
     contador_respeita_movimento_reduzido,
@@ -197,6 +211,7 @@ TESTES = [
     toque_nao_inclina,
     teclado_foca_botoes_visiveis,
     movimento_reduzido_mostra_estado_final,
+    cabecalho_marca_secao_ativa,
     screenshots,
 ]
 

@@ -12,7 +12,7 @@
 
 ## 4. Cabeçalho e SEO
 
-- [ ] 4.1 Link da seção ativa, luz no CTA e Open Graph. Teste: `LiquidGlassMarkupTest.landingTemOpenGraph`; Playwright `cabecalho_marca_secao_ativa`.
+- [x] 4.1 Link da seção ativa, luz no CTA e Open Graph. Teste: `LiquidGlassMarkupTest.landingTemOpenGraph`; Playwright `cabecalho_marca_secao_ativa`.
 
 ## 5. Validação
 

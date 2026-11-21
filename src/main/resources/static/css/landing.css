@@ -99,6 +99,22 @@ body.landing-page::before { display: none; }
     transition: color 0.2s ease;
 }
 .lp-nav a:hover, .lp-link-conta:hover { color: var(--lp-texto); }
+/* Secao ativa: sublinhado que cresce a partir do centro. */
+.lp-nav a { position: relative; padding: 4px 0; }
+.lp-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--lp-esmeralda-claro);
+    transform: scaleX(0);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.lp-nav a[aria-current="true"] { color: var(--lp-texto); }
+.lp-nav a[aria-current="true"]::after { transform: scaleX(1); }
 .lp-header-acoes { display: flex; align-items: center; gap: 20px; }
 
 /* ------------------------------ Jornada ------------------------------ */

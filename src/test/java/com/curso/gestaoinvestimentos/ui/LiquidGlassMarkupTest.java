@@ -212,6 +212,14 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingTemOpenGraph() throws IOException {
+        String index = template("index.html");
+        assertTrue(index.contains("property=\"og:title\""));
+        assertTrue(index.contains("property=\"og:description\""));
+        assertTrue(index.contains("property=\"og:type\" content=\"website\""));
+    }
+
+    @Test
     void landingNaoTemVideo() throws IOException {
         String index = template("index.html");
         assertFalse(index.contains("<video"));

@@ -190,6 +190,24 @@
         aoRolar();
     }
 
+    /* ------------------------------ Cabecalho ----------------------------- */
+    // Marca o link da secao que ocupa o meio da tela (vale com movimento reduzido).
+    const links = [...header.querySelectorAll('.lp-nav a[href^="#"]')];
+    if ('IntersectionObserver' in window && links.length) {
+        const alvos = [secao, ...links.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean)];
+        const observador = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                const id = `#${entry.target.id}`;
+                links.forEach((a) => {
+                    if (a.getAttribute('href') === id) a.setAttribute('aria-current', 'true');
+                    else a.removeAttribute('aria-current');
+                });
+            });
+        }, { rootMargin: '-45% 0px -50% 0px' });
+        alvos.forEach((alvo) => observador.observe(alvo));
+    }
+
     if (reduzMovimento) {
         cena.atualizar(1);
         header.classList.add('rolado');
