@@ -30,6 +30,7 @@
     </a>
     <nav class="lp-nav" aria-label="Seções da página">
         <a href="#visao-geral">A Rendo</a>
+        <a href="#experimente">Experimente</a>
         <a href="#como-funciona">Como funciona</a>
         <a href="#recursos">Recursos</a>
         <a href="#seguranca">Segurança</a>
@@ -166,6 +167,50 @@
         </div>
     </section>
 
+    <!-- Simulador demonstrativo (landing-simulador.js): nada sai do navegador. -->
+    <section class="lp-secao lp-simulador" id="experimente" data-motion>
+        <div class="lp-container">
+            <div class="sim-cabecalho">
+                <div>
+                    <span class="lp-sobretitulo">Experimente</span>
+                    <h2 class="lp-titulo-secao">Monte uma carteira de demonstração</h2>
+                </div>
+                <span class="cena-selo">Dados demonstrativos</span>
+            </div>
+            <noscript><p class="sim-sem-js">Ative o JavaScript para experimentar o simulador.</p></noscript>
+            <div class="sim-grade">
+                <div class="sim-controles">
+                    <p class="sim-passo">1. Escolha até 4 ações</p>
+                    <div class="sim-acoes" id="simAcoes"></div>
+                    <p class="sim-aviso" id="simAviso" hidden>Escolha até 4 ações.</p>
+                    <p class="sim-passo">2. Distribua os R$ 100.000</p>
+                    <div class="sim-sliders" id="simSliders"></div>
+                    <output class="sim-caixa" id="simCaixa">Caixa: R$ 100.000</output>
+                    <p class="sim-nota">US$ 1 = R$ 5,40 (cotação demonstrativa)</p>
+                </div>
+                <div class="sim-resultado glass-surface-strong" data-luz>
+                    <fieldset class="sim-cenarios" id="simCenarios">
+                        <legend class="sim-passo">3. Escolha um cenário</legend>
+                        <label><input type="radio" name="cenario" value="alta" checked> Alta</label>
+                        <label><input type="radio" name="cenario" value="lateral"> Lateral</label>
+                        <label><input type="radio" name="cenario" value="queda"> Queda</label>
+                    </fieldset>
+                    <div class="sim-numeros">
+                        <svg class="sim-anel" id="simAnel" viewBox="0 0 120 120" aria-hidden="true" focusable="false"></svg>
+                        <div>
+                            <span class="cena-rotulo">Patrimônio após 12 meses</span>
+                            <strong class="sim-valor" id="simValor">R$ 100.000,00</strong>
+                        </div>
+                    </div>
+                    <svg class="sim-grafico" id="simGrafico" viewBox="0 0 560 220" aria-hidden="true" focusable="false"></svg>
+                    <p class="sim-legenda">Série ilustrativa: não é histórico real nem previsão.</p>
+                    <p class="sim-resumo" id="simResumo" aria-live="polite"></p>
+                    <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Criar conta e montar a carteira de verdade</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="lp-secao" id="como-funciona" data-motion>
         <div class="lp-container">
             <span class="lp-sobretitulo">Como funciona</span>
@@ -275,6 +320,7 @@
         </div>
         <nav aria-label="Rodapé">
             <a href="#visao-geral">A Rendo</a>
+            <a href="#experimente">Experimente</a>
             <a href="#como-funciona">Como funciona</a>
             <a href="#recursos">Recursos</a>
             <a href="#seguranca">Segurança</a>
@@ -287,5 +333,6 @@
 <script th:src="@{/js/loading.js}"></script>
 <script th:src="@{/js/motion.js}"></script>
 <script th:src="@{/js/landing.js}"></script>
+<script th:src="@{/js/landing-simulador.js}"></script>
 </body>
 </html>

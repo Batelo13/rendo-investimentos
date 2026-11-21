@@ -212,6 +212,18 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingTemSimuladorDemonstrativo() throws IOException {
+        String index = template("index.html");
+        for (String contrato : List.of("id=\"experimente\"", "href=\"#experimente\"", "Dados demonstrativos",
+                "Série ilustrativa: não é histórico real nem previsão.", "US$ 1 = R$ 5,40 (cotação demonstrativa)",
+                "aria-live=\"polite\"", "<noscript>")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        assertTrue(index.indexOf("@{/js/landing.js}") < index.indexOf("@{/js/landing-simulador.js}"));
+        assertEquals(3, index.split("name=\"cenario\"", -1).length - 1, "tres cenarios");
+    }
+
+    @Test
     void landingTemOpenGraph() throws IOException {
         String index = template("index.html");
         assertTrue(index.contains("property=\"og:title\""));
