@@ -69,5 +69,23 @@
         entrada.setAttribute('aria-valuetext', texto);
     }
     entrada.addEventListener('input', mostrarDia);
+
+    // Mouse percorre so passando; toque percorre ao tocar/arrastar. O range nativo
+    // continua para teclado e leitor de tela (no iOS ele so responde ao polegar).
+    const area = entrada.parentElement;
+    let pendente = 0, ultimoX = 0;
+    function seguir(e) {
+        if (e.pointerType === 'mouse' && e.type === 'pointerdown') return;
+        ultimoX = e.clientX;
+        if (pendente) return;
+        pendente = requestAnimationFrame(() => {
+            pendente = 0;
+            const r = area.getBoundingClientRect();
+            const i = Math.round(Math.min(1, Math.max(0, (ultimoX - r.left) / r.width)) * 29);
+            if (String(i) !== entrada.value) { entrada.value = String(i); mostrarDia(); }
+        });
+    }
+    area.addEventListener('pointermove', seguir);
+    area.addEventListener('pointerdown', seguir);
     mostrarDia();
 })();

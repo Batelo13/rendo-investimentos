@@ -581,6 +581,27 @@ def historico_percorre_cotacao(browser: Browser) -> None:
     sem_erros(page)
 
 
+def historico_segue_o_ponteiro(browser: Browser) -> None:
+    # Spec: "o cursor percorre o grafico" (sem clicar) e "percorrivel por toque".
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_diferenciais(page)
+    caixa = page.locator(".dif-grafico").bounding_box()
+    cy = caixa["y"] + caixa["height"] / 2
+    page.mouse.move(caixa["x"] + caixa["width"] / 2, cy)
+    page.mouse.move(caixa["x"] + 2, cy, steps=4)
+    time.sleep(0.2)
+    assert texto(page, "#difHistoricoTexto").startswith("dia 1 ·"), f"Passar o mouse deveria percorrer: {texto(page, '#difHistoricoTexto')!r}"
+    sem_erros(page)
+
+    toque = abrir(browser, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    centralizar(toque, ".dif-grafico")
+    caixa = toque.locator(".dif-grafico").bounding_box()
+    toque.touchscreen.tap(caixa["x"] + 3, caixa["y"] + caixa["height"] / 2)
+    time.sleep(0.2)
+    assert texto(toque, "#difHistoricoTexto").startswith("dia 1 ·"), f"Tocar no inicio do grafico deveria ir ao dia 1: {texto(toque, '#difHistoricoTexto')!r}"
+    sem_erros(toque)
+
+
 def preco_medio_conta(browser: Browser) -> None:
     page = abrir(browser, viewport={"width": 1280, "height": 900})
     centralizar(page, "#difPrecoMedio")
@@ -732,6 +753,7 @@ TESTES = [
     cambio_alterna_moeda,
     cambio_cliques_rapidos,
     historico_percorre_cotacao,
+    historico_segue_o_ponteiro,
     preco_medio_conta,
     diferenciais_sem_overflow_no_celular,
     diferenciais_movimento_reduzido,

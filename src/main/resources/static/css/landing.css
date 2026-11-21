@@ -465,6 +465,7 @@ body.landing-page::before { display: none; }
     margin: 0;
     opacity: 0;
     cursor: ew-resize;
+    touch-action: pan-y; /* rolar a pagina na vertical continua funcionando */
 }
 .dif-historico:has(input:focus-visible) { outline: 2px solid var(--lp-esmeralda-claro); outline-offset: 3px; }
 .dif-linha { fill: none; stroke: var(--lp-esmeralda-claro); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
