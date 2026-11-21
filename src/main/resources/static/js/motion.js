@@ -18,7 +18,8 @@
 
     const formatos = {
         brl: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }),
-        brl0: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }),
+        // minimumFractionDigits explicito: sem ele, engines sem NumberFormat v3 lancam RangeError.
+        brl0: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }),
         inteiro: new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }),
     };
     const formatar = (valor, formato = 'inteiro') => (formatos[formato] || formatos.inteiro).format(valor);
