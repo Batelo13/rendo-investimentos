@@ -139,6 +139,51 @@ def ponteiro_inclina_cartao(browser: Browser) -> None:
     sem_erros(page)
 
 
+def rotacao_x(page: Page) -> float:
+    t = page.locator("#cenaCarteira").evaluate("e => e.style.transform")
+    return float(t.split("rotateX(")[1].split("deg")[0])
+
+
+def ponteiro_vertical_segue_mouse(browser: Browser) -> None:
+    # Mouse no centro vertical da tela: sem inclinacao em X, no topo e no fim da jornada.
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    for p in (0.0, 1.0):
+        rolar_para(page, p)
+        page.mouse.move(1000, 300)
+        page.mouse.move(1000, 360, steps=4)
+        time.sleep(0.3)
+        assert abs(rotacao_x(page)) < 0.6, f"rotateX deveria ser ~0 com o mouse no centro (p={p}), veio {rotacao_x(page)}"
+    page.mouse.move(1000, 100, steps=4)
+    time.sleep(0.3)
+    # rotateX positivo: a borda de cima (perto do mouse) recua.
+    assert rotacao_x(page) > 3, f"Mouse no alto deveria fazer a borda de cima recuar, veio {rotacao_x(page)}"
+    sem_erros(page)
+
+
+INTL_ANTIGO = """
+(() => { const Original = Intl.NumberFormat;
+  // Engines sem NumberFormat v3: maximumFractionDigits < minimo da moeda lanca RangeError.
+  Intl.NumberFormat = function (locale, opcoes = {}) {
+    if (opcoes.style === 'currency' && opcoes.maximumFractionDigits === 0 && opcoes.minimumFractionDigits === undefined)
+      throw new RangeError('maximumFractionDigits value is out of range.');
+    return new Original(locale, opcoes);
+  };
+})();"""
+
+
+def abertura_funciona_em_intl_antigo(browser: Browser) -> None:
+    context = browser.new_context(viewport={"width": 1280, "height": 720})
+    context.add_init_script(INTL_ANTIGO)
+    page = context.new_page()
+    page.erros = []
+    page.on("pageerror", lambda e: page.erros.append(str(e)))
+    page.goto(BASE_URL + "/")
+    page.wait_for_load_state("networkidle")
+    time.sleep(0.6)
+    assert opacidade(page, ".momento") > 0.9, "Titulo da abertura invisivel com Intl antigo"
+    sem_erros(page)
+
+
 def toque_nao_inclina(browser: Browser) -> None:
     page = abrir(browser, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
     page.locator("#cenaCarteira").tap()
@@ -229,6 +274,8 @@ TESTES = [
     scroll_brusco_mantem_cena_coerente,
     redimensionar_sem_overflow,
     ponteiro_inclina_cartao,
+    ponteiro_vertical_segue_mouse,
+    abertura_funciona_em_intl_antigo,
     toque_nao_inclina,
     teclado_foca_botoes_visiveis,
     movimento_reduzido_mostra_estado_final,

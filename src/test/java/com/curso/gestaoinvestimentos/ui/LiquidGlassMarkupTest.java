@@ -203,7 +203,7 @@ class LiquidGlassMarkupTest {
     void aberturaTemCartaoDemonstrativo() throws IOException {
         String index = template("index.html");
         for (String contrato : List.of("id=\"cenaCarteira\"", "Dados demonstrativos",
-                "data-inclina=\"6\"", "data-inclina-area=\"#jornada\"")) {
+                "data-inclina=\"6\"", "data-inclina-area=\"#jornadaPalco\"", "id=\"jornadaPalco\"")) {
             assertTrue(index.contains(contrato), contrato);
         }
         assertFalse(index.contains("id=\"cenaPessoa\""));
