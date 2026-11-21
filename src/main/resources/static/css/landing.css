@@ -503,7 +503,7 @@ body.landing-page::before { display: none; }
     padding: 6vh 0;
     scroll-margin-top: 100px;
 }
-.tour-texto { position: sticky; top: 32vh; opacity: 0.4; transition: opacity 0.4s ease; }
+.tour-texto { position: sticky; top: 32vh; opacity: 0.75; /* 0.75 mantem o paragrafo inativo em AA (4.5:1) */ transition: opacity 0.4s ease; }
 .tour-texto h3 { margin: 0 0 12px; font-size: clamp(1.4rem, 2.2vw, 1.9rem); font-weight: 500; letter-spacing: -0.02em; }
 .tour-texto p { margin: 0; max-width: 40ch; color: var(--lp-texto-2); line-height: 1.6; }
 .tour-tela {
@@ -737,6 +737,8 @@ body.landing-page::before { display: none; }
 .sim-chip[aria-pressed="true"] { border-color: rgba(93, 226, 186, 0.6); background: rgba(93, 226, 186, 0.08); color: var(--lp-texto); }
 .sim-chip:disabled { opacity: 0.4; cursor: not-allowed; }
 .sim-chip:focus-visible { outline: 2px solid var(--lp-esmeralda-claro); outline-offset: 2px; }
+.lp-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.sim-aviso:empty { display: none; }
 .sim-aviso { margin: 10px 0 0; color: var(--lp-ouro); font-size: 13px; }
 
 .sim-sliders { display: grid; gap: 14px; }

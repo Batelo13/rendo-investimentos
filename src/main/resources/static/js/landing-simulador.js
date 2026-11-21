@@ -71,7 +71,7 @@
             b.setAttribute('aria-pressed', String(escolhido));
             b.disabled = cheio && !escolhido;
         });
-        aviso.hidden = !cheio;
+        aviso.textContent = cheio ? 'Escolha até 4 ações.' : ''; // role=status anuncia a mudanca
         caixa.textContent = `Caixa: ${brl0(TOTAL - soma())}`;
     }
 

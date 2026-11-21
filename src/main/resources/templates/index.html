@@ -174,27 +174,27 @@
             <div class="problema-grade">
                 <article class="problema-card" data-resolve>
                     <h3>Medo de errar com dinheiro real</h3>
-                    <div class="antes"><p class="problema-alerta">Seu dinheiro em risco a cada decisão</p></div>
-                    <div class="depois">
+                    <div class="antes"><span class="lp-leitor">Sem a Rendo: </span><p class="problema-alerta">Seu dinheiro em risco a cada decisão</p></div>
+                    <div class="depois"><span class="lp-leitor">Com a Rendo: </span>
                         <strong class="problema-destaque">R$ 0 em risco</strong>
                         <p>R$ 100.000 de saldo fictício para praticar</p>
                     </div>
                 </article>
                 <article class="problema-card" data-resolve>
                     <h3>Informação espalhada</h3>
-                    <div class="antes">
+                    <div class="antes"><span class="lp-leitor">Sem a Rendo: </span>
                         <ul class="problema-pilulas">
                             <li>Corretora A</li><li>Corretora B</li><li>planilha</li><li>câmbio do dia</li>
                         </ul>
                     </div>
-                    <div class="depois">
+                    <div class="depois"><span class="lp-leitor">Com a Rendo: </span>
                         <p class="problema-linha"><b>PETR4</b> · 300 ações · preço médio R$ 31,20 · 2 corretoras</p>
                     </div>
                 </article>
                 <article class="problema-card" data-resolve>
                     <h3>Não saber se está indo bem</h3>
-                    <div class="antes"><p class="problema-duvida"><span>?</span> Lucro ou prejuízo?</p></div>
-                    <div class="depois problema-resultados">
+                    <div class="antes"><span class="lp-leitor">Sem a Rendo: </span><p class="problema-duvida"><span>?</span> Lucro ou prejuízo?</p></div>
+                    <div class="depois problema-resultados"><span class="lp-leitor">Com a Rendo: </span>
                         <p><span>Realizado</span><strong class="positivo">+ R$ 420</strong></p>
                         <p><span>Não realizado</span><strong class="negativo">− R$ 85</strong></p>
                     </div>
@@ -219,7 +219,7 @@
                 <div class="sim-controles">
                     <p class="sim-passo">1. Escolha até 4 ações</p>
                     <div class="sim-acoes" id="simAcoes"></div>
-                    <p class="sim-aviso" id="simAviso" hidden>Escolha até 4 ações.</p>
+                    <p class="sim-aviso" id="simAviso" role="status"></p>
                     <p class="sim-passo">2. Distribua os R$ 100.000</p>
                     <div class="sim-sliders" id="simSliders"></div>
                     <output class="sim-caixa" id="simCaixa" aria-live="off">Caixa: R$ 100.000</output>
@@ -347,7 +347,8 @@
                     <h3>Câmbio automático</h3>
                     <p class="dif-sub">AAPL · 10 ações · US$ 228,00</p>
                     <strong class="dif-valor" id="difCambioValor">US$ 2.280,00</strong>
-                    <button type="button" class="lp-botao lp-botao-secundario lp-botao-sm" id="difCambioBotao" aria-pressed="false">Ver em reais</button>
+                    <button type="button" class="lp-botao lp-botao-secundario lp-botao-sm" id="difCambioBotao">Ver em reais</button>
+                    <span class="lp-leitor" id="difCambioStatus" role="status"></span>
                     <p class="dif-nota">US$ 1 = R$ 5,40 (cotação demonstrativa)</p>
                 </article>
                 <article class="dif-bloco dif-historico" data-luz data-inclina="3">

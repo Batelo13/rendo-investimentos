@@ -711,6 +711,69 @@ def cabecalho_marca_secao_ativa(browser: Browser) -> None:
     sem_erros(page)
 
 
+
+# ----------------------------- Acessibilidade -----------------------------
+
+CONTRASTE_JS = """(sel) => {
+    const el = document.querySelector(sel);
+    const [r, g, b, a = 1] = getComputedStyle(el).color.match(/[0-9.]+/g).map(Number);
+    let alfa = a;
+    for (let n = el; n; n = n.parentElement) alfa *= Number(getComputedStyle(n).opacity);
+    const fundo = [10, 12, 13]; // --lp-fundo
+    const mix = [r, g, b].map((c, i) => c * alfa + fundo[i] * (1 - alfa));
+    const lum = (rgb) => rgb.map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
+        .reduce((t, c, i) => t + c * [0.2126, 0.7152, 0.0722][i], 0);
+    return (lum(mix) + 0.05) / (lum(fundo) + 0.05);
+}"""
+
+
+def tour_texto_inativo_tem_contraste_aa(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, "#tour-1")
+    assert "tour-2" not in passos_ativos(page), "O passo 2 deveria estar inativo"
+    razao = page.evaluate(CONTRASTE_JS, "#tour-2 .tour-texto p")
+    assert razao >= 4.5, f"Texto do passo inativo com contraste {razao:.2f}:1, abaixo do AA (4.5:1)"
+    sem_erros(page)
+
+
+def problema_leitor_distingue_antes_e_depois(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    textos = page.evaluate("""[...document.querySelectorAll('.problema-card')].map(c =>
+        [c.querySelector('.antes').textContent.trim(), c.querySelector('.depois').textContent.trim()])""")
+    for antes, depois in textos:
+        assert antes.startswith("Sem a Rendo:"), f"O leitor de tela deveria ouvir 'Sem a Rendo:' antes do problema: {antes!r}"
+        assert depois.startswith("Com a Rendo:"), f"O leitor de tela deveria ouvir 'Com a Rendo:' antes da solucao: {depois!r}"
+    visiveis = page.evaluate("[...document.querySelectorAll('.problema-card .lp-leitor')].filter(e => e.getBoundingClientRect().width > 1).length")
+    assert visiveis == 0, f"Os rotulos para leitor de tela nao deveriam aparecer na tela ({visiveis} visiveis)"
+    sem_erros(page)
+
+
+def simulador_aviso_e_regiao_de_status(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    aviso = page.locator("#simAviso")
+    assert aviso.get_attribute("role") == "status", "O aviso deveria ser role=status para o leitor de tela anunciar"
+    assert aviso.get_attribute("hidden") is None, "Regiao de status escondida com hidden nao e anunciada de forma confiavel"
+    assert texto(page, "#simAviso") == "", "Sem 4 acoes o aviso fica vazio"
+    chip(page, "AAPL").click()
+    assert texto(page, "#simAviso") == "Escolha até 4 ações.", f"Aviso errado: {texto(page, '#simAviso')!r}"
+    sem_erros(page)
+
+
+def cambio_anuncia_valor_final(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_diferenciais(page)
+    botao = page.locator("#difCambioBotao")
+    assert botao.get_attribute("aria-pressed") is None, "Botao com rotulo que muda nao deveria usar aria-pressed"
+    status = page.locator("#difCambioStatus")
+    assert status.get_attribute("role") == "status", "Deveria existir uma regiao de status para o valor convertido"
+    botao.click()
+    assert texto(page, "#difCambioStatus") == "10 ações da AAPL: R$ 12.312,00", f"Anuncio errado: {texto(page, '#difCambioStatus')!r}"
+    botao.click()
+    assert texto(page, "#difCambioStatus") == "10 ações da AAPL: US$ 2.280,00", f"Anuncio errado: {texto(page, '#difCambioStatus')!r}"
+    sem_erros(page)
+
+
 TESTES = [
     contador_anima_ate_valor_final,
     contador_respeita_movimento_reduzido,
@@ -761,6 +824,10 @@ TESTES = [
     cta_botao_magnetico,
     movimento_reduzido_sem_overflow,
     desempenho_scroll,
+    tour_texto_inativo_tem_contraste_aa,
+    problema_leitor_distingue_antes_e_depois,
+    simulador_aviso_e_regiao_de_status,
+    cambio_anuncia_valor_final,
     screenshots,
 ]
 
