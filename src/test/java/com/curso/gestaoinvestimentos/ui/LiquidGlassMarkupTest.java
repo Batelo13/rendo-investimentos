@@ -246,6 +246,18 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingTemDiferenciaisDemonstrados() throws IOException {
+        String index = template("index.html");
+        assertEquals(3, index.split("class=\"dif-bloco", -1).length - 1, "tres blocos");
+        for (String contrato : List.of("Cotação ilustrativa", "Valores de exemplo", "Também na Rendo:")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        String nav = index.substring(index.indexOf("<nav class=\"lp-nav\""), index.indexOf("</nav>", index.indexOf("<nav class=\"lp-nav\"")));
+        assertFalse(nav.contains("href=\"#recursos\""), "cabecalho sem o link Recursos");
+        assertTrue(index.indexOf("@{/js/landing-tour.js}") < index.indexOf("@{/js/landing-diferenciais.js}"));
+    }
+
+    @Test
     void landingTemOpenGraph() throws IOException {
         String index = template("index.html");
         assertTrue(index.contains("property=\"og:title\""));

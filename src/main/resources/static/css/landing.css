@@ -431,17 +431,48 @@ body.landing-page::before { display: none; }
     letter-spacing: 0.08em;
 }
 
-.lp-recursos { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 40px; row-gap: 48px; }
-.lp-recursos li { padding-top: 22px; border-top: 1px solid var(--lp-linha); }
-.lp-recursos li h3::before {
-    content: "";
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    margin: 0 12px 2px 0;
-    border-radius: 50%;
-    background: var(--lp-esmeralda);
+/* ---------------------------- Diferenciais ---------------------------- */
+.dif-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 40px;
+    align-items: stretch;
 }
+.dif-bloco {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 26px;
+    border: 1px solid var(--lp-linha);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.025);
+}
+.dif-bloco h3 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.dif-sub { margin: 0; color: var(--lp-texto-2); font-size: 14px; font-variant-numeric: tabular-nums; }
+.dif-valor { font-size: clamp(1.6rem, 2.4vw, 2rem); font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.dif-nota { margin: auto 0 0; padding-top: 6px; color: var(--lp-texto-3); font-size: 12.5px; }
+.dif-cambio .lp-botao { align-self: flex-start; }
+.dif-grafico { position: relative; aspect-ratio: 600 / 160; margin-top: 4px; }
+.dif-grafico svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* O range cobre o grafico inteiro: mouse, toque e teclado com controle nativo. */
+.dif-grafico input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+}
+.dif-historico:has(input:focus-visible) { outline: 2px solid var(--lp-esmeralda-claro); outline-offset: 3px; }
+.dif-linha { fill: none; stroke: var(--lp-esmeralda-claro); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.dif-area { fill: var(--lp-esmeralda-claro); fill-opacity: 0.1; }
+.dif-guia { stroke: rgba(255, 255, 255, 0.25); stroke-dasharray: 3 5; vector-effect: non-scaling-stroke; }
+.dif-compras { display: grid; gap: 8px; margin: 4px 0 6px; padding: 0; list-style: none; }
+.dif-compras li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 12px; border: 1px solid var(--lp-linha); border-radius: 10px; font-size: 14px; }
+.dif-compras span { color: var(--lp-texto-2); }
+.dif-tambem { margin: 24px 0 0; max-width: 70ch; color: var(--lp-texto-3); font-size: 14px; line-height: 1.6; }
 
 /* ------------------------------- Tour -------------------------------- */
 .tour-grade { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: clamp(32px, 4vw, 56px); margin-top: 32px; }
@@ -759,7 +790,7 @@ body.landing-page::before { display: none; }
     .sim-grade { grid-template-columns: 1fr; }
     .problema-grade { grid-template-columns: 1fr; }
     .problema-card { min-height: 180px; }
-    .lp-recursos { grid-template-columns: repeat(2, 1fr); }
+    .dif-grade { grid-template-columns: 1fr; }
     .lp-visao-grade,
     .lp-seguranca-grade { grid-template-columns: 1fr; }
     /* Tour vira stepper: sem indice e sem sticky. */
@@ -809,7 +840,6 @@ body.landing-page::before { display: none; }
     .lp-header { gap: 12px; }
     .lp-header-acoes { gap: 14px; }
     .lp-header .rendo-logo-text { display: none; }
-    .lp-recursos,
     .lp-seguranca-lista,
     .lp-fatos { grid-template-columns: 1fr; }
     .momento-acoes .lp-botao { flex: 1 1 100%; }

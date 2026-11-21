@@ -539,6 +539,83 @@ def screenshots_tour(browser: Browser) -> None:
         sem_erros(page)
 
 
+# -------------------------------- Diferenciais --------------------------------
+
+def ir_para_diferenciais(page: Page) -> None:
+    centralizar(page, "#difCambioBotao")
+
+
+def cambio_alterna_moeda(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_diferenciais(page)
+    assert texto(page, "#difCambioValor") == "US$ 2.280,00", f"Valor inicial errado: {texto(page, '#difCambioValor')!r}"
+    page.locator("#difCambioBotao").click()
+    time.sleep(0.9)
+    assert texto(page, "#difCambioValor") == "R$ 12.312,00", f"Em reais deveria dar R$ 12.312,00: {texto(page, '#difCambioValor')!r}"
+    page.locator("#difCambioBotao").click()
+    time.sleep(0.9)
+    assert texto(page, "#difCambioValor") == "US$ 2.280,00", f"De volta deveria dar US$ 2.280,00: {texto(page, '#difCambioValor')!r}"
+    sem_erros(page)
+
+
+def cambio_cliques_rapidos(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_diferenciais(page)
+    for _ in range(3):
+        page.locator("#difCambioBotao").click()
+        time.sleep(0.08)
+    time.sleep(0.9)
+    assert texto(page, "#difCambioValor") == "R$ 12.312,00", f"3 cliques terminam em reais: {texto(page, '#difCambioValor')!r}"
+    sem_erros(page)
+
+
+def historico_percorre_cotacao(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_diferenciais(page)
+    page.locator("#difHistorico").evaluate("e => { e.value = 0; e.dispatchEvent(new Event('input', { bubbles: true })); }")
+    assert texto(page, "#difHistoricoTexto").startswith("dia 1 · R$ 38,50"), f"Dia 1 errado: {texto(page, '#difHistoricoTexto')!r}"
+    page.locator("#difHistorico").focus()
+    page.keyboard.press("End")
+    time.sleep(0.1)
+    assert texto(page, "#difHistoricoTexto").startswith("dia 30 · R$"), f"End deveria ir ao dia 30: {texto(page, '#difHistoricoTexto')!r}"
+    sem_erros(page)
+
+
+def preco_medio_conta(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, "#difPrecoMedio")
+    time.sleep(0.4)
+    assert texto(page, "#difPrecoMedio") == "R$ 32,00", f"Preco medio deveria ser R$ 32,00: {texto(page, '#difPrecoMedio')!r}"
+    sem_erros(page)
+
+
+def diferenciais_sem_overflow_no_celular(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 390, "height": 844})
+    centralizar(page, "#recursos")
+    largura = page.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+    assert largura[0] <= largura[1], f"Scroll horizontal nos diferenciais: {largura}"
+    sem_erros(page)
+
+
+def diferenciais_movimento_reduzido(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    ir_para_diferenciais(page)
+    page.locator("#difCambioBotao").click()
+    time.sleep(0.05)
+    assert texto(page, "#difCambioValor") == "R$ 12.312,00", "Com movimento reduzido o cambio troca na hora"
+    sem_erros(page)
+
+
+def screenshots_diferenciais(browser: Browser) -> None:
+    pasta = os.path.join("target", "landing-screens")
+    os.makedirs(pasta, exist_ok=True)
+    for largura, altura in ((1280, 900), (390, 844)):
+        page = abrir(browser, viewport={"width": largura, "height": altura})
+        centralizar(page, "#recursos", espera=2.2)
+        page.locator("#recursos").screenshot(path=os.path.join(pasta, f"diferenciais-{largura}.png"))
+        sem_erros(page)
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -613,6 +690,13 @@ TESTES = [
     tour_celular_sem_sticky,
     tour_movimento_reduzido,
     screenshots_tour,
+    cambio_alterna_moeda,
+    cambio_cliques_rapidos,
+    historico_percorre_cotacao,
+    preco_medio_conta,
+    diferenciais_sem_overflow_no_celular,
+    diferenciais_movimento_reduzido,
+    screenshots_diferenciais,
     desempenho_scroll,
     screenshots,
 ]

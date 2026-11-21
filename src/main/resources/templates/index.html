@@ -32,7 +32,6 @@
         <a href="#visao-geral">A Rendo</a>
         <a href="#experimente">Experimente</a>
         <a href="#como-funciona">Como funciona</a>
-        <a href="#recursos">Recursos</a>
         <a href="#seguranca">Segurança</a>
     </nav>
     <div class="lp-header-acoes">
@@ -338,18 +337,40 @@
         </div>
     </section>
 
-    <section class="lp-secao" id="recursos" data-motion>
+    <!-- Diferenciais: microdemonstracoes (landing-diferenciais.js e data-contador). -->
+    <section class="lp-secao lp-diferenciais" id="recursos" data-motion>
         <div class="lp-container">
-            <span class="lp-sobretitulo">Recursos</span>
-            <h2 class="lp-titulo-secao">O essencial para acompanhar uma carteira com clareza.</h2>
-            <ul class="lp-recursos">
-                <li><h3>Catálogo com cotações</h3><p>Ações brasileiras e americanas com nome, logo e cotação atualizável, além do histórico de preços.</p></li>
-                <li><h3>Conversão de câmbio</h3><p>Ativos em dólar exibem o valor convertido em reais pela cotação do dia.</p></li>
-                <li><h3>Preço médio consolidado</h3><p>Uma visão por ação, mesmo quando a posição está distribuída entre corretoras.</p></li>
-                <li><h3>Histórico de operações</h3><p>Compras e vendas paginadas, com cancelamento que recalcula a posição.</p></li>
-                <li><h3>Evolução patrimonial</h3><p>Gráfico do rendimento da carteira com períodos de um dia até todo o histórico.</p></li>
-                <li><h3>Tema claro e escuro</h3><p>A área logada se adapta à sua preferência de leitura.</p></li>
-            </ul>
+            <span class="lp-sobretitulo">Diferenciais</span>
+            <h2 class="lp-titulo-secao">Recursos que você vê funcionando.</h2>
+            <div class="dif-grade">
+                <article class="dif-bloco dif-cambio" data-luz data-inclina="3">
+                    <h3>Câmbio automático</h3>
+                    <p class="dif-sub">AAPL · 10 ações · US$ 228,00</p>
+                    <strong class="dif-valor" id="difCambioValor">US$ 2.280,00</strong>
+                    <button type="button" class="lp-botao lp-botao-secundario lp-botao-sm" id="difCambioBotao" aria-pressed="false">Ver em reais</button>
+                    <p class="dif-nota">US$ 1 = R$ 5,40 (cotação demonstrativa)</p>
+                </article>
+                <article class="dif-bloco dif-historico" data-luz data-inclina="3">
+                    <h3>Histórico de cotação</h3>
+                    <p class="dif-sub" id="difHistoricoTexto" aria-live="off">dia 30</p>
+                    <div class="dif-grafico">
+                        <svg id="difHistoricoGrafico" viewBox="0 0 600 160" aria-hidden="true" focusable="false"></svg>
+                        <input type="range" id="difHistorico" min="0" max="29" step="1" value="29" aria-describedby="difHistoricoTexto">
+                    </div>
+                    <label class="dif-nota" for="difHistorico">Percorrer a cotação · Cotação ilustrativa</label>
+                </article>
+                <article class="dif-bloco dif-preco" data-luz data-inclina="3">
+                    <h3>Preço médio consolidado</h3>
+                    <ul class="dif-compras">
+                        <li><span>100 ações a</span><b>R$ 30,00</b></li>
+                        <li><span>50 ações a</span><b>R$ 36,00</b></li>
+                    </ul>
+                    <p class="dif-sub">Preço médio</p>
+                    <strong class="dif-valor" id="difPrecoMedio" data-contador="32" data-formato="brl">R$ 32,00</strong>
+                    <p class="dif-nota">Valores de exemplo</p>
+                </article>
+            </div>
+            <p class="dif-tambem">Também na Rendo: histórico de operações com cancelamento, evolução patrimonial de 1 dia a todo o período e tema claro e escuro na área logada.</p>
         </div>
     </section>
 
@@ -404,5 +425,6 @@
 <script th:src="@{/js/landing.js}"></script>
 <script th:src="@{/js/landing-simulador.js}"></script>
 <script th:src="@{/js/landing-tour.js}"></script>
+<script th:src="@{/js/landing-diferenciais.js}"></script>
 </body>
 </html>

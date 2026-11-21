@@ -8,7 +8,7 @@
 
 ## 3. Diferenciais
 
-- [ ] 3.1 Câmbio, histórico, preço médio e cabeçalho. Teste: `LiquidGlassMarkupTest.landingTemDiferenciaisDemonstrados`; Playwright `cambio_alterna_moeda`, `cambio_cliques_rapidos`, `historico_percorre_cotacao`, `preco_medio_conta`, `diferenciais_sem_overflow_no_celular` e `diferenciais_movimento_reduzido`.
+- [x] 3.1 Câmbio, histórico, preço médio e cabeçalho. Teste: `LiquidGlassMarkupTest.landingTemDiferenciaisDemonstrados`; Playwright `cambio_alterna_moeda`, `cambio_cliques_rapidos`, `historico_percorre_cotacao`, `preco_medio_conta`, `diferenciais_sem_overflow_no_celular` e `diferenciais_movimento_reduzido`.
 
 ## 4. Segurança e chamada final
 
