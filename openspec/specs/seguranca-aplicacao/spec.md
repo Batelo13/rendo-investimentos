@@ -60,3 +60,62 @@ ser `HttpOnly` e `SameSite=Lax`.
 - **WHEN** um visitante sem sessao acessa a pagina inicial
 - **THEN** a resposta contem todos os cabecalhos de seguranca listados
 
+### Requirement: Status correto para recurso inexistente
+O sistema SHALL responder 404 a um pedido sem sessão de arquivo estático público inexistente, e SHALL continuar respondendo 401 a um pedido sem sessão de qualquer rota protegida, exista ela ou não.
+
+#### Scenario: Arquivo estatico publico inexistente
+- **WHEN** um visitante sem sessão pede `GET /css/nao-existe.css`
+- **THEN** o sistema responde 404
+
+#### Scenario: Rota protegida inexistente continua exigindo login
+- **WHEN** um visitante sem sessão pede uma rota protegida que não existe
+- **THEN** o sistema responde 401, sem revelar se a rota existe
+
+### Requirement: Politica de conteudo restrita nas paginas
+As páginas da aplicação SHALL responder com uma política de segurança de conteúdo que só permite scripts da própria origem, sem script inline nem `eval`, e que restringe o envio de formulários à própria origem. As páginas SHALL NOT conter script inline nem atributos de evento inline.
+
+#### Scenario: Pagina publica com politica restrita
+- **WHEN** um visitante pede `GET /`
+- **THEN** o sistema responde 200 com uma política de conteúdo que tem `default-src 'self'`, `script-src 'self'` sem `'unsafe-inline'` e `form-action 'self'`, além de `Cross-Origin-Opener-Policy: same-origin`
+
+#### Scenario: Tema aplicado antes do primeiro paint sem script inline
+- **WHEN** qualquer página é carregada com o tema claro salvo
+- **THEN** o tema é aplicado por um script da própria origem carregado antes das folhas de estilo, sem violação da política de conteúdo
+
+### Requirement: Dados de cadastro nunca na URL
+Os formulários de cadastro e de verificação de email SHALL usar o método POST com token CSRF, mesmo quando enviados sem JavaScript.
+
+#### Scenario: Envio sem JavaScript
+- **WHEN** o formulário de cadastro é enviado sem o JavaScript da página
+- **THEN** nome, email, CPF e senha não aparecem na URL; a requisição é POST e o sistema responde com erro 4xx sem criar conta
+
+### Requirement: DAST reproduzivel
+O projeto SHALL ter um comando de DAST que executa o ZAP baseline contra uma instância descartável e SHALL reprovar (código de saída 1) se surgir um alerta não triado ou se o scan não puder rodar.
+
+#### Scenario: Scan sem alertas novos
+- **WHEN** o comando de DAST roda com Docker disponível
+- **THEN** ele termina com 0 e registra relatório HTML e JSON, com cada alerta aceito justificado no arquivo de regras
+
+### Requirement: Limite de tentativas de login
+O login por formulário SHALL bloquear por 15 minutos um par IP+email depois de 5 falhas seguidas, e um IP depois de 20 falhas em quaisquer emails. Durante o bloqueio, a senha SHALL NOT ser verificada, e o sistema SHALL redirecionar (302) para `/login?erro=muitas-tentativas`. Um login bem-sucedido SHALL zerar as falhas do par.
+
+#### Scenario: Bloqueio apos 5 falhas seguidas
+- **WHEN** o mesmo IP erra a senha de um email 5 vezes e tenta de novo com a senha certa
+- **THEN** o sistema responde 302 para `/login?erro=muitas-tentativas`, e a tela de login mostra "Muitas tentativas de login"
+
+#### Scenario: Bloqueio nao afeta o dono da conta em outro IP
+- **WHEN** um IP bloqueado para um email existe e o dono entra de outro IP com a senha certa
+- **THEN** o sistema autentica e redireciona para `/dashboard`
+
+#### Scenario: Login certo zera as falhas
+- **WHEN** o usuário erra 4 vezes, acerta e depois erra mais 4 vezes
+- **THEN** o login certo seguinte é aceito
+
+#### Scenario: Muitas falhas de um IP em emails diferentes
+- **WHEN** um IP acumula 20 falhas em emails diferentes
+- **THEN** qualquer login desse IP responde 302 para `/login?erro=muitas-tentativas` até a janela expirar
+
+#### Scenario: Bloqueio expira depois da janela
+- **WHEN** passam 15 minutos desde a primeira falha da janela
+- **THEN** o par volta a poder tentar
+

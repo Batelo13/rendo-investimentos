@@ -51,8 +51,11 @@ class LiquidGlassMarkupTest {
     void paginasAplicamTemaAntesDosStylesheets() throws IOException {
         for (String page : PAGES) {
             String html = template(page);
-            assertTrue(html.contains("localStorage.getItem('rendo-theme')"), page);
-            assertTrue(html.indexOf("localStorage.getItem('rendo-theme')") < html.indexOf("@{/css/tokens.css}"), page);
+            // Script externo e sincrono (CSP script-src 'self'): nenhum <script> inline.
+            assertTrue(html.contains("@{/js/tema-inicial.js}"), page);
+            assertTrue(html.indexOf("@{/js/tema-inicial.js}") < html.indexOf("@{/css/tokens.css}"), page);
+            assertFalse(html.contains("<script>"), page);
+            assertFalse(html.matches("(?s).*\\son[a-z]+=\".*"), page);
         }
     }
 
@@ -185,6 +188,12 @@ class LiquidGlassMarkupTest {
                 + "\\.stats-grid > \\* \\{[^}]*min-width: 0;[^}]*}.*"));
         assertTrue(css.matches("(?s).*@media \\(max-width: 420px\\) \\{.*"
                 + "\\.stat-value \\{[^}]*font-size: clamp\\(16px, 5vw, 20px\\);[^}]*white-space: nowrap;[^}]*}.*"));
+    }
+
+    @Test
+    void tituloDoGraficoTemOMesmoTamanhoDosOutrosPaineis() throws IOException {
+        // Sem isso o h2 de .chart-head cai no h2 do Bootstrap (~32px).
+        assertTrue(dashboardCss().matches("(?s).*\\.chart-head h2[^{]*\\{[^}]*font-size: 16px;.*"));
     }
 
     @Test

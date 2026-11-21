@@ -28,6 +28,11 @@ public class LoginFormFailureHandler implements AuthenticationFailureHandler {
     private final AuthenticationFailureHandler generico = new SimpleUrlAuthenticationFailureHandler("/login?error");
     private final AuthenticationFailureHandler emailNaoVerificado =
             new SimpleUrlAuthenticationFailureHandler("/login?erro=email-nao-verificado");
+    private final LimiteTentativasLogin limiteTentativas;
+
+    public LoginFormFailureHandler(LimiteTentativasLogin limiteTentativas) {
+        this.limiteTentativas = limiteTentativas;
+    }
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -40,6 +45,8 @@ public class LoginFormFailureHandler implements AuthenticationFailureHandler {
             emailNaoVerificado.onAuthenticationFailure(request, response, exception);
             return;
         }
+        // Email nao verificado nao conta: e barrado antes de checar a senha.
+        limiteTentativas.registrarFalha(request.getRemoteAddr(), request.getParameter("username"));
         generico.onAuthenticationFailure(request, response, exception);
     }
 }

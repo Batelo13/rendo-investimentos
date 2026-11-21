@@ -52,6 +52,7 @@ node_modules/
 
 ### Relatorios do portao de seguranca (gerados por scripts/security_gate.sh) ###
 security/reports/
+security/zap.yaml
 
 ### Banco H2 em arquivo do profile dev (dados locais, nunca commitar) ###
 data/

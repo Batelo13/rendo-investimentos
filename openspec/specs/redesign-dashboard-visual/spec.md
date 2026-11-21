@@ -125,3 +125,10 @@ financeiros.
 - **WHEN** o usuário passa o cursor sobre uma linha de dados
 - **THEN** a linha recebe somente realce de superfície ou borda, permanecendo alinhada com as demais colunas
 
+### Requirement: Titulos de painel com tamanho uniforme
+Todos os títulos de painel do dashboard, inclusive o do gráfico de evolução patrimonial, SHALL ter o mesmo tamanho de fonte (16px).
+
+#### Scenario: Usuario abre a visao geral
+- **WHEN** o usuário autenticado abre o dashboard
+- **THEN** "Valor por ação", "Capital investido", "Evolução patrimonial" e "Minhas posições" aparecem com 16px
+

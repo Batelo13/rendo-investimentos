@@ -152,10 +152,12 @@ function mercadoTag(m) {
 }
 
 // Monograma (inicial do ticker) sempre por baixo: se o logo falhar (bloqueador,
-// rede, ticker sem logo) o onerror tira so a <img> e a inicial continua ali.
+// rede, ticker sem logo) o listener abaixo tira so a <img> e a inicial fica.
+// Listener (fase de captura) em vez de onerror inline: a CSP bloqueia handler inline.
+document.addEventListener("error", (e) => { if (e.target.matches?.(".acao-logo img")) e.target.remove(); }, true);
 function acaoLogoHTML(a, size = 24) {
     const img = a.logoUrl
-        ? `<img src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}" onerror="this.remove()">`
+        ? `<img src="${esc(a.logoUrl)}" alt="" width="${size}" height="${size}">`
         : "";
     return `<span class="acao-logo" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.45)}px" aria-hidden="true">${esc((a.ticker || "?")[0])}${img}</span>`;
 }

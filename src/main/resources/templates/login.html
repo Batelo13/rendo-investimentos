@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <script>
-        (function () {
-            if (localStorage.getItem('rendo-theme') === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
-        })();
-    </script>
+    <script th:src="@{/js/tema-inicial.js}"></script>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
     <title>Rendo — Entrar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +24,7 @@
 
         <!-- Cadastro -->
         <div class="form-container sign-up" inert aria-hidden="true">
-            <form id="cadastro-form" novalidate>
+            <form id="cadastro-form" th:action="@{/usuarios}" method="post" novalidate>
                 <div th:replace="~{fragments/logo :: logo}"></div>
                 <h1>Criar conta</h1>
                 <span class="subtitulo">Comece a simular sua carteira de ações</span>
@@ -93,7 +87,7 @@
             <!-- Confirmacao de codigo -- aparece so depois de um cadastro bem
                  sucedido (login.js troca a visibilidade via classe "hidden"),
                  dentro do mesmo painel de cadastro. -->
-            <form id="verificacao-form" class="hidden" novalidate>
+            <form id="verificacao-form" th:action="@{/usuarios/verificar-email}" method="post" class="hidden" novalidate>
                 <div th:replace="~{fragments/logo :: logo}"></div>
                 <h1>Confirme seu e-mail</h1>
                 <span class="subtitulo" id="verificacao-subtitulo">Enviamos um código de 6 dígitos pro seu e-mail</span>
@@ -120,7 +114,10 @@
                 <p id="login-mensagem" class="form-mensagem" role="alert"></p>
                 <p th:if="${param.error}" class="form-mensagem erro">Email ou senha inválidos.</p>
                 <p th:if="${param.logout}" class="form-mensagem sucesso">Sessão encerrada.</p>
-                <p th:if="${param.erro}" class="form-mensagem erro">
+                <p th:if="${param.erro != null and param.erro[0] == 'muitas-tentativas'}" class="form-mensagem erro">
+                    Muitas tentativas de login. Aguarde 15 minutos e tente de novo.
+                </p>
+                <p th:if="${param.erro != null and param.erro[0] == 'email-nao-verificado'}" class="form-mensagem erro">
                     Confirme seu e-mail antes de entrar.
                     <button type="button" id="btn-reenviar-do-login" class="link-discreto">Reenviar código</button>
                 </p>

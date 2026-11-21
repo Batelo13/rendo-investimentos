@@ -1,16 +1,7 @@
-#!/usr/bin/env bash
-# Portao de seguranca do Rendo (Modulo 11, secao 16 do curso desenvolvimento-assistido-IA).
-# Roda igual em qualquer maquina, em qualquer CI, com ou sem agente de IA.
-# Sai com 1 se alguma camada reprovar OU nao puder rodar (fail-closed).
-# Relatorios em security/reports/ (ignorado pelo Git).
-#
-# Requisitos: Java 17, uv (para o semgrep via uvx) e Docker em execucao
-# (gitleaks e OSV-Scanner usam imagens com versao fixada).
+
 set -uo pipefail
 cd "$(dirname "$0")/.."
-# Git Bash (Windows): nao converter "/repo" em "C:/Program Files/Git/repo" so nos
-# argumentos do docker, e gravar o SARIF do semgrep em UTF-8 (padrao cp1252
-# quebra a escrita). Inofensivos em Linux/macOS/CI.
+
 export PYTHONUTF8=1
 docker() { MSYS_NO_PATHCONV=1 command docker "$@"; }
 mkdir -p security/reports
