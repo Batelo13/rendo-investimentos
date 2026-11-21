@@ -499,9 +499,68 @@ body.landing-page::before { display: none; }
 .lp-rodape nav a { color: var(--lp-texto-2); font-size: 0.9rem; text-decoration: none; }
 .lp-rodape nav a:hover { color: var(--lp-texto); }
 
+/* ---------------------------- Simulador ----------------------------- */
+.sim-cabecalho { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.sim-cabecalho .lp-titulo-secao { margin-bottom: 0; }
+.sim-sem-js { margin-top: 24px; color: var(--lp-texto-2); }
+.sim-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: clamp(24px, 4vw, 56px);
+    margin-top: 40px;
+    align-items: start;
+}
+.sim-passo {
+    margin: 0 0 12px;
+    color: var(--lp-texto-3);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.sim-controles .sim-passo:not(:first-child) { margin-top: 28px; }
+.sim-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.sim-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid var(--lp-linha);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--lp-texto-2);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.sim-chip b { color: var(--lp-texto); font-weight: 600; }
+.sim-chip small { font-size: 10.5px; letter-spacing: 0.08em; color: var(--lp-texto-3); }
+.sim-chip:hover:not(:disabled) { border-color: rgba(93, 226, 186, 0.45); transform: translateY(-1px); }
+.sim-chip[aria-pressed="true"] { border-color: rgba(93, 226, 186, 0.6); background: rgba(93, 226, 186, 0.08); color: var(--lp-texto); }
+.sim-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.sim-chip:focus-visible { outline: 2px solid var(--lp-esmeralda-claro); outline-offset: 2px; }
+.sim-aviso { margin: 10px 0 0; color: var(--lp-ouro); font-size: 13px; }
+
+.sim-sliders { display: grid; gap: 14px; }
+.sim-slider {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 44px;
+}
+.sim-slider label { font-weight: 600; font-size: 14px; }
+.sim-slider input[type="range"] { width: 100%; accent-color: var(--lp-esmeralda-claro); cursor: pointer; }
+.sim-slider output { min-width: 9ch; color: var(--lp-texto-2); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.sim-caixa { display: block; margin-top: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sim-nota { margin: 6px 0 0; color: var(--lp-texto-3); font-size: 12.5px; }
+
 /* ---------------------------- Responsivo ---------------------------- */
 @media (max-width: 1000px) {
     .lp-nav { display: none; }
+    .sim-grade { grid-template-columns: 1fr; }
     .lp-passos { grid-template-columns: repeat(2, 1fr); row-gap: 48px; }
     .lp-recursos { grid-template-columns: repeat(2, 1fr); }
     .lp-visao-grade,
@@ -553,6 +612,8 @@ body.landing-page::before { display: none; }
     .lp-seguranca-lista,
     .lp-fatos { grid-template-columns: 1fr; }
     .momento-acoes .lp-botao { flex: 1 1 100%; }
+    .sim-slider { grid-template-columns: 52px minmax(0, 1fr); }
+    .sim-slider output { grid-column: 2; text-align: left; }
 }
 
 /* Movimento reduzido: nada sincronizado com o scroll. Cena parada no estado

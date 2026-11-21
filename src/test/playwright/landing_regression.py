@@ -231,6 +231,89 @@ def screenshots(browser: Browser) -> None:
         sem_erros(page)
 
 
+# -------------------------------- Simulador ---------------------------------
+
+def ir_para_simulador(page: Page) -> None:
+    page.evaluate("document.getElementById('experimente').scrollIntoView({block: 'start'})")
+    time.sleep(0.6)
+
+
+def slider(page: Page, ticker: str, valor: int) -> None:
+    page.locator(f'#simSliders input[data-ticker="{ticker}"]').evaluate(
+        "(e, v) => { e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }", valor
+    )
+
+
+def valor_slider(page: Page, ticker: str) -> int:
+    return int(page.locator(f'#simSliders input[data-ticker="{ticker}"]').input_value())
+
+
+def chip(page: Page, ticker: str):
+    return page.locator(f'#simAcoes button[data-ticker="{ticker}"]')
+
+
+def simulador_estado_inicial(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    for t in ("PETR4", "VALE3", "WEGE3"):
+        assert chip(page, t).get_attribute("aria-pressed") == "true", f"{t} deveria comecar selecionada"
+    for t in ("ITUB4", "AAPL", "MSFT"):
+        assert chip(page, t).get_attribute("aria-pressed") == "false", f"{t} nao deveria comecar selecionada"
+    assert texto(page, "#simCaixa") == "Caixa: R$ 15.000", f"Caixa inicial errado: {texto(page, '#simCaixa')!r}"
+    sem_erros(page)
+
+
+def simulador_limita_soma_em_100_mil(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    slider(page, "PETR4", 100000)
+    assert valor_slider(page, "PETR4") == 55000, f"PETR4 deveria parar em 55.000, ficou {valor_slider(page, 'PETR4')}"
+    assert texto(page, "#simCaixa") == "Caixa: R$ 0", f"Caixa deveria zerar: {texto(page, '#simCaixa')!r}"
+    sem_erros(page)
+
+
+def simulador_teclado_respeita_limite(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    page.locator('#simSliders input[data-ticker="VALE3"]').focus()
+    page.keyboard.press("End")
+    time.sleep(0.2)
+    assert valor_slider(page, "VALE3") == 40000, f"VALE3 deveria parar em 40.000, ficou {valor_slider(page, 'VALE3')}"
+    assert texto(page, "#simCaixa") == "Caixa: R$ 0"
+    sem_erros(page)
+
+
+def simulador_escolhe_ate_4_acoes(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    chip(page, "AAPL").click()
+    assert chip(page, "ITUB4").is_disabled() and chip(page, "MSFT").is_disabled(), "Com 4 escolhidas as outras deveriam ficar indisponiveis"
+    assert page.locator("#simAviso").is_visible(), "Aviso 'Escolha até 4 ações.' deveria aparecer"
+    chip(page, "AAPL").click()
+    assert chip(page, "ITUB4").is_enabled() and chip(page, "MSFT").is_enabled(), "Ao desmarcar, as outras deveriam voltar"
+    assert not page.locator("#simAviso").is_visible(), "Aviso deveria sumir"
+    sem_erros(page)
+
+
+def simulador_desmarcar_devolve_ao_caixa(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    chip(page, "VALE3").click()
+    assert page.locator('#simSliders input[data-ticker="VALE3"]').count() == 0, "Slider da VALE3 deveria sumir"
+    assert texto(page, "#simCaixa") == "Caixa: R$ 40.000", f"Caixa errado: {texto(page, '#simCaixa')!r}"
+    sem_erros(page)
+
+
+def simulador_converte_acoes_eua(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    chip(page, "AAPL").click()
+    slider(page, "AAPL", 10000)
+    rotulo = texto(page, 'output[data-valor-de="AAPL"]')
+    assert "R$ 10.000" in rotulo and "US$ 1.852" in rotulo, f"Rotulo da AAPL errado: {rotulo!r}"
+    sem_erros(page)
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -280,6 +363,12 @@ TESTES = [
     teclado_foca_botoes_visiveis,
     movimento_reduzido_mostra_estado_final,
     cabecalho_marca_secao_ativa,
+    simulador_estado_inicial,
+    simulador_limita_soma_em_100_mil,
+    simulador_teclado_respeita_limite,
+    simulador_escolhe_ate_4_acoes,
+    simulador_desmarcar_devolve_ao_caixa,
+    simulador_converte_acoes_eua,
     desempenho_scroll,
     screenshots,
 ]

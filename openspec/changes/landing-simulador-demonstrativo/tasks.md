@@ -4,7 +4,7 @@
 
 ## 2. Escolha e distribuição
 
-- [ ] 2.1 Chips (até 4), sliders com limite, caixa e conversão. Teste: Playwright `simulador_estado_inicial`, `simulador_limita_soma_em_100_mil`, `simulador_teclado_respeita_limite`, `simulador_escolhe_ate_4_acoes`, `simulador_desmarcar_devolve_ao_caixa` e `simulador_converte_acoes_eua`.
+- [x] 2.1 Chips (até 4), sliders com limite, caixa e conversão. Teste: Playwright `simulador_estado_inicial`, `simulador_limita_soma_em_100_mil`, `simulador_teclado_respeita_limite`, `simulador_escolhe_ate_4_acoes`, `simulador_desmarcar_devolve_ao_caixa` e `simulador_converte_acoes_eua`.
 
 ## 3. Cenários
 
