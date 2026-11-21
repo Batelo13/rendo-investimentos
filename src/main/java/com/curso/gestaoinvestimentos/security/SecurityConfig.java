@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.CrossOriginOpenerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.CrossOriginResourcePolicyHeaderWriter;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
@@ -50,8 +52,13 @@ public class SecurityConfig {
                                                      Optional<ClientRegistrationRepository> clientRegistrationRepository,
                                                      RendoOidcUserService rendoOidcUserService,
                                                      LoginSocialFailureHandler loginSocialFailureHandler,
-                                                     LoginFormFailureHandler loginFormFailureHandler) throws Exception {
+                                                     LoginFormFailureHandler loginFormFailureHandler,
+                                                     LimiteTentativasLogin limiteTentativas) throws Exception {
+        SimpleUrlAuthenticationSuccessHandler sucessoPadrao = new SimpleUrlAuthenticationSuccessHandler("/dashboard");
+        sucessoPadrao.setAlwaysUseDefaultTargetUrl(true);
         http
+                // Forca bruta no login por formulario: ver LimiteTentativasLogin.
+                .addFilterBefore(limiteTentativas.filtro(), UsernamePasswordAuthenticationFilter.class)
                 // CSRF reativado: login/logout sao forms Thymeleaf nativos (hidden
                 // input com o token) e o dashboard/cadastro mandam o token via header
                 // (meta tag lida pelo JS). H2 console tem forms proprios sem token,
@@ -95,7 +102,11 @@ public class SecurityConfig {
                 // padrao gerada pelo Spring Security. URL de processamento do POST
                 // continua sendo /login (mesmo comportamento de antes -- os testes que
                 // ja faziam post("/login") nao mudam).
-                .formLogin(form -> form.loginPage("/login").permitAll().defaultSuccessUrl("/dashboard", true)
+                .formLogin(form -> form.loginPage("/login").permitAll()
+                        .successHandler((request, response, authentication) -> {
+                            limiteTentativas.limpar(request.getRemoteAddr(), request.getParameter("username"));
+                            sucessoPadrao.onAuthenticationSuccess(request, response, authentication);
+                        })
                         .failureHandler(loginFormFailureHandler))
                 // permitAll(): sem isso, o redirect padrao de logout ("/login?logout")
                 // nao fica na lista de URLs liberadas (essa lista compara a URL inteira,
