@@ -265,6 +265,8 @@ class LiquidGlassMarkupTest {
         assertEquals(7, seguranca.split("<li", -1).length - 1, "sete protecoes");
         assertTrue(seguranca.contains("Nenhum dinheiro real circula na Rendo."));
         assertTrue(seguranca.contains("Limite de tentativas"));
+        // A janela conta da primeira falha: o texto nao pode prometer 15 min de bloqueio.
+        assertTrue(seguranca.contains("Após 5 senhas erradas em 15 minutos, o login fica bloqueado."));
         int inicioCta = index.indexOf("class=\"lp-cta\"");
         String cta = index.substring(inicioCta, index.indexOf("</section>", inicioCta));
         assertTrue(cta.contains("data-contador=\"100000\""));
