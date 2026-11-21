@@ -4,8 +4,8 @@
  * Um progresso p (0..1) sai da posicao da pagina dentro de #jornada e e
  * interpolado a cada quadro (requestAnimationFrame so roda enquanto ha
  * movimento). Esse mesmo p dirige:
- *   - a cena ilustrada em SVG: barras, personagem, linha de crescimento,
- *     ceu e cidade;
+ *   - a cena da carteira demonstrativa: saldo, alocacao, linha de evolucao
+ *     e, no fim, os cartoes de posicoes e operacoes;
  *   - os quatro momentos de texto.
  * Com prefers-reduced-motion nada e sincronizado: a cena fica no estado final
  * e o CSS mostra os momentos como texto em fluxo normal.
@@ -29,146 +29,106 @@
     const suave = (a, b, v) => { const t = limitar((v - a) / (b - a)); return t * t * (3 - 2 * t); };
     const misturar = (a, b, t) => a + (b - a) * t;
 
-    /* ------------------------------ Cena SVG ------------------------------ */
+    /* ------------------------------- Cena -------------------------------- */
+    // Carteira demonstrativa: todos os numeros sao ilustrativos e o cartao
+    // mostra o selo "Dados demonstrativos".
     const cena = (() => {
         const $ = (id) => document.getElementById(id);
-        const svg = $('jornadaCena');
         const criar = (tag, attrs, pai) => {
             const el = document.createElementNS(SVG, tag);
             for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
             pai.appendChild(el);
             return el;
         };
+        const formatar = (v) => window.RendoMotion.formatar(v, 'brl');
 
-        // Degraus: barras de um grafico, cada vez mais altas.
-        const BASE = 820, LARGURA = 64, PASSO = 86, X0 = 800;
-        const alturas = [70, 118, 172, 232, 298, 368, 444, 524];
-        const degraus = alturas.map((h, i) => {
-            const x = X0 + i * PASSO;
-            const g = criar('g', { class: 'degrau' }, $('cenaBarras'));
-            criar('rect', { x: x + LARGURA, y: BASE - h + 7, width: 11, height: h - 7, fill: 'url(#barraLado)' }, g);
-            criar('rect', { x, y: BASE - h, width: LARGURA, height: h, rx: 2, fill: 'url(#barraFrente)' }, g);
-            criar('rect', { x, y: BASE - h, width: LARGURA, height: 2.5, fill: '#9CF2D5', opacity: 0.8 }, g);
-            return { g, cx: x + LARGURA / 2, topo: BASE - h, h };
-        });
+        const ALOCACAO = [['PETR4', 0.35], ['VALE3', 0.25], ['WEGE3', 0.20], ['AAPL', 0.20]];
+        const SERIE = [100000, 101200, 99800, 102600, 104100, 103000, 105800,
+                       107200, 106100, 108900, 110300, 109500, 112400]; // ilustrativa, 12 meses
+        const OPERACOES = [[1, 'compra'], [6, 'compra'], [9, 'venda']]; // indice do mes
+        const CORES = ['#5DE2BA', '#2E9E7B', '#D4B07A', '#8FA79F'];
 
-        const pontosLinha = [...degraus.map((d) => `${d.cx},${d.topo}`), '1560,200', '1720,150'].join(' ');
-        $('cenaLinha').setAttribute('points', pontosLinha);
-        $('cenaLinhaBrilho').setAttribute('points', pontosLinha);
+        // Grafico: degraus (uma barra por mes) sob a linha de evolucao.
+        const X0 = 16, X1 = 464, Y_BASE = 190, Y_MIN = 178, Y_MAX = 26, V_MIN = 98000, V_MAX = 114000;
+        const ultimo = SERIE.length - 1;
+        const xs = SERIE.map((_, i) => X0 + (i * (X1 - X0)) / ultimo);
+        const ys = SERIE.map((v) => Y_MIN - ((v - V_MIN) / (V_MAX - V_MIN)) * (Y_MIN - Y_MAX));
+        const degraus = SERIE.map((_, i) => criar('rect', {
+            x: (xs[i] - 10).toFixed(1), y: ys[i].toFixed(1), width: 20, height: (Y_BASE - ys[i]).toFixed(1),
+            rx: 3, fill: '#5DE2BA', opacity: 0.15,
+        }, $('cenaDegraus')));
+        const linha = $('cenaLinha');
+        linha.setAttribute('points', xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join(' '));
+        const marcadores = OPERACOES.map(([i, tipo]) => ({
+            i,
+            el: criar('circle', {
+                cx: xs[i].toFixed(1), cy: ys[i].toFixed(1), r: 5, class: `marcador marcador-${tipo}`,
+            }, $('cenaMarcadores')),
+        }));
 
-        // Grade discreta com marcadores dourados (momento "evolucao").
-        const grade = $('cenaGrade');
-        [260, 400, 540, 680].forEach((y, i) => {
-            criar('line', { x1: 720, x2: 1580, y1: y, y2: y, stroke: '#DCE6E2', 'stroke-opacity': 0.07, 'stroke-dasharray': '2 8' }, grade);
-            criar('circle', { cx: 760 + i * 230, cy: y, r: 2.5, fill: '#E9C27A', opacity: 0.8 }, grade);
-        });
+        // Alocacao: fatias do anel e chips com a mesma cor.
+        const fatias = [...document.querySelectorAll('#cenaAnel .anel-fatia')];
+        const chips = [...document.querySelectorAll('#cenaChips li')];
+        let acumulado = 0;
+        const inicioFatia = ALOCACAO.map(([, pct]) => { const a = acumulado; acumulado += pct; return a; });
+        fatias.forEach((f, i) => { f.style.stroke = CORES[i]; f.style.strokeDashoffset = String(-inicioFatia[i]); });
+        chips.forEach((c, i) => c.style.setProperty('--cor', CORES[i]));
 
-        // Cidade no horizonte, com janelas acesas.
-        const cidade = $('cenaCidade');
-        let semente = 7;
-        const aleatorio = () => ((semente = (semente * 9301 + 49297) % 233280) / 233280);
-        const predios = [];
-        for (let x = 640; x < 1700; ) {
-            const w = 34 + aleatorio() * 46;
-            const h = 120 + aleatorio() * 260 * (0.55 + 0.45 * ((x - 640) / 1060));
-            predios.push({ x, w, h });
-            x += w + 4 + aleatorio() * 10;
-        }
-        predios.forEach(({ x, w, h }) => {
-            criar('rect', { x, y: 900 - h, width: w, height: h, fill: '#0C1314', stroke: 'rgba(233,194,122,0.18)', 'stroke-width': 1 }, cidade);
-            for (let wy = 900 - h + 14; wy < 880; wy += 18) {
-                for (let wx = x + 7; wx < x + w - 8; wx += 12) {
-                    if (aleatorio() > 0.72) criar('rect', { x: wx, y: wy, width: 4, height: 6, fill: '#F2CF8A', opacity: (0.35 + aleatorio() * 0.5).toFixed(2) }, cidade);
-                }
-            }
-        });
-
-        const estrelas = $('cenaEstrelas');
-        for (let i = 0; i < 70; i++) {
-            criar('circle', { cx: (aleatorio() * 1800 - 100).toFixed(0), cy: (aleatorio() * 560).toFixed(0), r: (0.6 + aleatorio() * 1.3).toFixed(1), opacity: (0.2 + aleatorio() * 0.6).toFixed(2) }, estrelas);
+        // Horizonte: grade em perspectiva convergindo para o centro da cena.
+        const grade = $('fundoGrade');
+        for (let k = -12; k <= 12; k++) criar('line', { x1: 1000 + k * 22, y1: 560, x2: 1000 + k * 260, y2: 900 }, grade);
+        for (let k = 0; k < 9; k++) {
+            const y = 560 + 340 * (k / 8) ** 1.8;
+            criar('line', { x1: 0, y1: y.toFixed(1), x2: 1600, y2: y.toFixed(1) }, grade);
         }
 
-        const mundo = $('cenaMundo'), pessoa = $('cenaPessoa');
-        const pernaFrente = $('pernaFrente'), pernaTras = $('pernaTras');
-        const bracoFrente = $('bracoFrente'), bracoTras = $('bracoTras');
-        const linha = $('cenaLinha'), linhaBrilho = $('cenaLinhaBrilho');
-        const aurora = $('cenaAurora'), sol = $('cenaSol');
-
-        // Retrato/celular (mesma regra do CSS): a tela mostra so uma faixa
-        // estreita da cena, entao a camera segue o personagem o tempo todo e o
-        // texto fica na parte de baixo.
-        const retratoMq = window.matchMedia('(max-width: 767px), (max-aspect-ratio: 9/10)');
-        let retrato = retratoMq.matches;
-        function enquadrar() {
-            retrato = retratoMq.matches;
-        }
-
-        // Personagem: figura clara na noite, silhueta escura contra o amanhecer.
-        const corPessoa = (t) => {
-            const de = [226, 231, 228], ate = [11, 14, 16];
-            return `rgb(${de.map((c, k) => Math.round(misturar(c, ate[k], t))).join(',')})`;
-        };
-        const figura = svg.querySelector('.pessoa');
+        const valor = $('cenaValor'), camera = $('cenaCamera'), amanhecer = $('fundoAmanhecer');
+        const satelites = [...document.querySelectorAll('.cena-satelite')];
+        // Mesma regra do CSS: satelites so aparecem em telas largas (nao retrato).
+        const comSatelites = window.matchMedia('(min-width: 1100px) and (min-aspect-ratio: 9/10)');
+        let textoAtual = valor.textContent;
 
         function atualizar(p) {
-            // Subida: degraus 0 -> 7 entre 6% e 76% do progresso.
-            const s = limitar((p - 0.06) / 0.70) * (degraus.length - 1);
-            const i = Math.min(Math.floor(s), degraus.length - 2);
-            const f = s - i;
-            const passo = f < 1 ? f * f * (3 - 2 * f) : 1;
-            const a = degraus[i], b = degraus[i + 1];
-            const x = misturar(a.cx, b.cx, passo);
-            const y = misturar(a.topo, b.topo, passo) - Math.sin(Math.PI * f) * 30;
+            // Valor: parado no planejamento, segue a serie na evolucao.
+            const evolucao = suave(0.45, 0.75, p);
+            const pos = evolucao * ultimo;
+            const i = Math.min(Math.floor(pos), ultimo - 1);
+            const v = misturar(SERIE[i], SERIE[i + 1], pos - i);
+            const texto = formatar(Math.round(v / 10) * 10);
+            if (texto !== textoAtual) { valor.textContent = texto; textoAtual = texto; }
 
-            // Degraus surgem um pouco a frente do personagem.
-            degraus.forEach((d, k) => {
-                const cresce = k < 3 ? 1 : suave(k - 2.8, k - 1.6, s);
-                d.g.setAttribute('transform', `translate(0 ${BASE}) scale(1 ${Math.max(cresce, 0.001)}) translate(0 ${-BASE})`);
-                d.g.setAttribute('opacity', (misturar(1, 0.16, suave(0.8, 0.95, p)) * (0.25 + 0.75 * cresce)).toFixed(3));
+            chips.forEach((c, k) => {
+                const t = suave(0.2 + k * 0.04, 0.28 + k * 0.04, p);
+                c.style.opacity = t.toFixed(3);
+                c.style.transform = `translate3d(0, ${((1 - t) * 24).toFixed(1)}px, 0)`;
+            });
+            fatias.forEach((f, k) => {
+                const t = suave(0.25 + k * 0.04, 0.33 + k * 0.04, p);
+                f.style.strokeDasharray = `${(ALOCACAO[k][1] * t).toFixed(4)} 1`;
             });
 
-            const ciclo = Math.sin(f * Math.PI * 2) * (p < 0.06 || p > 0.76 ? 0 : 1);
-            pessoa.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
-            pernaFrente.setAttribute('transform', `rotate(${(ciclo * 26).toFixed(1)} 0 -28)`);
-            pernaTras.setAttribute('transform', `rotate(${(-ciclo * 26).toFixed(1)} 0 -28)`);
-            bracoFrente.setAttribute('transform', `rotate(${(-ciclo * 22).toFixed(1)} 0 -53)`);
-            bracoTras.setAttribute('transform', `rotate(${(ciclo * 22).toFixed(1)} 0 -53)`);
+            linha.style.strokeDashoffset = (1 - evolucao).toFixed(4);
+            degraus.forEach((d, k) => {
+                d.setAttribute('opacity', (0.15 + 0.5 * suave(0.45 + k * 0.023, 0.5 + k * 0.023, p)).toFixed(3));
+            });
+            marcadores.forEach((m) => m.el.classList.toggle('aceso', pos >= m.i));
 
-            // Escada vira linha de crescimento ate a cidade.
-            const traco = (1 - suave(0.76, 0.93, p)).toFixed(4);
-            linha.setAttribute('stroke-dashoffset', traco);
-            linhaBrilho.setAttribute('stroke-dashoffset', traco);
-
-            const amanhecer = suave(0.6, 1, p);
-            figura.setAttribute('fill', corPessoa(suave(0.7, 0.9, p)));
-            aurora.setAttribute('opacity', amanhecer.toFixed(3));
-            sol.setAttribute('opacity', (amanhecer * 0.9).toFixed(3));
-            sol.setAttribute('cy', misturar(760, 600, amanhecer).toFixed(1));
-            estrelas.setAttribute('opacity', (1 - amanhecer).toFixed(3));
-            grade.setAttribute('opacity', (suave(0.42, 0.52, p) * (1 - suave(0.74, 0.84, p))).toFixed(3));
-            cidade.setAttribute('opacity', suave(0.7, 0.92, p).toFixed(3));
-            cidade.setAttribute('transform', `translate(0 ${misturar(70, 0, suave(0.7, 0.95, p)).toFixed(1)})`);
-
-            // Camera: aproxima e acompanha na subida, afasta no final para
-            // revelar a cidade. (tx, ty) = ponto da tela onde fica o foco.
-            let escala, fx, fy, tx, ty;
-            if (retrato) {
-                const fim = suave(0.78, 1, p);
-                escala = misturar(1, 0.62, fim);
-                fx = misturar(x + 40, 1250, fim);
-                fy = misturar(y - 30, 560, fim);
-                tx = 800; ty = 360;
-            } else {
-                const foco = suave(0.08, 0.3, p) * (1 - suave(0.7, 0.95, p));
-                escala = misturar(1, 1.22, foco) * misturar(1, 0.94, suave(0.82, 1, p));
-                fx = misturar(1150, x, foco);
-                fy = misturar(470, y - 40, foco);
-                tx = 1150; ty = 470;
-            }
-            mundo.setAttribute('transform', `translate(${tx} ${ty}) scale(${escala.toFixed(4)}) translate(${(-fx).toFixed(1)} ${(-fy).toFixed(1)})`);
+            const fim = suave(0.78, 0.95, p);
+            satelites.forEach((s, k) => {
+                s.style.opacity = fim.toFixed(3);
+                s.style.transform = `translate3d(${((1 - fim) * (k ? -40 : 40)).toFixed(1)}px, 0, 0)`;
+            });
+            // Fim: o cartao recua; com satelites, abre espaco para a coluna deles.
+            const recuo = suave(0.78, 1, p);
+            camera.style.transform = comSatelites.matches
+                ? `translate3d(${(-60 * recuo).toFixed(1)}px, ${(-30 * recuo).toFixed(1)}px, 0) scale(${misturar(1, 0.8, recuo).toFixed(4)})`
+                : `scale(${misturar(1, 0.9, recuo).toFixed(4)})`;
+            amanhecer.setAttribute('opacity', (0.35 * suave(0.7, 1, p)).toFixed(3));
         }
 
-        enquadrar();
+        // Layout e todo em CSS; mantido pela interface do laco (resize).
+        function enquadrar() {}
+
         return { atualizar, enquadrar };
     })();
 

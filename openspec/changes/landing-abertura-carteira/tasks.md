@@ -8,7 +8,7 @@
 
 ## 3. Abertura
 
-- [ ] 3.1 Cartão da carteira demonstrativa dirigido pelo scroll. Teste: `LiquidGlassMarkupTest.aberturaTemCartaoDemonstrativo`; Playwright `cena_acompanha_scroll`, `scroll_brusco_mantem_cena_coerente`, `redimensionar_sem_overflow`, `ponteiro_inclina_cartao`, `teclado_foca_botoes_visiveis`, `movimento_reduzido_mostra_estado_final` e `screenshots`.
+- [x] 3.1 Cartão da carteira demonstrativa dirigido pelo scroll. Teste: `LiquidGlassMarkupTest.aberturaTemCartaoDemonstrativo`; Playwright `cena_acompanha_scroll`, `scroll_brusco_mantem_cena_coerente`, `redimensionar_sem_overflow`, `ponteiro_inclina_cartao`, `teclado_foca_botoes_visiveis`, `movimento_reduzido_mostra_estado_final` e `screenshots`.
 
 ## 4. Cabeçalho e SEO
 

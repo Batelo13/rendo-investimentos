@@ -42,80 +42,72 @@
     <section class="jornada" id="jornada" aria-label="A jornada Rendo">
         <div class="jornada-palco">
             <div class="jornada-midia" aria-hidden="true">
-                <svg class="jornada-cena" id="jornadaCena" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">
+                <!-- Cena: carteira demonstrativa que ganha forma com o scroll (landing.js). -->
+                <svg class="jornada-fundo" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" focusable="false">
                     <defs>
-                        <linearGradient id="ceuNoite" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#060708"/>
-                            <stop offset="0.6" stop-color="#0A0E0E"/>
-                            <stop offset="1" stop-color="#0E1513"/>
-                        </linearGradient>
-                        <linearGradient id="ceuAurora" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#081211"/>
-                            <stop offset="0.45" stop-color="#0F2722"/>
-                            <stop offset="0.72" stop-color="#3A4A36"/>
-                            <stop offset="0.9" stop-color="#B58A4C"/>
-                            <stop offset="1" stop-color="#E2B66E"/>
-                        </linearGradient>
-                        <radialGradient id="sol" cx="0.5" cy="0.5" r="0.5">
-                            <stop offset="0" stop-color="#FFE3A8" stop-opacity="0.95"/>
-                            <stop offset="0.35" stop-color="#F0C072" stop-opacity="0.45"/>
-                            <stop offset="1" stop-color="#E2B66E" stop-opacity="0"/>
+                        <radialGradient id="fundoLuz" cx="0.7" cy="0.86" r="0.62">
+                            <stop offset="0" stop-color="#E9C27A" stop-opacity="0.5"/>
+                            <stop offset="0.42" stop-color="#5DE2BA" stop-opacity="0.1"/>
+                            <stop offset="1" stop-color="#0A0C0D" stop-opacity="0"/>
                         </radialGradient>
-                        <linearGradient id="barraFrente" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#3FD3A3"/>
-                            <stop offset="0.25" stop-color="#1F8C6C"/>
-                            <stop offset="1" stop-color="#0C2A22" stop-opacity="0.35"/>
+                        <linearGradient id="gradeFade" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+                            <stop offset="1" stop-color="#FFFFFF" stop-opacity="1"/>
                         </linearGradient>
-                        <linearGradient id="barraLado" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#1A6B54"/>
-                            <stop offset="1" stop-color="#081A15" stop-opacity="0.3"/>
-                        </linearGradient>
-                        <linearGradient id="chao" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0" stop-color="#0A0D0E" stop-opacity="0"/>
-                            <stop offset="1" stop-color="#0A0C0D"/>
-                        </linearGradient>
-                        <linearGradient id="linhaFutura" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0" stop-color="#5DE2BA"/>
-                            <stop offset="1" stop-color="#E9C27A"/>
-                        </linearGradient>
-                        <filter id="brilho" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="6"/>
-                        </filter>
+                        <mask id="gradeMascara"><rect x="0" y="540" width="1600" height="360" fill="url(#gradeFade)"/></mask>
                     </defs>
-
-                    <rect x="-2000" y="-2000" width="5600" height="5000" fill="url(#ceuNoite)"/>
-                    <rect id="cenaAurora" x="-2000" y="-2000" width="5600" height="2920" fill="url(#ceuAurora)" opacity="0"/>
-                    <g id="cenaEstrelas" fill="#DCE6E2"></g>
-                    <circle id="cenaSol" cx="1360" cy="720" r="230" fill="url(#sol)" opacity="0"/>
-
-                    <g id="cenaMundo">
-                        <g id="cenaCidade" opacity="0"></g>
-                        <g id="cenaGrade" opacity="0"></g>
-                        <g id="cenaBarras"></g>
-                        <polyline id="cenaLinha" fill="none" stroke="url(#linhaFutura)" stroke-width="5"
-                                  stroke-linecap="round" stroke-linejoin="round" pathLength="1"
-                                  stroke-dasharray="1" stroke-dashoffset="1"/>
-                        <polyline id="cenaLinhaBrilho" fill="none" stroke="#5DE2BA" stroke-width="14"
-                                  stroke-linecap="round" stroke-linejoin="round" pathLength="1"
-                                  stroke-dasharray="1" stroke-dashoffset="1" opacity="0.35" filter="url(#brilho)"/>
-                        <g id="cenaPessoa">
-                            <ellipse cx="0" cy="1" rx="18" ry="3" fill="#000" opacity="0.35"/>
-                            <g class="pessoa" fill="rgb(226,231,228)" stroke="#E9C27A" stroke-opacity="0.35" stroke-width="0.8" stroke-linejoin="round">
-                                <rect id="pernaTras" x="-4.5" y="-31" width="9" height="32" rx="4.5" opacity="0.8"/>
-                                <rect id="bracoTras" x="-3.8" y="-57" width="7.6" height="28" rx="3.8" opacity="0.8"/>
-                                <path d="M-10 -58 C-12.5 -50 -11.5 -38 -9 -28 L9 -28 C11.5 -38 12.5 -50 10 -58 Q0 -62.5 -10 -58 Z"/>
-                                <rect id="pernaFrente" x="-4.5" y="-31" width="9" height="32" rx="4.5"/>
-                                <rect id="bracoFrente" x="-3.8" y="-57" width="7.6" height="28" rx="3.8"/>
-                                <rect x="-2.6" y="-63" width="5.2" height="6" rx="2"/>
-                                <circle cx="0" cy="-70" r="8"/>
-                            </g>
-                        </g>
-                        <rect x="-2000" y="790" width="5600" height="600" fill="url(#chao)"/>
-                    </g>
+                    <rect id="fundoAmanhecer" x="0" y="0" width="1600" height="900" fill="url(#fundoLuz)" opacity="0"/>
+                    <g id="fundoGrade" mask="url(#gradeMascara)" stroke="#DCE6E2" stroke-opacity="0.1" fill="none"></g>
                 </svg>
+                <div class="cena-camera" id="cenaCamera">
+                    <div class="cena-satelite cena-satelite-posicoes glass-surface">
+                        <span class="cena-rotulo">Posições</span>
+                        <ul>
+                            <li><b>PETR4</b><span>R$ 39.340</span></li>
+                            <li><b>VALE3</b><span>R$ 26.150</span></li>
+                            <li><b>WEGE3</b><span>R$ 23.480</span></li>
+                            <li><b>AAPL</b><span>R$ 23.430</span></li>
+                        </ul>
+                    </div>
+                    <div class="cena-satelite cena-satelite-operacoes glass-surface">
+                        <span class="cena-rotulo">Operações</span>
+                        <ul>
+                            <li><i class="op op-compra">Compra</i><b>PETR4</b><span>mês 1</span></li>
+                            <li><i class="op op-compra">Compra</i><b>WEGE3</b><span>mês 6</span></li>
+                            <li><i class="op op-venda">Venda</i><b>VALE3</b><span>mês 9</span></li>
+                        </ul>
+                    </div>
+                    <div class="cena-carteira glass-surface-strong" id="cenaCarteira" data-inclina="6" data-inclina-area="#jornada" data-luz>
+                        <div class="cena-topo">
+                            <span class="cena-rotulo">Patrimônio</span>
+                            <span class="cena-selo">Dados demonstrativos</span>
+                        </div>
+                        <strong class="cena-valor" id="cenaValor">R$ 100.000,00</strong>
+                        <svg class="cena-grafico" id="cenaGrafico" viewBox="0 0 480 200" focusable="false">
+                            <g id="cenaDegraus"></g>
+                            <polyline id="cenaLinha" pathLength="1" fill="none" stroke="#5DE2BA" stroke-width="2.5"
+                                      stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1" stroke-dashoffset="1"/>
+                            <g id="cenaMarcadores"></g>
+                        </svg>
+                        <div class="cena-alocacao">
+                            <svg class="cena-anel" id="cenaAnel" viewBox="0 0 120 120" focusable="false">
+                                <circle class="anel-trilho" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                            </svg>
+                            <ul class="cena-chips" id="cenaChips">
+                                <li><i></i><b>PETR4</b><span>35%</span></li>
+                                <li><i></i><b>VALE3</b><span>25%</span></li>
+                                <li><i></i><b>WEGE3</b><span>20%</span></li>
+                                <li><i></i><b>AAPL</b><span>20%</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <div class="jornada-veu"></div>
             </div>
-
             <div class="jornada-momentos">
                 <article class="momento" data-inicio="0" data-fim="0.2">
                     <span class="momento-etapa">01 · Começo da jornada</span>

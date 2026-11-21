@@ -65,10 +65,139 @@ def sem_js_mostra_valores_finais(browser: Browser) -> None:
     page.context.close()
 
 
+# --------------------------------- Abertura ---------------------------------
+
+def rolar_para(page: Page, p: float, espera: float = 1.4) -> None:
+    page.evaluate(
+        """p => { const s = document.getElementById('jornada');
+                  scrollTo(0, s.offsetTop + (s.offsetHeight - innerHeight) * p); }""",
+        p,
+    )
+    time.sleep(espera)
+
+
+def opacidade(page: Page, seletor: str, indice: int = 0) -> float:
+    return float(page.locator(seletor).nth(indice).evaluate("e => getComputedStyle(e).opacity"))
+
+
+def estado_inicial(page: Page) -> None:
+    assert texto(page, "#cenaValor") == "R$ 100.000,00", f"Comeco deveria mostrar R$ 100.000,00, veio {texto(page, '#cenaValor')!r}"
+    assert opacidade(page, "#cenaChips li") < 0.1, "Chips nao deveriam aparecer no comeco"
+
+
+def estado_final(page: Page) -> None:
+    assert texto(page, "#cenaValor") == "R$ 112.400,00", f"Fim deveria mostrar R$ 112.400,00, veio {texto(page, '#cenaValor')!r}"
+    for i in range(2):
+        assert opacidade(page, ".cena-satelite", i) > 0.9, f"Satelite {i} deveria estar visivel no fim"
+
+
+def cena_acompanha_scroll(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    rolar_para(page, 0.02)
+    estado_inicial(page)
+    rolar_para(page, 0.62)
+    traco = float(page.locator("#cenaLinha").evaluate("e => getComputedStyle(e).strokeDashoffset").replace("px", ""))
+    assert traco < 0.7, f"Linha deveria estar mais de 30% desenhada em p=0.62 (dashoffset {traco})"
+    for i in range(4):
+        assert opacidade(page, "#cenaChips li", i) > 0.9, f"Chip {i} deveria estar visivel em p=0.62"
+    rolar_para(page, 0.98)
+    estado_final(page)
+    rolar_para(page, 0.02)
+    estado_inicial(page)
+    sem_erros(page)
+
+
+def scroll_brusco_mantem_cena_coerente(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    rolar_para(page, 1, espera=1.5)
+    estado_final(page)
+    page.evaluate("scrollTo(0, 0)")
+    time.sleep(1.5)
+    estado_inicial(page)
+    sem_erros(page)
+
+
+def redimensionar_sem_overflow(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    rolar_para(page, 0.6)
+    page.set_viewport_size({"width": 390, "height": 844})
+    time.sleep(0.8)
+    largura = page.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+    assert largura[0] <= largura[1], f"Scroll horizontal apos redimensionar: {largura}"
+    caixa = page.locator("#cenaCarteira").bounding_box()
+    assert caixa and caixa["x"] >= 0 and caixa["x"] + caixa["width"] <= 390 and caixa["y"] >= 0, f"Cartao cortado: {caixa}"
+    sem_erros(page)
+
+
+def ponteiro_inclina_cartao(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    page.mouse.move(640, 360)
+    page.mouse.move(1200, 200, steps=5)
+    time.sleep(0.3)
+    transform = page.locator("#cenaCarteira").evaluate("e => e.style.transform")
+    assert "rotateY(" in transform and "rotateY(0.00deg)" not in transform, f"Cartao deveria inclinar com o mouse: {transform!r}"
+    sem_erros(page)
+
+
+def toque_nao_inclina(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    page.locator("#cenaCarteira").tap()
+    time.sleep(0.3)
+    transform = page.locator("#cenaCarteira").evaluate("e => e.style.transform")
+    assert transform == "", f"Toque nao deveria inclinar o cartao: {transform!r}"
+    sem_erros(page)
+
+
+def teclado_foca_botoes_visiveis(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    for alvo in ("Começar agora", "Construir meu futuro"):
+        for _ in range(30):
+            page.keyboard.press("Tab")
+            if alvo in page.evaluate("document.activeElement.textContent || ''"):
+                break
+        else:
+            raise AssertionError(f"Tab nao chegou em {alvo!r}")
+        time.sleep(1.4)
+        foco = page.evaluate(
+            """() => { const e = document.activeElement, r = e.getBoundingClientRect();
+                       return { dentro: r.top >= 0 && r.bottom <= innerHeight,
+                                opacidade: +getComputedStyle(e.closest('.momento')).opacity }; }"""
+        )
+        assert foco["dentro"] and foco["opacidade"] > 0.9, f"{alvo!r} focado mas invisivel: {foco}"
+    sem_erros(page)
+
+
+def movimento_reduzido_mostra_estado_final(browser: Browser) -> None:
+    page = abrir(browser, reduced_motion="reduce")
+    assert texto(page, "#cenaValor") == "R$ 112.400,00", "Movimento reduzido deve mostrar o estado final"
+    page.mouse.move(900, 300)
+    assert page.locator("#cenaCarteira").evaluate("e => e.style.transform") == "", "Sem inclinacao com movimento reduzido"
+    sem_erros(page)
+
+
+def screenshots(browser: Browser) -> None:
+    pasta = os.path.join("target", "landing-screens")
+    os.makedirs(pasta, exist_ok=True)
+    for largura, altura in ((1280, 720), (768, 1024), (390, 844)):
+        page = abrir(browser, viewport={"width": largura, "height": altura})
+        for p in (0.02, 0.35, 0.62, 0.98):
+            rolar_para(page, p)
+            page.screenshot(path=os.path.join(pasta, f"abertura-{largura}-{int(p * 100):02d}.png"))
+        sem_erros(page)
+
+
 TESTES = [
     contador_anima_ate_valor_final,
     contador_respeita_movimento_reduzido,
     sem_js_mostra_valores_finais,
+    cena_acompanha_scroll,
+    scroll_brusco_mantem_cena_coerente,
+    redimensionar_sem_overflow,
+    ponteiro_inclina_cartao,
+    toque_nao_inclina,
+    teclado_foca_botoes_visiveis,
+    movimento_reduzido_mostra_estado_final,
+    screenshots,
 ]
 
 
