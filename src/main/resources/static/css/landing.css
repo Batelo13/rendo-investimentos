@@ -499,6 +499,62 @@ body.landing-page::before { display: none; }
 .lp-rodape nav a { color: var(--lp-texto-2); font-size: 0.9rem; text-decoration: none; }
 .lp-rodape nav a:hover { color: var(--lp-texto); }
 
+/* ----------------------------- Problema ------------------------------ */
+.problema-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 40px;
+}
+.problema-card {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 220px;
+    padding: 26px;
+    border: 1px solid var(--lp-linha);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.02);
+}
+.problema-card h3 { margin: 0 0 18px; font-size: 1.1rem; font-weight: 600; }
+/* Antes e depois ocupam a mesma celula; a troca e so opacidade + deslocamento. */
+.problema-card .antes,
+.problema-card .depois {
+    grid-row: 2;
+    grid-column: 1;
+    align-self: end;
+    transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.problema-card .depois { opacity: 0; transform: translateY(12px); }
+.problema-card.resolvido .antes,
+.problema-card:hover .antes { opacity: 0; transform: translateY(-12px); }
+.problema-card.resolvido .depois,
+.problema-card:hover .depois { opacity: 1; transform: none; }
+.problema-card.resolvido { border-color: rgba(93, 226, 186, 0.28); }
+.problema-alerta { margin: 0; color: #E8A48F; font-size: 1rem; }
+.problema-destaque { display: block; font-size: clamp(1.8rem, 3vw, 2.3rem); font-weight: 600; letter-spacing: -0.02em; color: var(--lp-esmeralda-claro); }
+.problema-card .depois p { margin: 6px 0 0; color: var(--lp-texto-2); }
+.problema-pilulas { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.problema-pilulas li {
+    padding: 6px 10px;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    color: var(--lp-texto-3);
+    font-size: 13px;
+}
+.problema-pilulas li:nth-child(odd) { transform: rotate(-3deg); }
+.problema-pilulas li:nth-child(even) { transform: rotate(2.5deg) translateY(4px); }
+.problema-linha { margin: 0; padding: 12px 14px; border: 1px solid var(--lp-linha); border-radius: 12px; color: var(--lp-texto); font-size: 14px; }
+.problema-duvida { display: flex; align-items: center; gap: 14px; margin: 0; color: var(--lp-texto-2); }
+.problema-duvida span { font-size: 3rem; font-weight: 300; line-height: 1; color: var(--lp-texto-3); }
+.problema-resultados { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.problema-resultados p { margin: 0; display: grid; gap: 4px; }
+.problema-resultados span { color: var(--lp-texto-3); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+.problema-resultados strong { font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.positivo { color: var(--lp-esmeralda-claro); }
+.negativo { color: #E8A48F; }
+.lp-rotulo-exemplo { margin: 16px 0 0; color: var(--lp-texto-3); font-size: 12.5px; }
+
 /* ---------------------------- Simulador ----------------------------- */
 .sim-cabecalho { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .sim-cabecalho .lp-titulo-secao { margin-bottom: 0; }
@@ -602,6 +658,8 @@ body.landing-page::before { display: none; }
 @media (max-width: 1000px) {
     .lp-nav { display: none; }
     .sim-grade { grid-template-columns: 1fr; }
+    .problema-grade { grid-template-columns: 1fr; }
+    .problema-card { min-height: 180px; }
     .lp-passos { grid-template-columns: repeat(2, 1fr); row-gap: 48px; }
     .lp-recursos { grid-template-columns: repeat(2, 1fr); }
     .lp-visao-grade,

@@ -224,6 +224,16 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingTemSecaoProblema() throws IOException {
+        String index = template("index.html");
+        assertTrue(index.contains("id=\"problema\""));
+        assertEquals(3, index.split("data-resolve", -1).length - 1, "tres cards");
+        int problema = index.indexOf("id=\"problema\"");
+        assertTrue(index.indexOf("id=\"visao-geral\"") < problema && problema < index.indexOf("id=\"experimente\""));
+        assertTrue(Files.readString(RESOURCES.resolve("static/js/motion.js")).contains("data-resolve"));
+    }
+
+    @Test
     void landingTemOpenGraph() throws IOException {
         String index = template("index.html");
         assertTrue(index.contains("property=\"og:title\""));

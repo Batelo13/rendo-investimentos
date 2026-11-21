@@ -458,6 +458,29 @@ def screenshots_simulador(browser: Browser) -> None:
         sem_erros(page)
 
 
+# --------------------------------- Problema ---------------------------------
+
+def resolvidos(page: Page) -> int:
+    return page.locator(".problema-card.resolvido").count()
+
+
+def problema_resolve_ao_entrar(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    assert resolvidos(page) == 0, "Cards do problema nao deveriam comecar resolvidos"
+    page.evaluate("document.getElementById('problema').scrollIntoView({block: 'center'})")
+    time.sleep(2.0)  # rolagem + 600 ms de espera + 500 ms de transicao
+    assert resolvidos(page) == 3, f"Os 3 cards deveriam estar resolvidos, {resolvidos(page)} estao"
+    for i in range(3):
+        assert opacidade(page, ".problema-card .depois", i) > 0.9, f"Estado 'depois' do card {i} deveria aparecer"
+    sem_erros(page)
+
+
+def problema_movimento_reduzido(browser: Browser) -> None:
+    page = abrir(browser, reduced_motion="reduce")
+    assert resolvidos(page) == 3, "Com movimento reduzido os cards ja comecam resolvidos"
+    sem_erros(page)
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -525,6 +548,8 @@ TESTES = [
     simulador_valor_sem_centavos,
     simulador_resumo_em_bom_portugues,
     screenshots_simulador,
+    problema_resolve_ao_entrar,
+    problema_movimento_reduzido,
     desempenho_scroll,
     screenshots,
 ]

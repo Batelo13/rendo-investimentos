@@ -9,6 +9,8 @@
  *   data-inclina="6"            inclinacao maxima em graus na direcao do ponteiro;
  *     data-inclina-area="#id"   area que escuta o ponteiro (padrao: o proprio elemento),
  *     que recebe --mx/--my (-1..1) para parallax em CSS.
+ *   data-resolve                ganha a classe "resolvido" 600 ms depois de ficar 60% visivel
+ *     (estado "antes" -> "depois" em CSS); com movimento reduzido, ja comeca resolvido.
  * Luz e inclinacao so com mouse (hover + pointer fine): toque nao inclina nada.
  */
 (() => {
@@ -116,12 +118,31 @@
         document.querySelectorAll('[data-inclina]').forEach(ligarInclinacao);
     }
 
+    /* ------------------------------ Resolver ------------------------------ */
+    function prepararResolucao() {
+        const cards = [...document.querySelectorAll('[data-resolve]')];
+        if (!cards.length) return;
+        if (reducedMotion.matches || !('IntersectionObserver' in window)) {
+            cards.forEach((el) => el.classList.add('resolvido'));
+            return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                observer.unobserve(entry.target);
+                setTimeout(() => entry.target.classList.add('resolvido'), 600);
+            });
+        }, { threshold: 0.6 });
+        cards.forEach((el) => observer.observe(el));
+    }
+
     let iniciado = false;
     function startMotion() {
         if (iniciado) return;
         iniciado = true;
         prepararContadores();
         prepararPonteiro();
+        prepararResolucao();
 
         const targets = [...document.querySelectorAll('[data-motion]')];
         if (reducedMotion.matches || !('IntersectionObserver' in window)) {
