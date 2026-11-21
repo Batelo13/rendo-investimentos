@@ -647,6 +647,14 @@ def cta_botao_magnetico(browser: Browser) -> None:
     toque.context.close()
 
 
+def movimento_reduzido_sem_overflow(browser: Browser) -> None:
+    for largura, altura in ((1280, 900), (390, 844)):
+        page = abrir(browser, viewport={"width": largura, "height": altura}, reduced_motion="reduce")
+        medida = page.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+        assert medida[0] <= medida[1], f"Scroll horizontal com movimento reduzido em {largura}px: {medida}"
+        sem_erros(page)
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -729,6 +737,7 @@ TESTES = [
     diferenciais_movimento_reduzido,
     screenshots_diferenciais,
     cta_botao_magnetico,
+    movimento_reduzido_sem_overflow,
     desempenho_scroll,
     screenshots,
 ]

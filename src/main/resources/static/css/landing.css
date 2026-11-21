@@ -129,6 +129,7 @@ body.landing-page::before { display: none; }
 .jornada-midia {
     position: absolute;
     inset: 0;
+    overflow: hidden; /* o fundo transborda 3% para o parallax; com movimento reduzido o palco nao corta */
     background: radial-gradient(120% 90% at 70% 40%, #101718 0%, var(--lp-fundo) 62%);
 }
 
