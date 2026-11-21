@@ -76,11 +76,14 @@
     }
 
     /* ------------------------------- Distribuicao -------------------------------- */
-    function rotular(saida, ticker) {
+    // O valor fica visivel no <output> (silenciado) e e lido pelo proprio slider
+    // via aria-valuetext; quem anuncia o resultado e so o #simResumo.
+    function rotular(saida, entrada, ticker) {
         const v = estado.alocado.get(ticker);
         saida.textContent = porTicker.get(ticker).mercado === 'EUA'
             ? `${brl0(v)} ≈ ${usd.format(v / DOLAR)}`
             : brl0(v);
+        entrada.setAttribute('aria-valuetext', saida.textContent);
     }
 
     function criarSlider(ticker) {
@@ -94,17 +97,18 @@
         const saida = criar('output');
         saida.dataset.valorDe = ticker;
         saida.htmlFor = id;
+        saida.setAttribute('aria-live', 'off'); // <output> e regiao viva por padrao
         entrada.addEventListener('input', () => {
             // Nunca passa do saldo livre: o proprio slider e reescrito com o limite.
             const livre = TOTAL - soma(ticker);
             let v = Number(entrada.value);
             if (v > livre) { v = livre; entrada.value = String(v); }
             estado.alocado.set(ticker, v);
-            rotular(saida, ticker);
+            rotular(saida, entrada, ticker);
             atualizarControles();
             redesenhar();
         });
-        rotular(saida, ticker);
+        rotular(saida, entrada, ticker);
         linha.append(rotulo, entrada, saida);
         return linha;
     }
@@ -116,7 +120,6 @@
     /* --------------------------------- Resultado --------------------------------- */
     const SVG = 'http://www.w3.org/2000/svg';
     const CORES = ['#5DE2BA', '#2E9E7B', '#D4B07A', '#8FA79F'];
-    const brl = (v) => window.RendoMotion.formatar(v, 'brl');
     const reduzMovimento = window.RendoMotion.reduzMovimento;
     const svg = (tag, attrs, pai) => {
         const el = document.createElementNS(SVG, tag);
@@ -182,7 +185,7 @@
     function mostrar(valores) {
         desenhado = valores;
         desenharGrafico(valores);
-        valor.textContent = brl(valores[12]);
+        valor.textContent = brl0(valores[12]); // sem centavos: e ilustracao, nao calculo de retorno
     }
     function animar(agora) {
         const t = Math.min(1, (agora - inicioAnim) / 500);
@@ -193,12 +196,13 @@
 
     // Leitor de tela: anuncia so depois que o visitante para de mexer.
     const resumo = $('simResumo');
+    const NOME_CENARIO = { alta: 'de alta', lateral: 'lateral', queda: 'de queda' };
     let espera = 0;
     function anunciar() {
         clearTimeout(espera);
         espera = setTimeout(() => {
             const n = estado.alocado.size;
-            resumo.textContent = `Cenário de ${estado.cenario}: ${brl(alvo[12])} após 12 meses, com ${n} ${n === 1 ? 'ação' : 'ações'} e ${brl0(TOTAL - soma())} em caixa.`;
+            resumo.textContent = `Cenário ${NOME_CENARIO[estado.cenario]}: ${brl0(alvo[12])} após 12 meses, com ${n} ${n === 1 ? 'ação' : 'ações'} e ${brl0(TOTAL - soma())} em caixa.`;
         }, 400);
     }
 

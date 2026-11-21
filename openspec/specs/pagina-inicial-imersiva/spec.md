@@ -73,7 +73,7 @@ A página inicial SHALL ter uma seção "Experimente" em que o visitante escolhe
 
 #### Scenario: Carteira toda em caixa
 - **WHEN** nenhuma ação está escolhida
-- **THEN** o patrimônio é R$ 100.000,00 em qualquer cenário
+- **THEN** o patrimônio é R$ 100.000 em qualquer cenário
 
 #### Scenario: Cenarios comparaveis
 - **WHEN** o visitante alterna entre Alta, Lateral e Queda com a mesma carteira

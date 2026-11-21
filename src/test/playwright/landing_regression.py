@@ -330,7 +330,7 @@ def simulador_tudo_em_caixa_nao_varia(browser: Browser) -> None:
     for t in ("PETR4", "VALE3", "WEGE3"):
         chip(page, t).click()
     for nome in ("alta", "lateral", "queda"):
-        assert cenario(page, nome) == 100000.0, f"Tudo em caixa deveria dar R$ 100.000,00 em {nome}, veio {texto(page, '#simValor')!r}"
+        assert cenario(page, nome) == 100000.0, f"Tudo em caixa deveria dar R$ 100.000 em {nome}, veio {texto(page, '#simValor')!r}"
     sem_erros(page)
 
 
@@ -417,6 +417,36 @@ def simulador_sem_overflow_no_celular(browser: Browser) -> None:
     sem_erros(page)
 
 
+def simulador_valores_nao_inundam_leitor_de_tela(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    vivos = page.evaluate(
+        """[...document.querySelectorAll('#simCaixa, #simSliders [data-valor-de]')]
+               .filter(e => e.tagName === 'OUTPUT' ? e.getAttribute('aria-live') !== 'off' : !!e.getAttribute('aria-live'))
+               .map(e => e.id || e.dataset.valorDe)"""
+    )
+    assert not vivos, f"Valores que viram regiao viva e falam a cada passo: {vivos}"
+    texto_valor = page.locator('#simSliders input[data-ticker="PETR4"]').get_attribute("aria-valuetext") or ""
+    assert texto_valor.replace(" ", " ") == "R$ 40.000", f"Slider deveria ser lido como R$ 40.000, veio {texto_valor!r}"
+    sem_erros(page)
+
+
+def simulador_valor_sem_centavos(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    cenario(page, "alta")
+    assert "," not in texto(page, "#simValor"), f"Patrimonio do cenario nao deveria ter centavos: {texto(page, '#simValor')!r}"
+    sem_erros(page)
+
+
+def simulador_resumo_em_bom_portugues(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    cenario(page, "lateral")
+    assert texto(page, "#simResumo").startswith("Cenário lateral: R$"), f"Resumo errado: {texto(page, '#simResumo')!r}"
+    sem_erros(page)
+
+
 def screenshots_simulador(browser: Browser) -> None:
     pasta = os.path.join("target", "landing-screens")
     os.makedirs(pasta, exist_ok=True)
@@ -491,6 +521,9 @@ TESTES = [
     simulador_movimento_reduzido,
     simulador_arrastar_sem_travar,
     simulador_sem_overflow_no_celular,
+    simulador_valores_nao_inundam_leitor_de_tela,
+    simulador_valor_sem_centavos,
+    simulador_resumo_em_bom_portugues,
     screenshots_simulador,
     desempenho_scroll,
     screenshots,
