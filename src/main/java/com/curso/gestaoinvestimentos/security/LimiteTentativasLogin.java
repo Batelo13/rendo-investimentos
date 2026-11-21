@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.web.DefaultRedirectStrategy;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
@@ -38,6 +40,8 @@ public class LimiteTentativasLogin {
     private static final int LIMPAR_ACIMA_DE = 10_000;
     private static final RequestMatcher POST_LOGIN =
             PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/login");
+
+    private static final RedirectStrategy REDIRECT = new DefaultRedirectStrategy();
 
     private record Falhas(Instant inicio, int total) {}
 
@@ -80,7 +84,7 @@ public class LimiteTentativasLogin {
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                     throws ServletException, IOException {
                 if (bloqueado(request.getRemoteAddr(), request.getParameter("username"))) {
-                    response.sendRedirect(request.getContextPath() + "/login?erro=muitas-tentativas");
+                    REDIRECT.sendRedirect(request, response, "/login?erro=muitas-tentativas");
                     return;
                 }
                 chain.doFilter(request, response);
