@@ -186,6 +186,27 @@ def screenshots(browser: Browser) -> None:
         sem_erros(page)
 
 
+# -------------------------------- Desempenho --------------------------------
+
+def desempenho_scroll(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 720})
+    page.evaluate(
+        """() => { window.__longas = []; window.__cls = 0;
+                   new PerformanceObserver(l => l.getEntries().forEach(e => __longas.push(Math.round(e.duration))))
+                       .observe({ type: 'longtask', buffered: false });
+                   new PerformanceObserver(l => l.getEntries().forEach(e => { if (!e.hadRecentInput) __cls += e.value; }))
+                       .observe({ type: 'layout-shift', buffered: true }); }"""
+    )
+    for i in range(61):  # 0 -> 1 em ~3 s
+        rolar_para(page, i / 60, espera=0.05)
+    time.sleep(1)
+    longas, cls = page.evaluate("[__longas, __cls]")
+    print(f"    tarefas longas no scroll: {longas}  CLS: {cls:.4f}")
+    assert len(longas) <= 1, f"Tarefas longas (>50 ms) recorrentes no scroll: {longas}"
+    assert cls < 0.1, f"CLS {cls:.4f} >= 0.1"
+    sem_erros(page)
+
+
 # -------------------------------- Cabecalho ---------------------------------
 
 def cabecalho_marca_secao_ativa(browser: Browser) -> None:
@@ -212,6 +233,7 @@ TESTES = [
     teclado_foca_botoes_visiveis,
     movimento_reduzido_mostra_estado_final,
     cabecalho_marca_secao_ativa,
+    desempenho_scroll,
     screenshots,
 ]
 

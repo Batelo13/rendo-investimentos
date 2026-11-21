@@ -16,4 +16,4 @@
 
 ## 5. Validação
 
-- [ ] 5.1 Suíte, roteiro Playwright, desempenho (sem tarefa > 50 ms recorrente, CLS < 0,1), gate e DAST aprovados.
+- [x] 5.1 Suíte, roteiro Playwright, desempenho (sem tarefa > 50 ms recorrente, CLS < 0,1), gate e DAST aprovados. Resultado: 134 testes, 13 testes Playwright, 0 tarefas longas, CLS 0,0012.
