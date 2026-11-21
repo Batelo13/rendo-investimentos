@@ -4,7 +4,7 @@
 
 ## 2. Tour
 
-- [ ] 2.1 Tour com réplicas e índice ativo. Teste: `LiquidGlassMarkupTest.landingTemTourDoProduto`; Playwright `tour_marca_passo_ao_rolar`, `tour_clique_leva_ao_passo`, `tour_celular_sem_sticky` e `tour_movimento_reduzido`.
+- [x] 2.1 Tour com réplicas e índice ativo. Teste: `LiquidGlassMarkupTest.landingTemTourDoProduto`; Playwright `tour_marca_passo_ao_rolar`, `tour_clique_leva_ao_passo`, `tour_celular_sem_sticky` e `tour_movimento_reduzido`.
 
 ## 3. Diferenciais
 

@@ -249,32 +249,92 @@
         </div>
     </section>
 
-    <section class="lp-secao" id="como-funciona" data-motion>
+    <!-- Tour do produto: replicas ilustrativas das telas reais (landing-tour.js marca o passo ativo). -->
+    <section class="lp-secao lp-tour" id="como-funciona" data-motion>
         <div class="lp-container">
             <span class="lp-sobretitulo">Como funciona</span>
             <h2 class="lp-titulo-secao">Quatro passos, do cadastro à primeira análise.</h2>
-            <ol class="lp-passos">
-                <li>
-                    <span class="lp-passo-num">01</span>
-                    <h3>Crie sua conta</h3>
-                    <p>Cadastro com e-mail e confirmação por código. Sua carteira já nasce com o saldo fictício.</p>
-                </li>
-                <li>
-                    <span class="lp-passo-num">02</span>
-                    <h3>Cadastre corretoras</h3>
-                    <p>Informe o CNPJ: os dados são conferidos em fontes públicas, incluindo o cadastro da CVM.</p>
-                </li>
-                <li>
-                    <span class="lp-passo-num">03</span>
-                    <h3>Compre e venda ações</h3>
-                    <p>Use cotações de mercado, revise cada ordem numa tela de confirmação e mantenha o histórico completo.</p>
-                </li>
-                <li>
-                    <span class="lp-passo-num">04</span>
-                    <h3>Acompanhe a evolução</h3>
-                    <p>Veja posições, preço médio, resultado e a evolução patrimonial ao longo do tempo.</p>
-                </li>
-            </ol>
+            <div class="tour-grade">
+                <nav class="tour-indice" aria-label="Passos de como funciona">
+                    <a href="#tour-1"><span>01</span>Crie sua conta</a>
+                    <a href="#tour-2"><span>02</span>Cadastre corretoras</a>
+                    <a href="#tour-3"><span>03</span>Compre e venda ações</a>
+                    <a href="#tour-4"><span>04</span>Acompanhe a evolução</a>
+                </nav>
+                <div class="tour-passos">
+                    <article class="tour-passo" id="tour-1">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">01</span>
+                            <h3>Crie sua conta</h3>
+                            <p>Cadastro com e-mail e confirmação por código. Sua carteira já nasce com o saldo fictício.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Criar conta</p>
+                            <div class="rep-campo"><span>Nome</span><b>Ana Souza</b></div>
+                            <div class="rep-campo"><span>E-mail</span><b>ana@exemplo.com</b></div>
+                            <div class="rep-campo"><span>CPF</span><b>•••.•••.•••-••</b></div>
+                            <p class="rep-legenda">Código enviado ao seu e-mail</p>
+                            <div class="rep-digitos"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>7</i></div>
+                        </figure>
+                    </article>
+                    <article class="tour-passo" id="tour-2">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">02</span>
+                            <h3>Cadastre corretoras</h3>
+                            <p>Informe o CNPJ: os dados são conferidos em fontes públicas, incluindo o cadastro da CVM.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Nova corretora</p>
+                            <div class="rep-campo"><span>CNPJ</span><b>12.345.678/0001-90 (exemplo)</b></div>
+                            <div class="rep-campo"><span>Razão social</span><b>Corretora Exemplo S.A.</b></div>
+                            <span class="rep-selo">✓ Conferido na CVM</span>
+                        </figure>
+                    </article>
+                    <article class="tour-passo" id="tour-3">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">03</span>
+                            <h3>Compre e venda ações</h3>
+                            <p>Use cotações de mercado, revise cada ordem numa tela de confirmação e mantenha o histórico completo.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Revise sua ordem</p>
+                            <dl class="rep-ordem">
+                                <div><dt>Operação</dt><dd>Compra</dd></div>
+                                <div><dt>Ação</dt><dd>PETR4</dd></div>
+                                <div><dt>Quantidade</dt><dd>100 ações</dd></div>
+                                <div><dt>Preço</dt><dd>R$ 38,50</dd></div>
+                                <div><dt>Corretora</dt><dd>Corretora Exemplo</dd></div>
+                                <div class="rep-total"><dt>Total</dt><dd>R$ 3.850,00</dd></div>
+                            </dl>
+                            <div class="rep-botoes"><span class="rep-botao">Cancelar</span><span class="rep-botao rep-botao-primario">Confirmar</span></div>
+                        </figure>
+                    </article>
+                    <article class="tour-passo" id="tour-4">
+                        <div class="tour-texto">
+                            <span class="lp-passo-num">04</span>
+                            <h3>Acompanhe a evolução</h3>
+                            <p>Veja posições, preço médio, resultado e a evolução patrimonial ao longo do tempo.</p>
+                        </div>
+                        <figure class="tour-tela glass-surface-strong" aria-hidden="true">
+                            <span class="tour-rotulo">Tela ilustrativa</span>
+                            <p class="rep-titulo">Visão geral</p>
+                            <span class="rep-legenda">Patrimônio</span>
+                            <strong class="rep-patrimonio">R$ 103.240</strong>
+                            <svg class="rep-evolucao" viewBox="0 0 320 80" focusable="false">
+                                <polyline pathLength="1" points="0,64 30,58 60,61 90,48 120,52 150,40 180,43 210,30 240,34 270,22 300,25 320,14"/>
+                            </svg>
+                            <ul class="rep-posicoes">
+                                <li><b>PETR4</b><span>R$ 41.200</span></li>
+                                <li><b>VALE3</b><span>R$ 24.880</span></li>
+                                <li><b>AAPL</b><span>R$ 22.160</span></li>
+                            </ul>
+                        </figure>
+                    </article>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -290,35 +350,6 @@
                 <li><h3>Evolução patrimonial</h3><p>Gráfico do rendimento da carteira com períodos de um dia até todo o histórico.</p></li>
                 <li><h3>Tema claro e escuro</h3><p>A área logada se adapta à sua preferência de leitura.</p></li>
             </ul>
-        </div>
-    </section>
-
-    <section class="lp-secao lp-acompanhamento" data-motion>
-        <div class="lp-container lp-acompanhamento-grade">
-            <div>
-                <span class="lp-sobretitulo">Acompanhamento</span>
-                <h2 class="lp-titulo-secao">Seus números, organizados para você decidir.</h2>
-                <p class="lp-texto">Patrimônio total, saldo disponível, resultado realizado e não realizado, valor por ação e fatia do patrimônio investida aparecem juntos na visão geral, atualizados a cada operação.</p>
-                <a class="lp-botao lp-botao-secundario" th:href="@{/login}">Acessar minha carteira</a>
-            </div>
-            <figure class="lp-ilustracao" aria-label="Ilustração da visão geral da carteira">
-                <svg viewBox="0 0 420 260" role="img" aria-hidden="true" focusable="false">
-                    <rect x="0.5" y="0.5" width="419" height="259" rx="14" fill="#101415" stroke="rgba(255,255,255,0.08)"/>
-                    <text x="24" y="38" fill="#8E99A8" font-size="11" font-family="Inter, sans-serif">Patrimônio total</text>
-                    <text x="24" y="64" fill="#F4F6F8" font-size="22" font-weight="600" font-family="Inter, sans-serif">R$ 100.000,00</text>
-                    <polyline points="24,200 64,186 104,192 144,160 184,168 224,134 264,142 304,108" fill="none" stroke="#5DE2BA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <g fill="#5DE2BA">
-                        <rect x="24" y="218" width="26" height="18" rx="3" opacity="0.35"/>
-                        <rect x="58" y="210" width="26" height="26" rx="3" opacity="0.45"/>
-                        <rect x="92" y="204" width="26" height="32" rx="3" opacity="0.55"/>
-                        <rect x="126" y="196" width="26" height="40" rx="3" opacity="0.7"/>
-                    </g>
-                    <circle cx="350" cy="168" r="38" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
-                    <circle cx="350" cy="168" r="38" fill="none" stroke="#E9C27A" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="64 100" transform="rotate(-90 350 168)"/>
-                    <text x="350" y="173" text-anchor="middle" fill="#F4F6F8" font-size="15" font-weight="600" font-family="Inter, sans-serif">64%</text>
-                </svg>
-                <figcaption>Ilustração com valores de exemplo.</figcaption>
-            </figure>
         </div>
     </section>
 
@@ -372,5 +403,6 @@
 <script th:src="@{/js/motion.js}"></script>
 <script th:src="@{/js/landing.js}"></script>
 <script th:src="@{/js/landing-simulador.js}"></script>
+<script th:src="@{/js/landing-tour.js}"></script>
 </body>
 </html>

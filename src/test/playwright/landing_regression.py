@@ -481,6 +481,64 @@ def problema_movimento_reduzido(browser: Browser) -> None:
     sem_erros(page)
 
 
+# ----------------------------------- Tour -----------------------------------
+
+def centralizar(page: Page, seletor: str, espera: float = 1.8) -> None:  # a pagina rola suave
+    page.evaluate("s => document.querySelector(s).scrollIntoView({block: 'center'})", seletor)
+    time.sleep(espera)
+
+
+def passos_ativos(page: Page) -> list:
+    return page.evaluate("[...document.querySelectorAll('.tour-passo.ativo')].map(e => e.id)")
+
+
+def tour_marca_passo_ao_rolar(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, "#tour-3")
+    assert passos_ativos(page) == ["tour-3"], f"So o passo 3 deveria estar ativo, veio {passos_ativos(page)}"
+    atual = page.locator('.tour-indice a[href="#tour-3"]').get_attribute("aria-current")
+    assert atual == "true", f"O indice deveria marcar o passo 3, veio {atual!r}"
+    sem_erros(page)
+
+
+def tour_clique_leva_ao_passo(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, "#tour-1")
+    page.locator('.tour-indice a[href="#tour-4"]').click()
+    time.sleep(1.8)
+    assert passos_ativos(page) == ["tour-4"], f"Depois do clique so o passo 4 deveria estar ativo, veio {passos_ativos(page)}"
+    topo = page.evaluate("document.getElementById('tour-4').getBoundingClientRect().top")
+    assert 0 <= topo < 900, f"O passo 4 deveria estar na tela (topo {topo})"
+    sem_erros(page)
+
+
+def tour_celular_sem_sticky(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 390, "height": 844})
+    centralizar(page, "#tour-2")
+    posicoes = page.evaluate("[...document.querySelectorAll('.tour-tela')].map(f => getComputedStyle(f).position)")
+    assert posicoes == ["static"] * 4, f"No celular a replica nao deveria ficar grudada: {posicoes}"
+    largura = page.evaluate("[document.documentElement.scrollWidth, innerWidth]")
+    assert largura[0] <= largura[1], f"Scroll horizontal no tour: {largura}"
+    sem_erros(page)
+
+
+def tour_movimento_reduzido(browser: Browser) -> None:
+    page = abrir(browser, reduced_motion="reduce")
+    assert len(passos_ativos(page)) == 4, f"Com movimento reduzido todos os passos ficam ativos, veio {passos_ativos(page)}"
+    sem_erros(page)
+
+
+def screenshots_tour(browser: Browser) -> None:
+    pasta = os.path.join("target", "landing-screens")
+    os.makedirs(pasta, exist_ok=True)
+    for largura, altura in ((1280, 900), (390, 844)):
+        page = abrir(browser, viewport={"width": largura, "height": altura})
+        for n in (1, 2, 3, 4):
+            centralizar(page, f"#tour-{n}", espera=2.2)
+            page.screenshot(path=os.path.join(pasta, f"tour-{largura}-{n}.png"))
+        sem_erros(page)
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -550,6 +608,11 @@ TESTES = [
     screenshots_simulador,
     problema_resolve_ao_entrar,
     problema_movimento_reduzido,
+    tour_marca_passo_ao_rolar,
+    tour_clique_leva_ao_passo,
+    tour_celular_sem_sticky,
+    tour_movimento_reduzido,
+    screenshots_tour,
     desempenho_scroll,
     screenshots,
 ]

@@ -234,6 +234,18 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingTemTourDoProduto() throws IOException {
+        String index = template("index.html");
+        assertEquals(4, index.split("class=\"tour-passo\"", -1).length - 1, "quatro passos");
+        for (String contrato : List.of("id=\"tour-1\"", "id=\"tour-2\"", "id=\"tour-3\"", "id=\"tour-4\"",
+                "Conferido na CVM", "Revise sua ordem")) {
+            assertTrue(index.contains(contrato), contrato);
+        }
+        assertFalse(index.contains("lp-acompanhamento"));
+        assertTrue(index.indexOf("@{/js/landing-simulador.js}") < index.indexOf("@{/js/landing-tour.js}"));
+    }
+
+    @Test
     void landingTemOpenGraph() throws IOException {
         String index = template("index.html");
         assertTrue(index.contains("property=\"og:title\""));
