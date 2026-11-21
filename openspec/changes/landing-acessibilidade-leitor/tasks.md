@@ -1,0 +1,4 @@
+- [x] 1. Contraste AA do tour inativo (`tour_texto_inativo_tem_contraste_aa`)
+- [x] 2. Rótulos "Sem a Rendo:"/"Com a Rendo:" para leitor de tela (`problema_leitor_distingue_antes_e_depois`)
+- [x] 3. Aviso do simulador como região de status (`simulador_aviso_e_regiao_de_status`)
+- [x] 4. Câmbio anuncia o valor final, sem aria-pressed (`cambio_anuncia_valor_final`)
