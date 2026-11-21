@@ -258,6 +258,21 @@ class LiquidGlassMarkupTest {
     }
 
     @Test
+    void landingTemSegurancaECtaFinal() throws IOException {
+        String index = template("index.html");
+        int inicioSeguranca = index.indexOf("id=\"seguranca\"");
+        String seguranca = index.substring(inicioSeguranca, index.indexOf("</section>", inicioSeguranca));
+        assertEquals(7, seguranca.split("<li", -1).length - 1, "sete protecoes");
+        assertTrue(seguranca.contains("Nenhum dinheiro real circula na Rendo."));
+        assertTrue(seguranca.contains("Limite de tentativas"));
+        int inicioCta = index.indexOf("class=\"lp-cta\"");
+        String cta = index.substring(inicioCta, index.indexOf("</section>", inicioCta));
+        assertTrue(cta.contains("data-contador=\"100000\""));
+        assertTrue(cta.contains("data-ima"));
+        assertTrue(Files.readString(RESOURCES.resolve("static/js/motion.js")).contains("data-ima"));
+    }
+
+    @Test
     void landingTemOpenGraph() throws IOException {
         String index = template("index.html");
         assertTrue(index.contains("property=\"og:title\""));

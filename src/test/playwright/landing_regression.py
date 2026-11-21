@@ -616,6 +616,37 @@ def screenshots_diferenciais(browser: Browser) -> None:
         sem_erros(page)
 
 
+# ------------------------------ Chamada final -------------------------------
+
+def deslocamento_ima(page: Page) -> str:
+    return page.locator(".lp-cta [data-ima]").evaluate("e => e.style.getPropertyValue('--ima-x')")
+
+
+def cta_botao_magnetico(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, ".lp-cta [data-ima]")
+    caixa = page.locator(".lp-cta [data-ima]").bounding_box()
+    cy = caixa["y"] + caixa["height"] / 2
+    page.mouse.move(caixa["x"] + caixa["width"] / 2, cy)
+    page.mouse.move(caixa["x"] + caixa["width"] / 2 + 10, cy, steps=3)
+    time.sleep(0.3)
+    valor = deslocamento_ima(page)
+    assert valor not in ("", "0px"), f"O botao deveria se deslocar com o mouse, veio {valor!r}"
+    assert abs(float(valor.replace("px", ""))) <= 6, f"Deslocamento acima de 6 px: {valor!r}"
+    sem_erros(page)
+
+    toque = abrir(browser, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    centralizar(toque, ".lp-cta [data-ima]")
+    # O botao e um link: tocar navegaria. Dispara so o movimento do ponteiro.
+    toque.locator(".lp-cta [data-ima]").evaluate(
+        "e => { const r = e.getBoundingClientRect();"
+        " e.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: r.left + r.width / 2 + 10, clientY: r.top + r.height / 2 })); }"
+    )
+    time.sleep(0.2)
+    assert deslocamento_ima(toque) == "", f"No toque o botao nao deveria se deslocar: {deslocamento_ima(toque)!r}"
+    toque.context.close()
+
+
 # -------------------------------- Desempenho --------------------------------
 
 def desempenho_scroll(browser: Browser) -> None:
@@ -697,6 +728,7 @@ TESTES = [
     diferenciais_sem_overflow_no_celular,
     diferenciais_movimento_reduzido,
     screenshots_diferenciais,
+    cta_botao_magnetico,
     desempenho_scroll,
     screenshots,
 ]

@@ -378,24 +378,28 @@
         <div class="lp-container lp-seguranca-grade">
             <div>
                 <span class="lp-sobretitulo">Segurança e privacidade</span>
-                <h2 class="lp-titulo-secao">Cuidados aplicados desde o cadastro.</h2>
+                <h2 class="lp-titulo-secao">Por que confiar</h2>
+                <p class="lp-seguranca-destaque">Nenhum dinheiro real circula na Rendo.</p>
                 <p class="lp-texto">Nenhum sistema é infalível, por isso tratamos proteção como prática contínua, com revisões e testes automatizados de segurança.</p>
             </div>
             <ul class="lp-seguranca-lista">
-                <li><h3>Senha protegida</h3><p>Armazenada apenas como hash BCrypt, nunca em texto puro.</p></li>
-                <li><h3>CPF não exposto</h3><p>Guardado só como resumo criptográfico com chave secreta e nunca devolvido pela API.</p></li>
-                <li><h3>E-mail verificado</h3><p>A conta só é ativada com o código enviado ao seu e-mail.</p></li>
-                <li><h3>Dados isolados</h3><p>Cada conta acessa apenas a própria carteira, posições e operações.</p></li>
+                <li data-motion><h3>E-mail verificado</h3><p>A conta só é ativada com o código enviado ao seu e-mail.</p></li>
+                <li data-motion><h3>Limite de tentativas</h3><p>Após 5 senhas erradas, o login fica bloqueado por 15 minutos.</p></li>
+                <li data-motion><h3>Senha protegida</h3><p>Armazenada apenas como hash BCrypt, nunca em texto puro.</p></li>
+                <li data-motion><h3>CPF não exposto</h3><p>Guardado só como resumo criptográfico com chave secreta e nunca devolvido pela API.</p></li>
+                <li data-motion><h3>Dados isolados</h3><p>Cada conta acessa apenas a própria carteira, posições e operações.</p></li>
+                <li data-motion><h3>Cabeçalhos de segurança</h3><p>Política de conteúdo restrita, sem scripts de terceiros.</p></li>
+                <li data-motion><h3>Verificação semanal</h3><p>Testes automáticos de segurança rodam toda semana.</p></li>
             </ul>
         </div>
     </section>
 
     <section class="lp-cta" data-motion>
         <div class="lp-container">
-            <h2>Dê o primeiro passo da sua jornada.</h2>
+            <h2>Comece com <span data-contador="100000" data-formato="brl0">R$ 100.000</span> fictícios.</h2>
             <p>Crie sua conta e comece a simular hoje mesmo.</p>
             <div class="momento-acoes lp-cta-acoes">
-                <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}">Criar minha conta</a>
+                <a class="lp-botao lp-botao-primario" th:href="@{/login(criarConta=1)}" data-ima>Criar minha conta</a>
                 <a class="lp-botao lp-botao-secundario" th:href="@{/login}">Já tenho conta</a>
             </div>
         </div>

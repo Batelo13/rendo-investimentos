@@ -593,6 +593,14 @@ body.landing-page::before { display: none; }
 .lp-seguranca-grade .lp-titulo-secao { margin-bottom: 24px !important; }
 .lp-seguranca-lista { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; row-gap: 40px; }
 .lp-seguranca-lista li { padding-top: 22px; border-top: 1px solid var(--lp-linha); }
+.lp-seguranca-destaque {
+    margin: 0 0 20px;
+    padding-left: 14px;
+    border-left: 2px solid var(--lp-esmeralda-claro);
+    color: var(--lp-texto);
+    font-size: 1.15rem;
+    font-weight: 500;
+}
 
 .lp-cta {
     position: relative;

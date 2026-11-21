@@ -9,6 +9,8 @@
  *   data-inclina="6"            inclinacao maxima em graus na direcao do ponteiro;
  *     data-inclina-area="#id"   area que escuta o ponteiro (padrao: o proprio elemento),
  *     que recebe --mx/--my (-1..1) para parallax em CSS.
+ *   data-ima                    atracao magnetica sutil: --ima-x/--ima-y = 25% do deslocamento do
+ *     ponteiro ate o centro, no maximo 6 px (CSS em glass.css).
  *   data-resolve                ganha a classe "resolvido" 600 ms depois de ficar 60% visivel
  *     (estado "antes" -> "depois" em CSS); com movimento reduzido, ja comeca resolvido.
  * Luz e inclinacao so com mouse (hover + pointer fine): toque nao inclina nada.
@@ -112,10 +114,24 @@
         area.addEventListener('pointerleave', () => aplicar(0, 0));
     }
 
+    function ligarIma(el) {
+        const limitar = (v) => Math.max(-6, Math.min(6, v));
+        el.addEventListener('pointermove', porQuadro((e) => {
+            const r = el.getBoundingClientRect();
+            el.style.setProperty('--ima-x', `${limitar((e.clientX - (r.left + r.width / 2)) * 0.25).toFixed(1)}px`);
+            el.style.setProperty('--ima-y', `${limitar((e.clientY - (r.top + r.height / 2)) * 0.25).toFixed(1)}px`);
+        }));
+        el.addEventListener('pointerleave', () => {
+            el.style.setProperty('--ima-x', '0px');
+            el.style.setProperty('--ima-y', '0px');
+        });
+    }
+
     function prepararPonteiro() {
         if (reducedMotion.matches || !ponteiroFino.matches) return;
         document.querySelectorAll('[data-luz]').forEach(ligarLuz);
         document.querySelectorAll('[data-inclina]').forEach(ligarInclinacao);
+        document.querySelectorAll('[data-ima]').forEach(ligarIma);
     }
 
     /* ------------------------------ Resolver ------------------------------ */

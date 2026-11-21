@@ -12,7 +12,7 @@
 
 ## 4. Segurança e chamada final
 
-- [ ] 4.1 Lista verificável, contador e `data-ima`. Teste: `LiquidGlassMarkupTest.landingTemSegurancaECtaFinal`; Playwright `cta_botao_magnetico`.
+- [x] 4.1 Lista verificável, contador e `data-ima`. Teste: `LiquidGlassMarkupTest.landingTemSegurancaECtaFinal`; Playwright `cta_botao_magnetico`.
 
 ## 5. Validação
 
