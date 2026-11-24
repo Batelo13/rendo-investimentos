@@ -297,6 +297,11 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .tag { display: inline-flex; align-items: center; vertical-align: middle; white-space: nowrap; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); }
 .tag-cvm { color: var(--brand-text); background: color-mix(in srgb, var(--brand-text) 10%, transparent); border-color: var(--brand-text); }
 .tag-buy { color: var(--brand-text); background: color-mix(in srgb, var(--brand-text) 10%, transparent); border-color: var(--brand-text); }
+/* Administrador: selo na barra lateral e marca do papel na lista de contas. */
+.selo-admin { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 6px 0 4px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--brand-text); background: color-mix(in srgb, var(--brand-text) 12%, transparent); border: 1px solid var(--brand-text); }
+.selo-admin svg { width: 14px; height: 14px; }
+.tag-admin { color: var(--brand-text); background: color-mix(in srgb, var(--brand-text) 10%, transparent); border-color: var(--brand-text); font-weight: 700; }
+.acoes-admin { display: flex; gap: 6px; flex-wrap: wrap; }
 .tag-sell { color: var(--danger-text); background: color-mix(in srgb, var(--danger-text) 10%, transparent); border-color: var(--danger-text); }
 
 /* Wrapper interno: o <td> deve conservar o comportamento de table-cell. */

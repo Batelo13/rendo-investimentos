@@ -256,6 +256,7 @@ const VIEW_META = {
     "posicoes": ["Minhas posições", "Suas posições por ação e corretora"],
     "operacoes": ["Operações", "Histórico de compras e vendas"],
     "corretoras": ["Corretoras", "Instituições validadas via CNPJ, CEP e CVM"],
+    "admin": ["Administração", "Contas do site: números, status e carteiras"],
 };
 
 const mobileSidebarMedia = window.matchMedia("(max-width: 860px)");
@@ -358,6 +359,109 @@ function setView(view) {
     $("#viewTitle").textContent = t;
     $("#viewSubtitle").textContent = s;
     setSidebarOpen(false, { focus: false, restoreFocus: true });
+    if (view === "admin") carregarAdmin();
+}
+
+/* ------------------- Administração (só ADMIN) ------------------- */
+// A seção só existe no HTML de quem é ADMIN; os endpoints também exigem ADMIN.
+const admin = { pagina: 0, totalPaginas: 1, usuarios: [] };
+
+async function carregarAdmin(pagina = admin.pagina) {
+    try {
+        const [est, page] = await Promise.all([
+            api("/usuarios/estatisticas"),
+            api(`/usuarios?page=${pagina}&size=20&sort=id`),
+        ]);
+        const inteiro = (v) => String(Math.round(v));
+        contar($("#admTotal"), est.total, inteiro);
+        contar($("#admAtivas"), est.ativas, inteiro);
+        contar($("#admBloqueadas"), est.bloqueadas, inteiro);
+        contar($("#admNaoVerificado"), est.emailNaoVerificado, inteiro);
+        contar($("#admAdmins"), est.administradores, inteiro);
+        contar($("#admNovas"), est.novasUltimos30Dias, inteiro);
+        const meta = page.page || page;
+        admin.pagina = pagina;
+        admin.totalPaginas = Math.max(1, meta.totalPages ?? 1);
+        admin.usuarios = page.content || [];
+        $("#countUsuarios").textContent = meta.totalElements ?? admin.usuarios.length;
+        renderUsuariosAdmin();
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+function renderUsuariosAdmin() {
+    const filtro = $("#filterUsuarios").value.trim().toLowerCase();
+    const lista = admin.usuarios.filter((u) => !filtro
+        || (u.nome || "").toLowerCase().includes(filtro) || (u.email || "").toLowerCase().includes(filtro));
+    $("#emptyUsuarios").classList.toggle("hidden", lista.length > 0);
+    $("#labelPaginaUsuarios").textContent = `Página ${admin.pagina + 1} de ${admin.totalPaginas}`;
+    $("#btnUsuariosAnterior").disabled = admin.pagina <= 0;
+    $("#btnUsuariosProxima").disabled = admin.pagina >= admin.totalPaginas - 1;
+    $("#tableUsuarios tbody").innerHTML = lista.map((u) => {
+        const ehAdmin = u.role === "ADMIN";
+        // Admin não bloqueia admin: o papel vem do servidor (ADMIN_EMAILS).
+        const acaoStatus = ehAdmin ? "" : u.ativo
+            ? `<button class="btn btn-sm btn-ghost" type="button" data-adm-acao="bloquear" data-id="${esc(u.id)}">Bloquear</button>`
+            : `<button class="btn btn-sm" type="button" data-adm-acao="desbloquear" data-id="${esc(u.id)}">Desbloquear</button>`;
+        return `
+        <tr>
+            <td>${esc(u.nome)}</td>
+            <td>${esc(u.email)}</td>
+            <td>${ehAdmin ? '<span class="tag tag-admin">Admin</span>' : '<span class="tag">Usuário</span>'}</td>
+            <td>${u.ativo ? '<span class="tag tag-cvm">Ativa</span>' : '<span class="tag tag-sell">Bloqueada</span>'}</td>
+            <td>${esc(u.dataCadastro ? new Date(u.dataCadastro + "T00:00:00").toLocaleDateString("pt-BR") : "—")}</td>
+            <td class="acoes-admin">
+                <button class="btn btn-sm btn-ghost" type="button" data-adm-acao="carteira" data-id="${esc(u.id)}" data-nome="${esc(u.nome)}">Carteira</button>
+                ${acaoStatus}
+            </td>
+        </tr>`;
+    }).join("");
+}
+
+async function acaoAdmin(evento) {
+    const botao = evento.target.closest("[data-adm-acao]");
+    if (!botao) return;
+    const { admAcao: acao, id, nome } = botao.dataset;
+    if (acao === "carteira") return verCarteiraUsuario(id, nome);
+
+    const bloquear = acao === "bloquear";
+    const { isConfirmed } = await Swal.fire({
+        title: bloquear ? "Bloquear esta conta?" : "Desbloquear esta conta?",
+        text: bloquear ? "A pessoa não conseguirá entrar até ser desbloqueada." : "A pessoa volta a poder entrar.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: bloquear ? "Bloquear" : "Desbloquear",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+    try {
+        await api(`/usuarios/${encodeURIComponent(id)}/${bloquear ? "bloquear" : "desbloquear"}`, { method: "PATCH" });
+        toast(bloquear ? "Conta bloqueada" : "Conta desbloqueada");
+        carregarAdmin();
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+async function verCarteiraUsuario(id, nome) {
+    try {
+        const posicoes = await api(`/carteiras/${encodeURIComponent(id)}`);
+        const linhas = posicoes.map((p) => `
+            <tr><td>${esc(p.acaoTicker)}</td><td>${esc(p.corretoraNome)}</td>
+            <td class="num">${esc(fmtNumero(p.quantidade))}</td>
+            <td class="num">${esc(fmtMoeda(p.valorInvestido, moedaPorTicker(p.acaoTicker)))}</td></tr>`).join("");
+        Swal.fire({
+            title: `Carteira de ${esc(nome)}`,
+            html: posicoes.length
+                ? `<div class="table-wrap"><table class="table"><thead><tr><th>Ticker</th><th>Corretora</th><th class="num">Qtd</th><th class="num">Investido</th></tr></thead><tbody>${linhas}</tbody></table></div>`
+                : "Nenhuma posição em carteira.",
+            width: 640,
+            confirmButtonText: "Fechar",
+        });
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
 }
 
 /* ---------------------------- Render ------------------------------ */
@@ -1389,6 +1493,13 @@ function bind() {
     setSidebarOpen(false, { focus: false });
     $("#refreshAll").addEventListener("click", carregarTudo);
     $("#btnTema")?.addEventListener("click", refreshSemanticColors);
+
+    if ($("#view-admin")) {
+        $("#tableUsuarios tbody").addEventListener("click", acaoAdmin);
+        $("#filterUsuarios").addEventListener("input", renderUsuariosAdmin);
+        $("#btnUsuariosAnterior").addEventListener("click", () => carregarAdmin(admin.pagina - 1));
+        $("#btnUsuariosProxima").addEventListener("click", () => carregarAdmin(admin.pagina + 1));
+    }
 
     $("#formAcao").addEventListener("submit", submitAcao);
     $("#formBuscaAcao").addEventListener("submit", buscarAcao);
