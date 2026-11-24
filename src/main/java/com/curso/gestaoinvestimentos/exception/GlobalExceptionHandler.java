@@ -1,6 +1,8 @@
 package com.curso.gestaoinvestimentos.exception;
 
+import com.curso.gestaoinvestimentos.security.MuitasTentativasException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +14,23 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static ResponseEntity<ErrorResponse> erro(HttpStatus status, String mensagem) {
+        return ResponseEntity.status(status)
+                .body(new ErrorResponse(LocalDateTime.now(), status.value(), status.getReasonPhrase(), mensagem));
+    }
+
+    // Login JWT (POST /api/auth/login): credencial invalida vira 401 no
+    // formato de erro do projeto, em vez de subir como erro interno.
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleCredenciais(BadCredentialsException ex) {
+        return erro(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(MuitasTentativasException.class)
+    public ResponseEntity<ErrorResponse> handleMuitasTentativas(MuitasTentativasException ex) {
+        return erro(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErrorResponse> handleNaoEncontrado(RecursoNaoEncontradoException ex) {

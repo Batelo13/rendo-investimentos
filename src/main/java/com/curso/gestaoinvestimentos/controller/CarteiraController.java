@@ -9,6 +9,7 @@ import com.curso.gestaoinvestimentos.service.OperacaoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -46,16 +47,21 @@ public class CarteiraController {
         return carteiraService.buscarRendimentoPropria(principal.getName());
     }
 
+    // Admin como gerente: consulta a carteira de qualquer conta (USER so ve a propria, em /me).
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{usuarioId}")
     public List<PosicaoDTO> posicaoPorUsuario(@PathVariable Long usuarioId) {
         return carteiraService.buscarPosicaoPorUsuarioId(usuarioId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{usuarioId}/operacoes")
     public Page<OperacaoResponseDTO> operacoesPorUsuario(@PathVariable Long usuarioId, @PageableDefault(size = 20) Pageable pageable) {
         return operacaoService.listarComoAdmin(usuarioId, pageable);
     }
 
+    // Recalcula a posicao a partir das operacoes: manutencao, so ADMIN.
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{usuarioId}/reconstruir")
     public List<PosicaoDTO> reconstruir(@PathVariable Long usuarioId) {
         return carteiraService.reconstruirPosicao(usuarioId);

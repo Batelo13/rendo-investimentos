@@ -14,7 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.curso.gestaoinvestimentos.dto.EstatisticasUsuariosDTO;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +52,8 @@ public class UsuarioController {
         return new MensagemResponseDTO("Enviamos um novo codigo de verificacao para seu e-mail.");
     }
 
+    // Lista todas as contas (nome, email, papel, status): dado de terceiros, so ADMIN.
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public Page<UsuarioResponseDTO> listar(@PageableDefault(size = 20) Pageable pageable) {
         return service.listar(pageable);
@@ -57,6 +61,13 @@ public class UsuarioController {
 
     // Dono do registro ou ADMIN (Modulo 11: controle de acesso por propriedade,
     // nao so por papel). AccessDeniedException vira 403 pelo Spring Security.
+    // Painel do administrador: so contagens, nenhum dado pessoal.
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/estatisticas")
+    public EstatisticasUsuariosDTO estatisticas() {
+        return service.estatisticas();
+    }
+
     @GetMapping("/{id}")
     public UsuarioResponseDTO buscarPorId(@PathVariable Long id, Authentication autenticacao) {
         UsuarioResponseDTO usuario = service.buscarPorId(id);
@@ -68,11 +79,14 @@ public class UsuarioController {
         return usuario;
     }
 
+    // Bloquear/desbloquear = desativar sem apagar (aula 14): so ADMIN.
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/bloquear")
     public UsuarioResponseDTO bloquear(@PathVariable Long id) {
         return service.bloquear(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/desbloquear")
     public UsuarioResponseDTO desbloquear(@PathVariable Long id) {
         return service.desbloquear(id);

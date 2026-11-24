@@ -1,6 +1,7 @@
 package com.curso.gestaoinvestimentos.service;
 
 import com.curso.gestaoinvestimentos.dto.CadastroResponseDTO;
+import com.curso.gestaoinvestimentos.dto.EstatisticasUsuariosDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
@@ -96,6 +97,16 @@ public class UsuarioService {
 
     public Page<UsuarioResponseDTO> listar(Pageable pageable) {
         return repository.findAll(pageable).map(this::toResponseDTO);
+    }
+
+    public EstatisticasUsuariosDTO estatisticas() {
+        return new EstatisticasUsuariosDTO(
+                repository.count(),
+                repository.countByAtivo(true),
+                repository.countByAtivo(false),
+                repository.countByEmailVerified(false),
+                repository.countByRole(Role.ADMIN),
+                repository.countByDataCadastroGreaterThanEqual(LocalDate.now().minusDays(30)));
     }
 
     public UsuarioResponseDTO buscarPorId(Long id) {
