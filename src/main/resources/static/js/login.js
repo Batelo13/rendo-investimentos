@@ -306,7 +306,8 @@ const validadores = {
     nome: (v) => v.trim().length >= 2,
     email: (v) => EMAIL_REGEX.test(v.trim()),
     cpf: (v) => onlyDigits(v).length === 11,
-    senha: (v) => v.length >= 8,
+    // Mesma regra do backend: 8+ caracteres, com maiuscula e minuscula.
+    senha: (v) => v.length >= 8 && /\p{Ll}/u.test(v) && /\p{Lu}/u.test(v),
 };
 
 function ligarValidacaoAoVivo(input, checar) {

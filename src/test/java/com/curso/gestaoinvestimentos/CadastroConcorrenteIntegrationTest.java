@@ -46,7 +46,7 @@ class CadastroConcorrenteIntegrationTest {
     void cadastrosSimultaneosIguaisGeramUmUsuarioEConflitoNosDemais() throws Exception {
         for (int rodada = 0; rodada < 5; rodada++) {
             String email = "duplo" + rodada + "@example.com";
-            UsuarioRequestDTO dto = new UsuarioRequestDTO("Duplo", email, CpfTestFixtures.proximoCpfValido(), "senha1234");
+            UsuarioRequestDTO dto = new UsuarioRequestDTO("Duplo", email, CpfTestFixtures.proximoCpfValido(), "Senha1234");
             int simultaneos = 4;
             CountDownLatch largada = new CountDownLatch(1);
             ExecutorService pool = Executors.newFixedThreadPool(simultaneos);

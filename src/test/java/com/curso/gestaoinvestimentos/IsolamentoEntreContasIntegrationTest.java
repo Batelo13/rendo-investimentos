@@ -159,7 +159,7 @@ class IsolamentoEntreContasIntegrationTest {
         usuario.setNome("Isolamento");
         usuario.setEmail(email);
         usuario.setCpf(CpfTestFixtures.proximoCpfValido());
-        usuario.setSenha(passwordEncoder.encode("senha1234"));
+        usuario.setSenha(passwordEncoder.encode("Senha1234"));
         usuario.setRole(Role.USER);
         usuario.setAtivo(true);
         usuario.setDataCadastro(LocalDate.now());
@@ -173,7 +173,7 @@ class IsolamentoEntreContasIntegrationTest {
     }
 
     private MockHttpSession logar(String email) throws Exception {
-        return (MockHttpSession) mockMvc.perform(post("/login").param("username", email).param("password", "senha1234"))
+        return (MockHttpSession) mockMvc.perform(post("/login").param("username", email).param("password", "Senha1234"))
                 .andReturn().getRequest().getSession(false);
     }
 }

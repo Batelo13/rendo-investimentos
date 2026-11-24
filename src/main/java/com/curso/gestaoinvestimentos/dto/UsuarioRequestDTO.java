@@ -24,6 +24,8 @@ public record UsuarioRequestDTO(
 
         @NotBlank(message = "Senha e obrigatoria")
         @Size(min = 8, message = "Senha deve ter no minimo 8 caracteres")
+        // \p{Ll}/\p{Lu}: minuscula/maiuscula em qualquer alfabeto (aceita "Ç", "Á").
+        @Pattern(regexp = "(?=.*\\p{Ll})(?=.*\\p{Lu}).*", message = "Senha deve ter letra maiuscula e minuscula")
         @TamanhoMaximoBytes(value = 72, message = "Senha deve ter no maximo 72 bytes")
         String senha
 ) {

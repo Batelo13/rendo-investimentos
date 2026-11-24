@@ -144,10 +144,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void deveRegistrarCompraERefletirNaPosicao() throws Exception {
-        cadastrarUsuario("investidor@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("investidor@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("AAPL");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("investidor@example.com", "senha1234");
+        MockHttpSession sessao = logar("investidor@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
 
@@ -170,10 +170,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void deveGravarPrecoMedioNaVendaEBloquearVendaADescoberto() throws Exception {
-        cadastrarUsuario("vendedor@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("vendedor@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("PETR4");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("vendedor@example.com", "senha1234");
+        MockHttpSession sessao = logar("vendedor@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
         mockMvc.perform(post("/operacoes")
@@ -205,10 +205,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void deveBloquearOperacaoEmCorretoraNaoValidadaNaCvm() throws Exception {
-        cadastrarUsuario("naovalidado@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("naovalidado@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("VALE3");
         Corretora corretora = cadastrarCorretora(false);
-        MockHttpSession sessao = logar("naovalidado@example.com", "senha1234");
+        MockHttpSession sessao = logar("naovalidado@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
 
@@ -221,9 +221,9 @@ class OperacaoIntegrationTest {
 
     @Test
     void usuarioNaoAcessaCarteiraDeOutroUsuario() throws Exception {
-        Usuario outro = cadastrarUsuario("outro@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("proprio@example.com", "senha1234", Role.USER);
-        MockHttpSession sessao = logar("proprio@example.com", "senha1234");
+        Usuario outro = cadastrarUsuario("outro@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("proprio@example.com", "Senha1234", Role.USER);
+        MockHttpSession sessao = logar("proprio@example.com", "Senha1234");
 
         mockMvc.perform(get("/carteiras/" + outro.getId()).session(sessao))
                 .andExpect(status().isForbidden());
@@ -231,9 +231,9 @@ class OperacaoIntegrationTest {
 
     @Test
     void adminAcessaCarteiraDeQualquerUsuarioSomenteLeitura() throws Exception {
-        Usuario usuarioComum = cadastrarUsuario("comum@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin@example.com", "senha1234", Role.ADMIN);
-        MockHttpSession sessaoAdmin = logar("admin@example.com", "senha1234");
+        Usuario usuarioComum = cadastrarUsuario("comum@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin@example.com", "Senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin@example.com", "Senha1234");
 
         MvcResult resultado = mockMvc.perform(get("/carteiras/" + usuarioComum.getId()).session(sessaoAdmin))
                 .andExpect(status().isOk())
@@ -245,12 +245,12 @@ class OperacaoIntegrationTest {
 
     @Test
     void adminCancelaCompraUsuarioComumNaoConsegue() throws Exception {
-        cadastrarUsuario("dono@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin2@example.com", "senha1234", Role.ADMIN);
+        cadastrarUsuario("dono@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin2@example.com", "Senha1234", Role.ADMIN);
         Acao acao = cadastrarAcao("ITUB4");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessaoDono = logar("dono@example.com", "senha1234");
-        MockHttpSession sessaoAdmin = logar("admin2@example.com", "senha1234");
+        MockHttpSession sessaoDono = logar("dono@example.com", "Senha1234");
+        MockHttpSession sessaoAdmin = logar("admin2@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("30.00"));
         MvcResult resultado = mockMvc.perform(post("/operacoes")
@@ -271,12 +271,12 @@ class OperacaoIntegrationTest {
 
     @Test
     void cancelamentoBloqueadoQuandoDeixariaSaldoNegativo() throws Exception {
-        cadastrarUsuario("dono2@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin3@example.com", "senha1234", Role.ADMIN);
+        cadastrarUsuario("dono2@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin3@example.com", "Senha1234", Role.ADMIN);
         Acao acao = cadastrarAcao("MGLU3");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessaoDono = logar("dono2@example.com", "senha1234");
-        MockHttpSession sessaoAdmin = logar("admin3@example.com", "senha1234");
+        MockHttpSession sessaoDono = logar("dono2@example.com", "Senha1234");
+        MockHttpSession sessaoAdmin = logar("admin3@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("30.00"));
         MvcResult resultadoCompra = mockMvc.perform(post("/operacoes")
@@ -300,10 +300,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void zerarPosicaoEComprarDeNovoReiniciaPrecoMedio() throws Exception {
-        cadastrarUsuario("recomeco@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("recomeco@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("WEGE3");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("recomeco@example.com", "senha1234");
+        MockHttpSession sessao = logar("recomeco@example.com", "Senha1234");
 
         OperacaoRequestDTO compra1 = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("10.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
@@ -335,10 +335,10 @@ class OperacaoIntegrationTest {
         // Fracao de acao (0,5 unidade) so existe no mercado dos EUA -- no Brasil o
         // mercado fracionario negocia em unidades inteiras (ver
         // deveRejeitarCompraFracionariaParaAcaoBrasileira abaixo).
-        cadastrarUsuario("fracionario@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("fracionario@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcaoEua("AAPL");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("fracionario@example.com", "senha1234");
+        MockHttpSession sessao = logar("fracionario@example.com", "Senha1234");
         when(cambioClient.buscarTaxaUsdParaBrl()).thenReturn(new BigDecimal("5.00"));
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("0.5"), new BigDecimal("100.00"));
@@ -362,10 +362,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void deveRejeitarCompraFracionariaParaAcaoBrasileira() throws Exception {
-        cadastrarUsuario("fracionariobr@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("fracionariobr@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("BOVA11");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("fracionariobr@example.com", "senha1234");
+        MockHttpSession sessao = logar("fracionariobr@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("0.5"), new BigDecimal("100.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
@@ -375,12 +375,12 @@ class OperacaoIntegrationTest {
 
     @Test
     void adminReconstroiCachePosicaoAposDivergencia() throws Exception {
-        Usuario dono = cadastrarUsuario("cachedono@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admincache@example.com", "senha1234", Role.ADMIN);
+        Usuario dono = cadastrarUsuario("cachedono@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admincache@example.com", "Senha1234", Role.ADMIN);
         Acao acao = cadastrarAcao("CACH3");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessaoDono = logar("cachedono@example.com", "senha1234");
-        MockHttpSession sessaoAdmin = logar("admincache@example.com", "senha1234");
+        MockHttpSession sessaoDono = logar("cachedono@example.com", "Senha1234");
+        MockHttpSession sessaoAdmin = logar("admincache@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("50.00"));
         mockMvc.perform(post("/operacoes").session(sessaoDono).contentType(MediaType.APPLICATION_JSON)
@@ -416,9 +416,9 @@ class OperacaoIntegrationTest {
 
     @Test
     void usuarioComumNaoConsegueReconstruirCache() throws Exception {
-        Usuario alvo = cadastrarUsuario("alvocache@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("comumcache@example.com", "senha1234", Role.USER);
-        MockHttpSession sessaoComum = logar("comumcache@example.com", "senha1234");
+        Usuario alvo = cadastrarUsuario("alvocache@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("comumcache@example.com", "Senha1234", Role.USER);
+        MockHttpSession sessaoComum = logar("comumcache@example.com", "Senha1234");
 
         mockMvc.perform(patch("/carteiras/" + alvo.getId() + "/reconstruir").session(sessaoComum))
                 .andExpect(status().isForbidden());
@@ -426,10 +426,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void deveBloquearCompraQuandoSaldoInsuficiente() throws Exception {
-        cadastrarUsuario("semsaldo@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("semsaldo@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("CARO3");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("semsaldo@example.com", "senha1234");
+        MockHttpSession sessao = logar("semsaldo@example.com", "Senha1234");
 
         // saldo inicial e 100000.00; 2000 x 100.00 = 200000.00, maior que o saldo disponivel
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("2000"), new BigDecimal("100.00"));
@@ -441,10 +441,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void compraDescontaSaldoEVendaDevolve() throws Exception {
-        cadastrarUsuario("saldodono@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("saldodono@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcao("SALDO3");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("saldodono@example.com", "senha1234");
+        MockHttpSession sessao = logar("saldodono@example.com", "Senha1234");
 
         OperacaoRequestDTO compra = new OperacaoRequestDTO(acao.getId(), corretora.getId(), TipoOperacao.COMPRA, new BigDecimal("10"), new BigDecimal("100.00"));
         mockMvc.perform(post("/operacoes").session(sessao).contentType(MediaType.APPLICATION_JSON)
@@ -472,10 +472,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void compraDeAcaoEuaGravaTaxaDeCambioEDescontaSaldoConvertido() throws Exception {
-        cadastrarUsuario("investidor.eua@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("investidor.eua@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcaoEua("AAPL");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("investidor.eua@example.com", "senha1234");
+        MockHttpSession sessao = logar("investidor.eua@example.com", "Senha1234");
 
         when(cambioClient.buscarTaxaUsdParaBrl()).thenReturn(new BigDecimal("5.00"));
 
@@ -497,10 +497,10 @@ class OperacaoIntegrationTest {
 
     @Test
     void compraDeAcaoEuaRejeitaQuandoCustoConvertidoExcedeSaldoMasCustoBrutoNao() throws Exception {
-        cadastrarUsuario("investidor.eua.saldo@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("investidor.eua.saldo@example.com", "Senha1234", Role.USER);
         Acao acao = cadastrarAcaoEua("MSFT");
         Corretora corretora = cadastrarCorretora(true);
-        MockHttpSession sessao = logar("investidor.eua.saldo@example.com", "senha1234");
+        MockHttpSession sessao = logar("investidor.eua.saldo@example.com", "Senha1234");
 
         when(cambioClient.buscarTaxaUsdParaBrl()).thenReturn(new BigDecimal("2.00"));
 

@@ -37,7 +37,7 @@ class AdministradoresConfiguradosIntegrationTest {
     }
 
     private Role cadastrar(String email) {
-        usuarioService.cadastrar(new UsuarioRequestDTO("Teste", email, CpfTestFixtures.proximoCpfValido(), "senha1234"));
+        usuarioService.cadastrar(new UsuarioRequestDTO("Teste", email, CpfTestFixtures.proximoCpfValido(), "Senha1234"));
         return usuarioRepository.findByEmail(email).orElseThrow().getRole();
     }
 

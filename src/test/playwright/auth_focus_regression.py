@@ -389,7 +389,7 @@ def exercise_verification_return(page: Page) -> None:
     page.locator("#cadastro-form [name=nome]").fill("Ana Silva")
     page.locator("#cadastro-form [name=email]").fill("ana@example.com")
     page.locator("#cadastro-form [name=cpf]").fill("12345678901")
-    page.locator("#cadastro-form [name=senha]").fill("senha-segura")
+    page.locator("#cadastro-form [name=senha]").fill("Senha-segura")
     page.locator("#cadastro-form button[type=submit]").click()
     page.locator("#verificacao-form [name=codigo]").fill("123456")
     page.locator("#verificacao-form button[type=submit]").click(no_wait_after=True)
