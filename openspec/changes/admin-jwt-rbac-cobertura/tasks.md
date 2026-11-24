@@ -1,0 +1,8 @@
+- [ ] 1. Senha com maiúscula e minúscula no cadastro, no back e no front (`SenhaForteTest`, `UsuarioAuthIntegrationTest.cadastroRecusaSenhaSemMaiuscula`)
+- [ ] 2. JWT: propriedades validadas, login, `/api/auth/me` e bearer nas rotas (`JwtPropertiesTest`, `AuthJwtIntegrationTest`)
+- [ ] 3. Limite de tentativas também no login JWT, com 429 (`AuthJwtIntegrationTest.muitasTentativasDevolve429`)
+- [ ] 4. Autorização por método nas operações de ADMIN (`AuthJwtIntegrationTest.userComTokenRecebe403NaAreaAdmin` e a suíte existente)
+- [ ] 5. `GET /usuarios/estatisticas` (`AdminEstatisticasIntegrationTest`)
+- [ ] 6. Tela de administração e selo só para ADMIN (`AdminEstatisticasIntegrationTest.dashboardMostraAreaAdminSoParaAdmin`)
+- [ ] 7. JaCoCo com portão no valor medido (`./mvnw verify` e a falha com o portão alto)
+- [ ] 8. Postman: login JWT e chamadas com bearer
