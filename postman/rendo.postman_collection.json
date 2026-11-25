@@ -26,19 +26,62 @@
     }
   ],
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "csrfToken", "value": "" },
-    { "key": "csrfHeader", "value": "X-CSRF-TOKEN" },
-    { "key": "usuarioEmail", "value": "professor.teste@example.com" },
-    { "key": "usuarioSenha", "value": "senha1234" },
-    { "key": "usuarioCpf", "value": "11144477735" },
-    { "key": "codigoVerificacao", "value": "000000" },
-    { "key": "corretoraCnpj", "value": "02332886000104" },
-    { "key": "acaoTicker", "value": "PETR4" },
-    { "key": "corretoraId", "value": "" },
-    { "key": "acaoId", "value": "" },
-    { "key": "operacaoId", "value": "" },
-    { "key": "usuarioId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "csrfHeader",
+      "value": "X-CSRF-TOKEN"
+    },
+    {
+      "key": "usuarioEmail",
+      "value": "professor.teste@example.com"
+    },
+    {
+      "key": "usuarioSenha",
+      "value": "Senha1234"
+    },
+    {
+      "key": "usuarioCpf",
+      "value": "11144477735"
+    },
+    {
+      "key": "codigoVerificacao",
+      "value": "000000"
+    },
+    {
+      "key": "corretoraCnpj",
+      "value": "02332886000104"
+    },
+    {
+      "key": "acaoTicker",
+      "value": "PETR4"
+    },
+    {
+      "key": "corretoraId",
+      "value": ""
+    },
+    {
+      "key": "acaoId",
+      "value": ""
+    },
+    {
+      "key": "operacaoId",
+      "value": ""
+    },
+    {
+      "key": "usuarioId",
+      "value": ""
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -74,11 +117,20 @@
           "name": "POST /usuarios (cadastro)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"nome\": \"Professor Teste\",\n  \"email\": \"{{usuarioEmail}}\",\n  \"cpf\": \"{{usuarioCpf}}\",\n  \"senha\": \"{{usuarioSenha}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/usuarios",
             "description": "Cria a conta como USER comum (nao existe cadastro publico de ADMIN). Resposta 202 = cadastro aceito, aguardando verificacao de e-mail.\n\n**Depois de enviar:** olhe o console do servidor (procure a linha \"Codigo:\") ou o e-mail recebido, e cole o codigo de 6 digitos na variavel de colecao `codigoVerificacao` antes da proxima requisicao."
@@ -99,11 +151,20 @@
           "name": "POST /usuarios/verificar-email",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"codigo\": \"{{codigoVerificacao}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/usuarios/verificar-email",
             "description": "Confirme que a variavel `codigoVerificacao` tem o codigo real recebido antes de enviar — o valor padrao (\"000000\") sempre vai falhar."
@@ -128,8 +189,14 @@
             "body": {
               "mode": "urlencoded",
               "urlencoded": [
-                { "key": "username", "value": "{{usuarioEmail}}" },
-                { "key": "password", "value": "{{usuarioSenha}}" }
+                {
+                  "key": "username",
+                  "value": "{{usuarioEmail}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{usuarioSenha}}"
+                }
               ]
             },
             "url": "{{baseUrl}}/login",
@@ -202,11 +269,20 @@
           "name": "POST /corretoras (cadastro)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"cnpj\": \"{{corretoraCnpj}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/corretoras",
             "description": "CNPJ real (XP Investimentos) — razao social, endereco e validacao CVM sao resolvidos automaticamente a partir dele."
@@ -227,15 +303,27 @@
         },
         {
           "name": "GET /corretoras",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/corretoras" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/corretoras"
+          }
         },
         {
           "name": "GET /corretoras/{id}",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/corretoras/{{corretoraId}}" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/corretoras/{{corretoraId}}"
+          }
         },
         {
           "name": "GET /corretoras/cnpj/{cnpj}",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/corretoras/cnpj/{{corretoraCnpj}}" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/corretoras/cnpj/{{corretoraCnpj}}"
+          }
         }
       ]
     },
@@ -246,11 +334,20 @@
           "name": "POST /acoes (cadastro)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ticker\": \"{{acaoTicker}}\",\n  \"mercado\": \"BRASIL\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/acoes",
             "description": "Mercado aceita `BRASIL` ou `EUA` — a cotacao e buscada no provedor certo pra cada um, e o cadastro e rejeitado (422) se a moeda retornada nao bater com o mercado escolhido."
@@ -271,23 +368,43 @@
         },
         {
           "name": "GET /acoes",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/acoes"
+          }
         },
         {
           "name": "GET /acoes/{id}",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes/{{acaoId}}" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/acoes/{{acaoId}}"
+          }
         },
         {
           "name": "GET /acoes/ticker/{ticker}",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes/ticker/{{acaoTicker}}" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/acoes/ticker/{{acaoTicker}}"
+          }
         },
         {
           "name": "PUT /acoes/{id}/atualizar-cotacao",
-          "request": { "method": "PUT", "header": [], "url": "{{baseUrl}}/acoes/{{acaoId}}/atualizar-cotacao" }
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/acoes/{{acaoId}}/atualizar-cotacao"
+          }
         },
         {
           "name": "GET /acoes/{id}/historico",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/acoes/{{acaoId}}/historico" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/acoes/{{acaoId}}/historico"
+          }
         },
         {
           "name": "DELETE /acoes/{id}",
@@ -307,11 +424,20 @@
           "name": "POST /operacoes (compra)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"acaoId\": {{acaoId}},\n  \"corretoraId\": {{corretoraId}},\n  \"tipo\": \"COMPRA\",\n  \"quantidade\": 10,\n  \"precoUnitario\": 25.50\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/operacoes",
             "description": "`tipo` aceita `COMPRA` ou `VENDA`. Uma COMPRA e bloqueada (422) se o saldo disponivel da carteira nao cobrir o custo; uma VENDA e bloqueada se a posicao nao tiver quantidade suficiente."
@@ -346,19 +472,35 @@
       "item": [
         {
           "name": "GET /carteiras/me",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/me"
+          }
         },
         {
           "name": "GET /carteiras/me/operacoes",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me/operacoes" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/me/operacoes"
+          }
         },
         {
           "name": "GET /carteiras/me/saldo",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me/saldo" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/me/saldo"
+          }
         },
         {
           "name": "GET /carteiras/me/rendimento-historico",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/me/rendimento-historico" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/me/rendimento-historico"
+          }
         },
         {
           "name": "GET /carteiras/{usuarioId} (ADMIN)",
@@ -371,7 +513,11 @@
         },
         {
           "name": "GET /carteiras/{usuarioId}/operacoes (ADMIN)",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/carteiras/{{usuarioId}}/operacoes" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/carteiras/{{usuarioId}}/operacoes"
+          }
         },
         {
           "name": "PATCH /carteiras/{usuarioId}/reconstruir (ADMIN)",
@@ -390,7 +536,11 @@
       "item": [
         {
           "name": "GET /usuarios",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/usuarios" },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios"
+          },
           "event": [
             {
               "listen": "test",
@@ -410,15 +560,27 @@
         },
         {
           "name": "GET /usuarios/{id}",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/usuarios/{{usuarioId}}" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios/{{usuarioId}}"
+          }
         },
         {
           "name": "PATCH /usuarios/{id}/bloquear",
-          "request": { "method": "PATCH", "header": [], "url": "{{baseUrl}}/usuarios/{{usuarioId}}/bloquear" }
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios/{{usuarioId}}/bloquear"
+          }
         },
         {
           "name": "PATCH /usuarios/{id}/desbloquear",
-          "request": { "method": "PATCH", "header": [], "url": "{{baseUrl}}/usuarios/{{usuarioId}}/desbloquear" }
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios/{{usuarioId}}/desbloquear"
+          }
         }
       ]
     },
@@ -427,7 +589,11 @@
       "item": [
         {
           "name": "GET /mercado/ibovespa",
-          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/mercado/ibovespa" }
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/mercado/ibovespa"
+          }
         }
       ]
     },
@@ -442,6 +608,254 @@
             "url": "{{baseUrl}}/logout",
             "description": "Encerra a sessao. Rode isso antes de tentar logar com outro usuario (ex.: depois de promover alguem a ADMIN)."
           }
+        }
+      ]
+    },
+    {
+      "name": "09 - API com JWT (Aulas 13 e 14)",
+      "description": "Login por token: sem cookie e sem CSRF. O token vai no cabecalho Authorization: Bearer. Rode depois da pasta 01 (conta verificada). Para testar 403, use uma conta USER; para 200 nas rotas ADMIN, um email listado em ADMIN_EMAILS.",
+      "item": [
+        {
+          "name": "POST /api/auth/login (emite token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"senha\": \"{{usuarioSenha}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 e token Bearer\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    const r = pm.response.json();",
+                  "    pm.expect(r.tipo).to.eql(\"Bearer\");",
+                  "    pm.expect(r.expiresIn).to.be.above(0);",
+                  "    pm.collectionVariables.set(\"jwt\", r.token);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /api/auth/login (senha errada -> 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{usuarioEmail}}\",\n  \"senha\": \"SenhaErrada1\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401 sem token\", () => {",
+                  "    pm.response.to.have.status(401);",
+                  "    pm.expect(pm.response.json().token).to.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/auth/me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 com email e papeis do token\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().email).to.eql(pm.collectionVariables.get(\"usuarioEmail\"));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /carteiras/me/saldo (com Bearer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carteiras/me/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carteiras",
+                "me",
+                "saldo"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 com token\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /carteiras/me/saldo (sem token -> 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carteiras/me/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carteiras",
+                "me",
+                "saldo"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401 sem autenticacao\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /usuarios/estatisticas (ADMIN; USER -> 403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/estatisticas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "estatisticas"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 para ADMIN ou 403 para USER\", () => pm.expect([200, 403]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

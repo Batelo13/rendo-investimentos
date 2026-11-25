@@ -36,6 +36,20 @@ Regra horizontal: um USER só vê a própria carteira (`/me`) e o próprio cadas
 
 O payload só é assinado, não cifrado: qualquer um que tenha o token lê o conteúdo em Base64. Por isso ele leva só email e papéis.
 
+## Cobertura (aula 15)
+
+| Momento | Linhas | Ramos |
+|---|---|---|
+| Linha de base (JaCoCo ligado, suíte anterior + testes das aulas 13 e 14) | 71,16% (1088/1529) | 58,33% (203/348) |
+| Depois dos testes novos | 81,03% (1239/1529) | 71,84% (250/348) |
+
+- Portão versionado: 80% de linhas (meta da aula) e 70% de ramos (degrau 55, 60, 70, 80 abaixo do medido). Sem exclusões.
+- Testes novos e seus mocks: `RendimentoServiceTest` e `OperacaoServiceTransferenciaTest` mockam só repositórios, cache de posição e o cliente de câmbio (banco e rede); o cálculo é real. `OAuth2ClientRegistrationsTest` não usa mocks. `SenhaForteTest` e `JwtPropertiesTest` testam valores-limite (7/8 caracteres, 31/32 bytes, validade 0 e -1).
+- TDD: `SenhaForteTest`, `JwtPropertiesTest`, `AuthJwtIntegrationTest` e `AdminEstatisticasIntegrationTest` foram escritos antes do código e falharam primeiro (classe inexistente, mensagem ausente, bean ausente, HTML sem a área de admin).
+- Mutação proposital: trocar `subtract` por `add` no lucro realizado do `RendimentoService` derrubou 2 testes (`vendaTotal...` e `vendaParcial...`). O código foi restaurado.
+- Prova do portão: `./mvnw verify -Djacoco.minimum.branch.coverage=0.95` termina em BUILD FAILURE.
+- O perfil de teste desliga o envio real de e-mail (`app.mail.enabled=false`). Antes, um `.env` com `MAIL_ENABLED=true` fazia a suíte tentar o SMTP de verdade.
+
 ## STRIDE
 
 | Ameaça | Análise |
