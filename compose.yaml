@@ -46,6 +46,9 @@ services:
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       CPF_HASH_KEY: ${CPF_HASH_KEY:?defina CPF_HASH_KEY no .env (ver .env.example)}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env (ver .env.example)}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-60m}
+      JWT_ISSUER: ${JWT_ISSUER:-rendo}
       MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}

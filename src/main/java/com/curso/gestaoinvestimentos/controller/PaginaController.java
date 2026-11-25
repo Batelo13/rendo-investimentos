@@ -1,5 +1,6 @@
 package com.curso.gestaoinvestimentos.controller;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
@@ -43,8 +44,14 @@ public class PaginaController {
         return "login";
     }
 
+    // A area de administracao so e renderizada para ADMIN (USER nem recebe o
+    // HTML); os dados dela vem de endpoints que tambem exigem ADMIN.
     @GetMapping("/dashboard")
-    public String dashboard() {
+    public String dashboard(Authentication autenticacao, Model model) {
+        model.addAttribute("admin", autenticacao.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())));
+        // A tela esconde, na linha do proprio admin, acoes que o servidor recusaria.
+        model.addAttribute("emailLogado", autenticacao.getName());
         return "dashboard";
     }
 }

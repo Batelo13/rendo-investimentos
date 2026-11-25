@@ -129,3 +129,58 @@ A chamada final SHALL mostrar "Comece com R$ 100.000 fictícios" com o valor com
 - **WHEN** o visitante toca o botão num celular
 - **THEN** o botão não se desloca
 
+### Requirement: Leitor de tela e contraste nas demonstracoes
+As demonstrações da landing SHALL manter contraste AA e anunciar ao leitor de tela só o estado final de cada interação.
+
+#### Scenario: Passo inativo do tour legível
+- **WHEN** um passo do tour está inativo
+- **THEN** seu parágrafo tem contraste de pelo menos 4,5:1 com o fundo
+
+#### Scenario: Antes e depois distinguidos
+- **WHEN** o leitor de tela percorre um card do problema
+- **THEN** ouve "Sem a Rendo:" antes do problema e "Com a Rendo:" antes da solução, rótulos que não aparecem na tela
+
+#### Scenario: Aviso do limite de ações anunciado
+- **WHEN** o visitante escolhe a 4ª ação no simulador
+- **THEN** a região `role="status"` passa a dizer "Escolha até 4 ações."
+
+#### Scenario: Câmbio anuncia o valor convertido
+- **WHEN** o visitante alterna a moeda
+- **THEN** uma região `role="status"` anuncia "10 ações da AAPL:" seguido do valor final, e o botão não usa `aria-pressed`
+
+### Requirement: Efeitos de ponteiro so com mouse e volta animada
+O botão magnético SHALL voltar ao lugar com transição animada quando o mouse sai. Os efeitos de ponteiro (ímã, luz e inclinação) SHALL reagir somente a ponteiro do tipo mouse, mesmo em telas que também aceitam toque.
+
+#### Scenario: Volta animada
+- **WHEN** o mouse sai do botão magnético
+- **THEN** a transição do botão inclui a propriedade `translate`
+
+#### Scenario: Toque em tela híbrida
+- **WHEN** um toque gera movimento de ponteiro sobre o botão num dispositivo com mouse
+- **THEN** o botão não se desloca
+
+### Requirement: Tour marca o passo correto em qualquer direcao
+O tour SHALL marcar como ativo o último passo cujo topo já passou do meio da tela, rolando para baixo, para cima ou em saltos.
+
+#### Scenario: Salto para o começo de um passo anterior
+- **WHEN** a página salta do passo 3 direto para o começo do passo 1
+- **THEN** só o passo 1 fica ativo
+
+### Requirement: Abertura sem corte e sem JavaScript
+Os satélites da abertura SHALL aparecer só a partir de 1130 px de largura, sem nenhum corte. Sem JavaScript, o cartão da abertura SHALL mostrar a linha do gráfico, o anel de alocação e os chips com as suas cores.
+
+#### Scenario: Largura de 1110 px
+- **WHEN** a página é aberta com 1110 px de largura
+- **THEN** os satélites não são exibidos
+
+#### Scenario: Sem JavaScript
+- **WHEN** a página é aberta com JavaScript desligado
+- **THEN** a linha do gráfico tem pontos e traço visível, os chips da alocação estão visíveis, nada cobre o cartão e o título da jornada aparece
+
+### Requirement: Cores estaveis no anel do simulador
+Cada ação escolhida no simulador SHALL manter a mesma cor no anel e no chip enquanto continuar escolhida.
+
+#### Scenario: Desmarcar a primeira ação
+- **WHEN** a primeira ação escolhida é desmarcada
+- **THEN** as outras ações mantêm as cores que tinham
+

@@ -1,0 +1,7 @@
+- [x] 1. Regras de papel no serviço: autoalteração, último ADMIN, admin configurado (`UsuarioServiceGestaoTest`)
+- [x] 2. Criar conta pelo admin, já verificada e com carteira (`UsuarioServiceGestaoTest`, `GestaoUsuariosIntegrationTest.adminCriaContaQueJaPodeEntrar`)
+- [x] 3. Redefinir senha com 204 (`GestaoUsuariosIntegrationTest.senhaRedefinidaTrocaOLogin`)
+- [x] 4. Sem autobloqueio (`GestaoUsuariosIntegrationTest.adminNaoSeBloqueia`)
+- [x] 5. Endpoints só para ADMIN (`GestaoUsuariosIntegrationTest.userRecebe403NasRotasDeGestao`)
+- [x] 6. Tela: formulário "Criar conta" e ações de papel e senha (verificação no navegador + `AdminEstatisticasIntegrationTest`)
+- [x] 7. Postman: requisições de gestão na pasta 06

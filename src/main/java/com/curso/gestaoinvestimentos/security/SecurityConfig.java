@@ -6,11 +6,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
@@ -32,7 +34,19 @@ import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
+// Aula 14: regras "so ADMIN" ficam em @PreAuthorize nas proprias operacoes
+// (UsuarioController, CarteiraController, OperacaoController); aqui so o que e
+// publico e o "autenticado" padrao.
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    // Aula 13: requisicao de API com token no cabecalho. CSRF nao se aplica a
+    // ela -- outro site nao consegue mandar esse cabecalho (sem CORS liberado),
+    // e o token nao vive em cookie que o navegador anexaria sozinho.
+    private static final RequestMatcher COM_BEARER = request -> {
+        String autorizacao = request.getHeader("Authorization");
+        return autorizacao != null && autorizacao.regionMatches(true, 0, "Bearer ", 0, 7);
+    };
 
     // Google Fonts (CSS + arquivos de fonte) e logos de acoes externos (https:)
     // sao as unicas origens de fora; 'unsafe-inline' so em estilo (atributos
@@ -53,7 +67,8 @@ public class SecurityConfig {
                                                      RendoOidcUserService rendoOidcUserService,
                                                      LoginSocialFailureHandler loginSocialFailureHandler,
                                                      LoginFormFailureHandler loginFormFailureHandler,
-                                                     LimiteTentativasLogin limiteTentativas) throws Exception {
+                                                     LimiteTentativasLogin limiteTentativas,
+                                                     JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         SimpleUrlAuthenticationSuccessHandler sucessoPadrao = new SimpleUrlAuthenticationSuccessHandler("/dashboard");
         sucessoPadrao.setAlwaysUseDefaultTargetUrl(true);
         http
@@ -63,9 +78,13 @@ public class SecurityConfig {
                 // input com o token) e o dashboard/cadastro mandam o token via header
                 // (meta tag lida pelo JS). H2 console tem forms proprios sem token,
                 // por isso fica de fora da protecao.
-                .csrf(csrf -> csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern("/h2-console/**")))
+                // /api/auth/login devolve o token no corpo e nao grava cookie: sem CSRF.
+                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        PathPatternRequestMatcher.pathPattern("/h2-console/**"),
+                        PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/auth/login"),
+                        COM_BEARER))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/usuarios", "/api/auth/login").permitAll()
                         // Fluxo de verificacao de email: o usuario ainda nao tem sessao
                         // nesse ponto (a conta acabou de ser criada como nao verificada).
                         .requestMatchers(HttpMethod.POST, "/usuarios/verificar-email", "/usuarios/reenviar-codigo").permitAll()
@@ -90,12 +109,6 @@ public class SecurityConfig {
                         // Dashboard mostra saldo/posicoes do usuario -- nao pode ser publica
                         // como "/", senao um visitante sem sessao veria a casca da pagina.
                         .requestMatchers(HttpMethod.GET, "/dashboard").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/usuarios").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/usuarios/*/bloquear", "/usuarios/*/desbloquear").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/carteiras/me", "/carteiras/me/operacoes", "/carteiras/me/saldo").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/carteiras/*", "/carteiras/*/operacoes").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/carteiras/*/reconstruir").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/operacoes/*/cancelar").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 // Pagina de login propria (templates/login.html) no lugar da pagina
@@ -113,6 +126,12 @@ public class SecurityConfig {
                 // incluindo query string, contra "/login" -- "/login?logout" nao bate) e
                 // cai no anyRequest().authenticated(), devolvendo 401 em vez da tela de login.
                 .logout(logout -> logout.permitAll())
+                // Aula 13: "Authorization: Bearer <jwt>" autentica qualquer rota
+                // protegida, sem sessao (o filtro so age quando ha o cabecalho;
+                // sem ele, segue a sessao do login por formulario). Token
+                // invalido, adulterado ou expirado -> 401.
+                .oauth2ResourceServer(resource -> resource
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 // Ainda somos uma API testada via curl/JSON pra maior parte das rotas:
                 // preferimos 401 a um redirect HTML para /login em recurso protegido.
                 // Excecao: paginas server-side (ex.: /dashboard) sao acessadas por um

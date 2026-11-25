@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,7 +92,7 @@ class UsuarioAuthIntegrationTest {
     @Test
     void deveCadastrarUsuarioPublicamenteSemAutenticacao() throws Exception {
         String cpf = CpfTestFixtures.proximoCpfValido();
-        UsuarioRequestDTO dto = new UsuarioRequestDTO("Maria Silva", "maria@example.com", cpf, "senha1234");
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Maria Silva", "maria@example.com", cpf, "Senha1234");
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,7 +116,7 @@ class UsuarioAuthIntegrationTest {
                 .build();
 
         UsuarioRequestDTO dto = new UsuarioRequestDTO(
-                "Sem Token", "sem.token@example.com", CpfTestFixtures.proximoCpfValido(), "senha1234");
+                "Sem Token", "sem.token@example.com", CpfTestFixtures.proximoCpfValido(), "Senha1234");
 
         mockMvcSemCsrfPadrao.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -124,9 +125,23 @@ class UsuarioAuthIntegrationTest {
     }
 
     @Test
+    void cadastroRecusaSenhaSemMaiuscula() throws Exception {
+        UsuarioRequestDTO dto = new UsuarioRequestDTO(
+                "Senha Fraca", "senha.fraca@example.com", CpfTestFixtures.proximoCpfValido(), "senha1234");
+
+        mockMvc.perform(post("/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Senha deve ter letra maiuscula e minuscula")));
+
+        org.junit.jupiter.api.Assertions.assertTrue(usuarioRepository.findByEmail("senha.fraca@example.com").isEmpty());
+    }
+
+    @Test
     void deveRejeitarCadastroComCpfInvalido() throws Exception {
         UsuarioRequestDTO dto = new UsuarioRequestDTO(
-                "Joao Invalido", "joao.invalido@example.com", "11144477736", "senha1234");
+                "Joao Invalido", "joao.invalido@example.com", "11144477736", "Senha1234");
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +155,7 @@ class UsuarioAuthIntegrationTest {
     @org.junit.jupiter.api.DisplayName("Scenario: CPF gravado como resumo")
     void cpfGravadoSomenteComoResumo() throws Exception {
         String cpf = CpfTestFixtures.proximoCpfValido();
-        UsuarioRequestDTO dto = new UsuarioRequestDTO("Cpf Protegido", "cpf.protegido@example.com", cpf, "senha1234");
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Cpf Protegido", "cpf.protegido@example.com", cpf, "Senha1234");
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -157,14 +172,14 @@ class UsuarioAuthIntegrationTest {
     void deveRejeitarCadastroComCpfDuplicado() throws Exception {
         String cpf = CpfTestFixtures.proximoCpfValido();
         UsuarioRequestDTO primeiro = new UsuarioRequestDTO(
-                "Primeiro Usuario", "primeiro.cpf@example.com", cpf, "senha1234");
+                "Primeiro Usuario", "primeiro.cpf@example.com", cpf, "Senha1234");
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(primeiro)))
                 .andExpect(status().isAccepted());
 
         UsuarioRequestDTO segundo = new UsuarioRequestDTO(
-                "Segundo Usuario", "segundo.cpf@example.com", cpf, "senha1234");
+                "Segundo Usuario", "segundo.cpf@example.com", cpf, "Senha1234");
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(segundo)))
@@ -181,17 +196,17 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void deveFazerLoginComCredenciaisValidas() throws Exception {
-        cadastrarUsuario("login.valido@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("login.valido@example.com", "Senha1234", Role.USER);
 
         mockMvc.perform(post("/login")
                         .param("username", "login.valido@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andExpect(status().isFound());
     }
 
     @Test
     void deveRejeitarLoginComCredenciaisInvalidas() throws Exception {
-        cadastrarUsuario("login.invalido@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("login.invalido@example.com", "Senha1234", Role.USER);
 
         mockMvc.perform(post("/login")
                         .param("username", "login.invalido@example.com")
@@ -203,9 +218,9 @@ class UsuarioAuthIntegrationTest {
     @Test
     @org.junit.jupiter.api.DisplayName("Scenario: Resposta de usuario sem CPF")
     void listagemAdministrativaNaoDevolveCpf() throws Exception {
-        cadastrarUsuario("listado@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin.lista@example.com", "senha1234", Role.ADMIN);
-        MockHttpSession sessaoAdmin = logar("admin.lista@example.com", "senha1234");
+        cadastrarUsuario("listado@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin.lista@example.com", "Senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.lista@example.com", "Senha1234");
 
         mockMvc.perform(get("/usuarios").session(sessaoAdmin))
                 .andExpect(status().isOk())
@@ -216,11 +231,11 @@ class UsuarioAuthIntegrationTest {
     @Test
     @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta o proprio registro")
     void devePermitirAcessoAutorizadoAposLogin() throws Exception {
-        Usuario usuario = cadastrarUsuario("autorizado@example.com", "senha1234", Role.USER);
+        Usuario usuario = cadastrarUsuario("autorizado@example.com", "Senha1234", Role.USER);
 
         MvcResult loginResult = mockMvc.perform(post("/login")
                         .param("username", "autorizado@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andReturn();
         MockHttpSession sessao = (MockHttpSession) loginResult.getRequest().getSession(false);
 
@@ -232,11 +247,11 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void deveBloquearAcessoPorRole() throws Exception {
-        cadastrarUsuario("usuario.comum@example.com", "senha1234", Role.USER);
+        cadastrarUsuario("usuario.comum@example.com", "Senha1234", Role.USER);
 
         MvcResult loginResult = mockMvc.perform(post("/login")
                         .param("username", "usuario.comum@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andReturn();
         MockHttpSession sessao = (MockHttpSession) loginResult.getRequest().getSession(false);
 
@@ -246,11 +261,11 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void deveInvalidarSessaoAoFazerLogout() throws Exception {
-        Usuario usuario = cadastrarUsuario("logout@example.com", "senha1234", Role.USER);
+        Usuario usuario = cadastrarUsuario("logout@example.com", "Senha1234", Role.USER);
 
         MvcResult loginResult = mockMvc.perform(post("/login")
                         .param("username", "logout@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andReturn();
         MockHttpSession sessao = (MockHttpSession) loginResult.getRequest().getSession(false);
 
@@ -278,9 +293,9 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void adminBloqueiaUsuarioEImpedeLoginSubsequente() throws Exception {
-        Usuario alvo = cadastrarUsuario("bloqueado@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin.bloqueio@example.com", "senha1234", Role.ADMIN);
-        MockHttpSession sessaoAdmin = logar("admin.bloqueio@example.com", "senha1234");
+        Usuario alvo = cadastrarUsuario("bloqueado@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin.bloqueio@example.com", "Senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.bloqueio@example.com", "Senha1234");
 
         mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
                 .andExpect(status().isOk())
@@ -288,16 +303,16 @@ class UsuarioAuthIntegrationTest {
 
         mockMvc.perform(post("/login")
                         .param("username", "bloqueado@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/login?error")));
     }
 
     @Test
     void usuarioComumNaoConsegueBloquearOutroUsuario() throws Exception {
-        Usuario alvo = cadastrarUsuario("alvo@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("comum.bloqueio@example.com", "senha1234", Role.USER);
-        MockHttpSession sessaoComum = logar("comum.bloqueio@example.com", "senha1234");
+        Usuario alvo = cadastrarUsuario("alvo@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("comum.bloqueio@example.com", "Senha1234", Role.USER);
+        MockHttpSession sessaoComum = logar("comum.bloqueio@example.com", "Senha1234");
 
         mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoComum))
                 .andExpect(status().isForbidden());
@@ -305,9 +320,9 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void bloquearUsuarioJaBloqueadoRetorna422() throws Exception {
-        Usuario alvo = cadastrarUsuario("jabloqueado@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin.duplo@example.com", "senha1234", Role.ADMIN);
-        MockHttpSession sessaoAdmin = logar("admin.duplo@example.com", "senha1234");
+        Usuario alvo = cadastrarUsuario("jabloqueado@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin.duplo@example.com", "Senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.duplo@example.com", "Senha1234");
 
         mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
                 .andExpect(status().isOk());
@@ -317,9 +332,9 @@ class UsuarioAuthIntegrationTest {
 
     @Test
     void adminDesbloqueiaUsuarioERestauraLogin() throws Exception {
-        Usuario alvo = cadastrarUsuario("desbloquear@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin.desbloqueio@example.com", "senha1234", Role.ADMIN);
-        MockHttpSession sessaoAdmin = logar("admin.desbloqueio@example.com", "senha1234");
+        Usuario alvo = cadastrarUsuario("desbloquear@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin.desbloqueio@example.com", "Senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.desbloqueio@example.com", "Senha1234");
 
         mockMvc.perform(patch("/usuarios/" + alvo.getId() + "/bloquear").session(sessaoAdmin))
                 .andExpect(status().isOk());
@@ -329,7 +344,7 @@ class UsuarioAuthIntegrationTest {
 
         mockMvc.perform(post("/login")
                         .param("username", "desbloquear@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.not(org.hamcrest.Matchers.endsWith("/login?error"))));
     }
@@ -337,7 +352,7 @@ class UsuarioAuthIntegrationTest {
     @Test
     void cadastroTradicionalGeraCodigoDeVerificacaoPendente() throws Exception {
         String cpf = CpfTestFixtures.proximoCpfValido();
-        UsuarioRequestDTO dto = new UsuarioRequestDTO("Pendente Verificacao", "pendente@example.com", cpf, "senha1234");
+        UsuarioRequestDTO dto = new UsuarioRequestDTO("Pendente Verificacao", "pendente@example.com", cpf, "Senha1234");
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -356,7 +371,7 @@ class UsuarioAuthIntegrationTest {
         naoVerificado.setNome("Nao Verificado");
         naoVerificado.setEmail("naoverificado@example.com");
         naoVerificado.setCpf(CpfTestFixtures.proximoCpfValido());
-        naoVerificado.setSenha(passwordEncoder.encode("senha1234"));
+        naoVerificado.setSenha(passwordEncoder.encode("Senha1234"));
         naoVerificado.setRole(Role.USER);
         naoVerificado.setAtivo(true);
         naoVerificado.setEmailVerified(false);
@@ -365,7 +380,7 @@ class UsuarioAuthIntegrationTest {
 
         mockMvc.perform(post("/login")
                         .param("username", "naoverificado@example.com")
-                        .param("password", "senha1234"))
+                        .param("password", "Senha1234"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/login?erro=email-nao-verificado")));
     }
@@ -375,9 +390,9 @@ class UsuarioAuthIntegrationTest {
     @Test
     @org.junit.jupiter.api.DisplayName("Scenario: Usuario consulta registro de outro usuario")
     void usuarioComumNaoLeRegistroDeOutroUsuario() throws Exception {
-        Usuario outro = cadastrarUsuario("vitima.idor@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("curioso.idor@example.com", "senha1234", Role.USER);
-        MockHttpSession sessao = logar("curioso.idor@example.com", "senha1234");
+        Usuario outro = cadastrarUsuario("vitima.idor@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("curioso.idor@example.com", "Senha1234", Role.USER);
+        MockHttpSession sessao = logar("curioso.idor@example.com", "Senha1234");
 
         mockMvc.perform(get("/usuarios/" + outro.getId()).session(sessao))
                 .andExpect(status().isForbidden())
@@ -392,7 +407,7 @@ class UsuarioAuthIntegrationTest {
     @org.junit.jupiter.api.DisplayName("Scenario: Senha acima de 72 bytes")
     void cadastroRejeitaSenhaAcimaDe72Bytes() throws Exception {
         UsuarioRequestDTO dto = new UsuarioRequestDTO("Senha Longa", "senha.longa@example.com",
-                CpfTestFixtures.proximoCpfValido(), "ç".repeat(40));
+                CpfTestFixtures.proximoCpfValido(), "Ç" + "ç".repeat(39));
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -407,7 +422,7 @@ class UsuarioAuthIntegrationTest {
     @org.junit.jupiter.api.DisplayName("Scenario: Nome acima de 120 caracteres")
     void cadastroRejeitaNomeAcimaDe120Caracteres() throws Exception {
         UsuarioRequestDTO dto = new UsuarioRequestDTO("N".repeat(121), "nome.longo@example.com",
-                CpfTestFixtures.proximoCpfValido(), "senha1234");
+                CpfTestFixtures.proximoCpfValido(), "Senha1234");
 
         mockMvc.perform(post("/usuarios")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -421,9 +436,9 @@ class UsuarioAuthIntegrationTest {
     @Test
     @org.junit.jupiter.api.DisplayName("Scenario: Administrador consulta registro de outro usuario")
     void adminLeRegistroDeOutroUsuario() throws Exception {
-        Usuario outro = cadastrarUsuario("consultado.admin@example.com", "senha1234", Role.USER);
-        cadastrarUsuario("admin.consulta@example.com", "senha1234", Role.ADMIN);
-        MockHttpSession sessaoAdmin = logar("admin.consulta@example.com", "senha1234");
+        Usuario outro = cadastrarUsuario("consultado.admin@example.com", "Senha1234", Role.USER);
+        cadastrarUsuario("admin.consulta@example.com", "Senha1234", Role.ADMIN);
+        MockHttpSession sessaoAdmin = logar("admin.consulta@example.com", "Senha1234");
 
         mockMvc.perform(get("/usuarios/" + outro.getId()).session(sessaoAdmin))
                 .andExpect(status().isOk())

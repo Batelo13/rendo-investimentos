@@ -711,6 +711,147 @@ def cabecalho_marca_secao_ativa(browser: Browser) -> None:
     sem_erros(page)
 
 
+
+# ----------------------------- Acessibilidade -----------------------------
+
+CONTRASTE_JS = """(sel) => {
+    const el = document.querySelector(sel);
+    const [r, g, b, a = 1] = getComputedStyle(el).color.match(/[0-9.]+/g).map(Number);
+    let alfa = a;
+    for (let n = el; n; n = n.parentElement) alfa *= Number(getComputedStyle(n).opacity);
+    const fundo = [10, 12, 13]; // --lp-fundo
+    const mix = [r, g, b].map((c, i) => c * alfa + fundo[i] * (1 - alfa));
+    const lum = (rgb) => rgb.map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; })
+        .reduce((t, c, i) => t + c * [0.2126, 0.7152, 0.0722][i], 0);
+    return (lum(mix) + 0.05) / (lum(fundo) + 0.05);
+}"""
+
+
+def tour_texto_inativo_tem_contraste_aa(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, "#tour-1")
+    assert "tour-2" not in passos_ativos(page), "O passo 2 deveria estar inativo"
+    razao = page.evaluate(CONTRASTE_JS, "#tour-2 .tour-texto p")
+    assert razao >= 4.5, f"Texto do passo inativo com contraste {razao:.2f}:1, abaixo do AA (4.5:1)"
+    sem_erros(page)
+
+
+def problema_leitor_distingue_antes_e_depois(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    textos = page.evaluate("""[...document.querySelectorAll('.problema-card')].map(c =>
+        [c.querySelector('.antes').textContent.trim(), c.querySelector('.depois').textContent.trim()])""")
+    for antes, depois in textos:
+        assert antes.startswith("Sem a Rendo:"), f"O leitor de tela deveria ouvir 'Sem a Rendo:' antes do problema: {antes!r}"
+        assert depois.startswith("Com a Rendo:"), f"O leitor de tela deveria ouvir 'Com a Rendo:' antes da solucao: {depois!r}"
+    visiveis = page.evaluate("[...document.querySelectorAll('.problema-card .lp-leitor')].filter(e => e.getBoundingClientRect().width > 1).length")
+    assert visiveis == 0, f"Os rotulos para leitor de tela nao deveriam aparecer na tela ({visiveis} visiveis)"
+    sem_erros(page)
+
+
+def simulador_aviso_e_regiao_de_status(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    aviso = page.locator("#simAviso")
+    assert aviso.get_attribute("role") == "status", "O aviso deveria ser role=status para o leitor de tela anunciar"
+    assert aviso.get_attribute("hidden") is None, "Regiao de status escondida com hidden nao e anunciada de forma confiavel"
+    assert texto(page, "#simAviso") == "", "Sem 4 acoes o aviso fica vazio"
+    chip(page, "AAPL").click()
+    assert texto(page, "#simAviso") == "Escolha até 4 ações.", f"Aviso errado: {texto(page, '#simAviso')!r}"
+    sem_erros(page)
+
+
+def cambio_anuncia_valor_final(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_diferenciais(page)
+    botao = page.locator("#difCambioBotao")
+    assert botao.get_attribute("aria-pressed") is None, "Botao com rotulo que muda nao deveria usar aria-pressed"
+    status = page.locator("#difCambioStatus")
+    assert status.get_attribute("role") == "status", "Deveria existir uma regiao de status para o valor convertido"
+    botao.click()
+    assert texto(page, "#difCambioStatus") == "10 ações da AAPL: R$ 12.312,00", f"Anuncio errado: {texto(page, '#difCambioStatus')!r}"
+    botao.click()
+    assert texto(page, "#difCambioStatus") == "10 ações da AAPL: US$ 2.280,00", f"Anuncio errado: {texto(page, '#difCambioStatus')!r}"
+    sem_erros(page)
+
+
+# ------------------------- Ajustes visuais (change landing-ajustes-visuais) -------------------------
+
+def ima_volta_animada(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    transicao = page.locator(".lp-cta [data-ima]").evaluate("e => getComputedStyle(e).transitionProperty")
+    assert "translate" in transicao, f"A volta do botao magnetico deveria ser animada (translate), veio {transicao!r}"
+    sem_erros(page)
+
+
+def ima_ignora_toque_em_tela_hibrida(browser: Browser) -> None:
+    # Desktop com mouse (pointer: fine), mas o movimento vem de um toque.
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, ".lp-cta [data-ima]")
+    page.locator(".lp-cta [data-ima]").evaluate(
+        "e => { const r = e.getBoundingClientRect();"
+        " e.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'touch',"
+        " clientX: r.left + r.width / 2 + 10, clientY: r.top + r.height / 2 })); }"
+    )
+    time.sleep(0.2)
+    assert deslocamento_ima(page) == "", f"Toque nao deveria deslocar o botao: {deslocamento_ima(page)!r}"
+    sem_erros(page)
+
+
+def tour_salto_para_tras_marca_passo_certo(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    # Saltos instantaneos para 4 px dentro do comeco de cada passo, de tras para frente:
+    # a faixa de observacao pega a divisa entre dois passos (caso que travava).
+    for passo in ("tour-4", "tour-3", "tour-2", "tour-1"):
+        page.evaluate("""id => { const r = document.getElementById(id).getBoundingClientRect();
+            window.scrollTo({ top: scrollY + r.top - innerHeight / 2 + 4, behavior: 'instant' }); }""", passo)
+        time.sleep(0.4)
+        assert passos_ativos(page) == [passo], f"So o {passo} deveria estar ativo, veio {passos_ativos(page)}"
+    sem_erros(page)
+
+
+def satelites_ocultos_abaixo_de_1130(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1110, "height": 800})
+    visiveis = page.evaluate("[...document.querySelectorAll('.cena-satelite')].map(e => getComputedStyle(e).display)")
+    assert all(v == "none" for v in visiveis), f"Satelites deveriam ficar ocultos em 1110 px: {visiveis}"
+    sem_erros(page)
+
+
+def sem_js_cartao_mostra_grafico_e_alocacao(browser: Browser) -> None:
+    page = browser.new_context(java_script_enabled=False, viewport={"width": 1280, "height": 900}).new_page()
+    page.goto(BASE_URL + "/")
+    linha = page.locator("#cenaLinha").evaluate(
+        "e => [e.getAttribute('points') || '', getComputedStyle(e).strokeDashoffset]")
+    assert linha[0].count(",") == 13, f"Sem JS a linha deveria ter os 13 pontos: {linha[0]!r}"
+    assert linha[1] in ("0", "0px"), f"Sem JS a linha deveria estar desenhada: {linha[1]!r}"
+    chips = page.evaluate("[...document.querySelectorAll('#cenaChips li')].map(e => getComputedStyle(e).opacity)")
+    assert chips and all(o == "1" for o in chips), f"Sem JS os chips deveriam aparecer: {chips}"
+    fatias = page.evaluate("[...document.querySelectorAll('#cenaAnel .anel-fatia')].map(e => getComputedStyle(e).strokeDasharray)")
+    assert all(f not in ("", "none") for f in fatias), f"Sem JS o anel deveria ter as fatias: {fatias}"
+    # Nada cobrindo o cartao (a tela de carregamento so some via JS).
+    no_topo = page.evaluate("""() => { const r = document.getElementById('cenaCarteira').getBoundingClientRect();
+        const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return e && e.closest('#cenaCarteira') ? 'cartao' : (e ? e.id || e.className : 'nada'); }""")
+    assert no_topo == "cartao", f"Sem JS algo cobre o cartao: {no_topo!r}"
+    # Os textos da jornada (inclusive o titulo) ficam visiveis, empilhados.
+    titulo = page.locator(".jornada h1")
+    titulo.scroll_into_view_if_needed()
+    opacidade_titulo = titulo.evaluate("e => getComputedStyle(e.closest('.momento')).opacity")
+    assert opacidade_titulo == "1" and titulo.is_visible(), f"Sem JS o titulo deveria aparecer: {opacidade_titulo!r}"
+    page.context.close()
+
+
+def simulador_cores_estaveis_ao_desmarcar(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    cor = lambda t: chip(page, t).evaluate("e => e.style.getPropertyValue('--cor')")
+    antes = {t: cor(t) for t in ("VALE3", "WEGE3")}
+    chip(page, "PETR4").click()  # a primeira escolhida sai
+    time.sleep(0.2)
+    depois = {t: cor(t) for t in ("VALE3", "WEGE3")}
+    assert antes == depois, f"As cores das outras acoes nao deveriam mudar: antes {antes}, depois {depois}"
+    sem_erros(page)
+
+
 TESTES = [
     contador_anima_ate_valor_final,
     contador_respeita_movimento_reduzido,
@@ -761,6 +902,16 @@ TESTES = [
     cta_botao_magnetico,
     movimento_reduzido_sem_overflow,
     desempenho_scroll,
+    tour_texto_inativo_tem_contraste_aa,
+    problema_leitor_distingue_antes_e_depois,
+    simulador_aviso_e_regiao_de_status,
+    cambio_anuncia_valor_final,
+    ima_volta_animada,
+    ima_ignora_toque_em_tela_hibrida,
+    tour_salto_para_tras_marca_passo_certo,
+    satelites_ocultos_abaixo_de_1130,
+    sem_js_cartao_mostra_grafico_e_alocacao,
+    simulador_cores_estaveis_ao_desmarcar,
     screenshots,
 ]
 

@@ -1,6 +1,8 @@
 package com.curso.gestaoinvestimentos.service;
 
 import com.curso.gestaoinvestimentos.dto.CadastroResponseDTO;
+import com.curso.gestaoinvestimentos.dto.EstatisticasUsuariosDTO;
+import com.curso.gestaoinvestimentos.dto.UsuarioAdminRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioRequestDTO;
 import com.curso.gestaoinvestimentos.dto.UsuarioResponseDTO;
 import com.curso.gestaoinvestimentos.exception.RecursoDuplicadoException;
@@ -52,24 +54,38 @@ public class UsuarioService {
 
     @Transactional
     public CadastroResponseDTO cadastrar(UsuarioRequestDTO dto) {
-        repository.findByEmail(dto.email()).ifPresent(existente -> {
-            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + dto.email());
+        // Cadastro publico: papel e verificacao controlados pelo sistema, nunca pelo cliente.
+        Usuario salvo = novaConta(dto.nome(), dto.email(), dto.cpf(), dto.senha(), Role.USER, false);
+        emailVerificationService.gerarEEnviarCodigo(salvo);
+
+        return new CadastroResponseDTO(
+                "Conta criada. Enviamos um codigo de verificacao para seu e-mail.", true);
+    }
+
+    /** Aula 14: conta criada por um ADMIN ja nasce verificada (o admin responde por ela). */
+    @Transactional
+    public UsuarioResponseDTO criarPeloAdmin(UsuarioAdminRequestDTO dto) {
+        return toResponseDTO(novaConta(dto.nome(), dto.email(), dto.cpf(), dto.senha(), dto.role(), true));
+    }
+
+    private Usuario novaConta(String nome, String email, String cpf, String senha, Role papel, boolean verificado) {
+        repository.findByEmail(email).ifPresent(existente -> {
+            throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com o email " + email);
         });
-        String cpfProtegido = protecaoCpf.resumo(dto.cpf());
+        String cpfProtegido = protecaoCpf.resumo(cpf);
         repository.findByCpf(cpfProtegido).ifPresent(existente -> {
             throw new RecursoDuplicadoException("Ja existe um usuario cadastrado com este CPF");
         });
 
         Usuario usuario = new Usuario();
-        usuario.setNome(dto.nome());
-        usuario.setEmail(dto.email());
+        usuario.setNome(nome);
+        usuario.setEmail(email);
         usuario.setCpf(cpfProtegido);
-        usuario.setSenha(passwordEncoder.encode(dto.senha()));
-
-        // Campos controlados pelo sistema, nunca pelo cliente:
-        usuario.setRole(administradores.ehAdministrador(dto.email()) ? Role.ADMIN : Role.USER);
+        usuario.setSenha(passwordEncoder.encode(senha));
+        // ADMIN_EMAILS sempre vence: email configurado e ADMIN em qualquer caminho.
+        usuario.setRole(administradores.ehAdministrador(email) ? Role.ADMIN : papel);
         usuario.setAtivo(true);
-        usuario.setEmailVerified(false);
+        usuario.setEmailVerified(verificado);
         usuario.setDataCadastro(LocalDate.now());
 
         // A checagem acima nao cobre dois cadastros iguais ao mesmo tempo (ex.:
@@ -87,15 +103,21 @@ public class UsuarioService {
         carteira.setDataCriacao(LocalDate.now());
         carteira.setSaldoInicial(SALDO_INICIAL_PADRAO);
         carteiraRepository.save(carteira);
-
-        emailVerificationService.gerarEEnviarCodigo(salvo);
-
-        return new CadastroResponseDTO(
-                "Conta criada. Enviamos um codigo de verificacao para seu e-mail.", true);
+        return salvo;
     }
 
     public Page<UsuarioResponseDTO> listar(Pageable pageable) {
         return repository.findAll(pageable).map(this::toResponseDTO);
+    }
+
+    public EstatisticasUsuariosDTO estatisticas() {
+        return new EstatisticasUsuariosDTO(
+                repository.count(),
+                repository.countByAtivo(true),
+                repository.countByAtivo(false),
+                repository.countByEmailVerified(false),
+                repository.countByRole(Role.ADMIN),
+                repository.countByDataCadastroGreaterThanEqual(LocalDate.now().minusDays(30)));
     }
 
     public UsuarioResponseDTO buscarPorId(Long id) {
@@ -104,10 +126,42 @@ public class UsuarioService {
         return toResponseDTO(usuario);
     }
 
+    /**
+     * Aula 14: promover/rebaixar. Nunca o proprio papel, nunca sem nenhum ADMIN,
+     * e nunca rebaixar email de ADMIN_EMAILS (voltaria a ADMIN ao reiniciar).
+     */
     @Transactional
-    public UsuarioResponseDTO bloquear(Long id) {
-        Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado com id " + id));
+    public UsuarioResponseDTO alterarPapel(Long id, Role novoPapel, String emailAdmin) {
+        Usuario usuario = buscarEntidade(id);
+        if (usuario.getEmail().equalsIgnoreCase(emailAdmin)) {
+            throw new RegraDeNegocioException("O administrador nao pode mudar o proprio papel");
+        }
+        if (usuario.getRole() == Role.ADMIN && novoPapel != Role.ADMIN) {
+            if (administradores.ehAdministrador(usuario.getEmail())) {
+                throw new RegraDeNegocioException("Este email esta em ADMIN_EMAILS: o papel ADMIN vem da configuracao do servidor");
+            }
+            if (repository.countByRole(Role.ADMIN) <= 1) {
+                throw new RegraDeNegocioException("Nao e possivel rebaixar o ultimo administrador");
+            }
+        }
+        usuario.setRole(novoPapel);
+        return toResponseDTO(repository.save(usuario));
+    }
+
+    /** Aula 14: so o hash vai para o banco; a resposta HTTP e 204, sem corpo. */
+    @Transactional
+    public void redefinirSenha(Long id, String novaSenha) {
+        Usuario usuario = buscarEntidade(id);
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        repository.save(usuario);
+    }
+
+    @Transactional
+    public UsuarioResponseDTO bloquear(Long id, String emailAdmin) {
+        Usuario usuario = buscarEntidade(id);
+        if (usuario.getEmail().equalsIgnoreCase(emailAdmin)) {
+            throw new RegraDeNegocioException("O administrador nao pode bloquear a propria conta");
+        }
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
             throw new RegraDeNegocioException("Usuario " + id + " ja esta bloqueado");
         }
@@ -124,6 +178,11 @@ public class UsuarioService {
         }
         usuario.setAtivo(true);
         return toResponseDTO(repository.save(usuario));
+    }
+
+    private Usuario buscarEntidade(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado com id " + id));
     }
 
     private UsuarioResponseDTO toResponseDTO(Usuario usuario) {

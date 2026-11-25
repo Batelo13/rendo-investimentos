@@ -256,6 +256,7 @@ const VIEW_META = {
     "posicoes": ["Minhas posições", "Suas posições por ação e corretora"],
     "operacoes": ["Operações", "Histórico de compras e vendas"],
     "corretoras": ["Corretoras", "Instituições validadas via CNPJ, CEP e CVM"],
+    "admin": ["Administração", "Contas do site: números, status e carteiras"],
 };
 
 const mobileSidebarMedia = window.matchMedia("(max-width: 860px)");
@@ -358,6 +359,183 @@ function setView(view) {
     $("#viewTitle").textContent = t;
     $("#viewSubtitle").textContent = s;
     setSidebarOpen(false, { focus: false, restoreFocus: true });
+    if (view === "admin") carregarAdmin();
+}
+
+/* ------------------- Administração (só ADMIN) ------------------- */
+// A seção só existe no HTML de quem é ADMIN; os endpoints também exigem ADMIN.
+const admin = { pagina: 0, totalPaginas: 1, usuarios: [] };
+
+async function carregarAdmin(pagina = admin.pagina) {
+    try {
+        const [est, page] = await Promise.all([
+            api("/usuarios/estatisticas"),
+            api(`/usuarios?page=${pagina}&size=20&sort=id`),
+        ]);
+        const inteiro = (v) => String(Math.round(v));
+        contar($("#admTotal"), est.total, inteiro);
+        contar($("#admAtivas"), est.ativas, inteiro);
+        contar($("#admBloqueadas"), est.bloqueadas, inteiro);
+        contar($("#admNaoVerificado"), est.emailNaoVerificado, inteiro);
+        contar($("#admAdmins"), est.administradores, inteiro);
+        contar($("#admNovas"), est.novasUltimos30Dias, inteiro);
+        const meta = page.page || page;
+        admin.pagina = pagina;
+        admin.totalPaginas = Math.max(1, meta.totalPages ?? 1);
+        admin.usuarios = page.content || [];
+        $("#countUsuarios").textContent = meta.totalElements ?? admin.usuarios.length;
+        renderUsuariosAdmin();
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+function renderUsuariosAdmin() {
+    const filtro = $("#filterUsuarios").value.trim().toLowerCase();
+    const lista = admin.usuarios.filter((u) => !filtro
+        || (u.nome || "").toLowerCase().includes(filtro) || (u.email || "").toLowerCase().includes(filtro));
+    $("#emptyUsuarios").classList.toggle("hidden", lista.length > 0);
+    $("#labelPaginaUsuarios").textContent = `Página ${admin.pagina + 1} de ${admin.totalPaginas}`;
+    $("#btnUsuariosAnterior").disabled = admin.pagina <= 0;
+    $("#btnUsuariosProxima").disabled = admin.pagina >= admin.totalPaginas - 1;
+    $("#tableUsuarios tbody").innerHTML = lista.map((u) => {
+        const ehAdmin = u.role === "ADMIN";
+        // Na própria linha, nada de papel/bloqueio: o servidor recusaria (422).
+        const souEu = (u.email || "").toLowerCase() === euEmail;
+        const botao = (acao, texto, extra = "") =>
+            `<button class="btn btn-sm btn-ghost" type="button" data-adm-acao="${acao}" data-id="${esc(u.id)}" data-nome="${esc(u.nome)}"${extra}>${texto}</button>`;
+        const acaoStatus = souEu || ehAdmin ? "" : u.ativo ? botao("bloquear", "Bloquear") : botao("desbloquear", "Desbloquear");
+        const acaoPapel = souEu ? "" : ehAdmin ? botao("papel", "Tornar usuário", ' data-role="USER"') : botao("papel", "Tornar admin", ' data-role="ADMIN"');
+        return `
+        <tr>
+            <td>${esc(u.nome)}</td>
+            <td>${esc(u.email)}</td>
+            <td>${ehAdmin ? '<span class="tag tag-admin">Admin</span>' : '<span class="tag">Usuário</span>'}</td>
+            <td>${u.ativo ? '<span class="tag tag-cvm">Ativa</span>' : '<span class="tag tag-sell">Bloqueada</span>'}</td>
+            <td>${esc(u.dataCadastro ? new Date(u.dataCadastro + "T00:00:00").toLocaleDateString("pt-BR") : "—")}</td>
+            <td class="acoes-admin">
+                ${botao("carteira", "Carteira")}
+                ${acaoPapel}
+                ${botao("senha", "Senha")}
+                ${acaoStatus}
+            </td>
+        </tr>`;
+    }).join("");
+}
+
+async function acaoAdmin(evento) {
+    const botao = evento.target.closest("[data-adm-acao]");
+    if (!botao) return;
+    const { admAcao: acao, id, nome, role } = botao.dataset;
+    if (acao === "carteira") return verCarteiraUsuario(id, nome);
+    if (acao === "papel") return alterarPapelUsuario(id, nome, role);
+    if (acao === "senha") return redefinirSenhaUsuario(id, nome);
+
+    const bloquear = acao === "bloquear";
+    const { isConfirmed } = await Swal.fire({
+        title: bloquear ? "Bloquear esta conta?" : "Desbloquear esta conta?",
+        text: bloquear ? "A pessoa não conseguirá entrar até ser desbloqueada." : "A pessoa volta a poder entrar.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: bloquear ? "Bloquear" : "Desbloquear",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+    try {
+        await api(`/usuarios/${encodeURIComponent(id)}/${bloquear ? "bloquear" : "desbloquear"}`, { method: "PATCH" });
+        toast(bloquear ? "Conta bloqueada" : "Conta desbloqueada");
+        carregarAdmin();
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+const euEmail = ($("#view-admin")?.dataset.eu || "").toLowerCase();
+
+async function alterarPapelUsuario(id, nome, role) {
+    const promover = role === "ADMIN";
+    const { isConfirmed } = await Swal.fire({
+        title: promover ? `Tornar ${nome} administrador?` : `Tirar o acesso de administrador de ${nome}?`,
+        text: promover ? "A conta passa a ver e gerenciar todas as contas do site." : "A conta volta a ser um usuário comum.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: promover ? "Tornar admin" : "Tornar usuário",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+    try {
+        await api(`/usuarios/${encodeURIComponent(id)}/papel`, { method: "PATCH", body: JSON.stringify({ role }) });
+        toast(promover ? "Conta promovida a administrador" : "Conta voltou a ser usuário");
+        carregarAdmin();
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+async function redefinirSenhaUsuario(id, nome) {
+    const { value: senha } = await Swal.fire({
+        title: `Nova senha de ${nome}`,
+        input: "password",
+        inputLabel: "8+ caracteres, com maiúscula e minúscula",
+        inputAttributes: { autocomplete: "new-password", minlength: "8" },
+        showCancelButton: true,
+        confirmButtonText: "Redefinir",
+        cancelButtonText: "Cancelar",
+        // Mesma regra do servidor (que valida de novo).
+        inputValidator: (v) => (v.length >= 8 && /\p{Ll}/u.test(v) && /\p{Lu}/u.test(v))
+            ? undefined : "Use 8+ caracteres, com letra maiúscula e minúscula.",
+    });
+    if (!senha) return;
+    try {
+        await api(`/usuarios/${encodeURIComponent(id)}/senha`, { method: "PUT", body: JSON.stringify({ senha }) });
+        toast("Senha redefinida", `${nome} já pode entrar com a nova senha.`);
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+async function criarContaAdmin(evento) {
+    evento.preventDefault();
+    const form = evento.target;
+    const corpo = {
+        nome: form.nome.value.trim(),
+        email: form.email.value.trim(),
+        cpf: onlyDigits(form.cpf.value),
+        senha: form.senha.value,
+        role: form.role.value,
+    };
+    const botao = $("#btnNovaConta");
+    botao.disabled = true;
+    try {
+        const conta = await api("/usuarios/admin", { method: "POST", body: JSON.stringify(corpo) });
+        toast("Conta criada", `${conta.nome} já pode entrar.`);
+        form.reset();
+        carregarAdmin();
+    } catch (e) {
+        toast("Não foi possível criar a conta", e.message, "err");
+    } finally {
+        botao.disabled = false;
+    }
+}
+
+async function verCarteiraUsuario(id, nome) {
+    try {
+        const posicoes = await api(`/carteiras/${encodeURIComponent(id)}`);
+        const linhas = posicoes.map((p) => `
+            <tr><td>${esc(p.acaoTicker)}</td><td>${esc(p.corretoraNome)}</td>
+            <td class="num">${esc(fmtNumero(p.quantidade))}</td>
+            <td class="num">${esc(fmtMoeda(p.valorInvestido, moedaPorTicker(p.acaoTicker)))}</td></tr>`).join("");
+        Swal.fire({
+            title: `Carteira de ${esc(nome)}`,
+            html: posicoes.length
+                ? `<div class="table-wrap"><table class="table"><thead><tr><th>Ticker</th><th>Corretora</th><th class="num">Qtd</th><th class="num">Investido</th></tr></thead><tbody>${linhas}</tbody></table></div>`
+                : "Nenhuma posição em carteira.",
+            width: 640,
+            confirmButtonText: "Fechar",
+        });
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
 }
 
 /* ---------------------------- Render ------------------------------ */
@@ -1389,6 +1567,14 @@ function bind() {
     setSidebarOpen(false, { focus: false });
     $("#refreshAll").addEventListener("click", carregarTudo);
     $("#btnTema")?.addEventListener("click", refreshSemanticColors);
+
+    if ($("#view-admin")) {
+        $("#tableUsuarios tbody").addEventListener("click", acaoAdmin);
+        $("#formNovaConta").addEventListener("submit", criarContaAdmin);
+        $("#filterUsuarios").addEventListener("input", renderUsuariosAdmin);
+        $("#btnUsuariosAnterior").addEventListener("click", () => carregarAdmin(admin.pagina - 1));
+        $("#btnUsuariosProxima").addEventListener("click", () => carregarAdmin(admin.pagina + 1));
+    }
 
     $("#formAcao").addEventListener("submit", submitAcao);
     $("#formBuscaAcao").addEventListener("submit", buscarAcao);

@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(CsrfTestConfig.class)
 class LimiteTentativasLoginIntegrationTest {
 
-    private static final String SENHA = "senha1234";
+    private static final String SENHA = "Senha1234";
 
     @Autowired
     private MockMvc mockMvc;

@@ -85,7 +85,7 @@
         const valor = $('cenaValor'), camera = $('cenaCamera'), amanhecer = $('fundoAmanhecer');
         const satelites = [...document.querySelectorAll('.cena-satelite')];
         // Mesma regra do CSS: satelites so aparecem em telas largas (nao retrato).
-        const comSatelites = window.matchMedia('(min-width: 1100px) and (min-aspect-ratio: 9/10)');
+        const comSatelites = window.matchMedia('(min-width: 1130px) and (min-aspect-ratio: 9/10)');
         let textoAtual = valor.textContent;
 
         function atualizar(p) {

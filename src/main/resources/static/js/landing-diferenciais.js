@@ -17,6 +17,7 @@
     /* -------------------------------- Cambio --------------------------------- */
     const DOLAR = 5.40, TOTAL_USD = 10 * 228;
     const valor = document.getElementById('difCambioValor');
+    const status = document.getElementById('difCambioStatus'); // anuncia so o valor final, nao a contagem
     let moeda = 'USD', exibido = TOTAL_USD, quadro = 0;
 
     function escrever(v) { exibido = v; valor.textContent = formatos[moeda].format(v); }
@@ -24,7 +25,7 @@
     botao.addEventListener('click', () => {
         moeda = moeda === 'USD' ? 'BRL' : 'USD';
         const alvo = moeda === 'USD' ? TOTAL_USD : TOTAL_USD * DOLAR;
-        botao.setAttribute('aria-pressed', String(moeda === 'BRL'));
+        status.textContent = `10 ações da AAPL: ${formatos[moeda].format(alvo)}`;
         botao.textContent = moeda === 'USD' ? 'Ver em reais' : 'Ver em dólares';
         cancelAnimationFrame(quadro);
         if (reduzMovimento) { escrever(alvo); return; }

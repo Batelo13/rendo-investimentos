@@ -7,6 +7,7 @@ import com.curso.gestaoinvestimentos.dto.TransferenciaResponseDTO;
 import com.curso.gestaoinvestimentos.service.OperacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -34,6 +35,8 @@ public class OperacaoController {
         return service.transferir(principal.getName(), dto);
     }
 
+    // So ADMIN desfaz operacao: mexe no saldo e na posicao de outro usuario.
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/cancelar")
     public OperacaoResponseDTO cancelar(Principal principal, @PathVariable Long id) {
         return service.cancelar(id, principal.getName());

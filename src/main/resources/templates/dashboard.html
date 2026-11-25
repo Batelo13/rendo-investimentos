@@ -22,6 +22,7 @@
 <div class="app glass-stage">
     <aside class="sidebar glass-surface glass-surface-strong" id="sidebar" data-motion>
         <div th:replace="~{fragments/logo :: logo}"></div>
+        <span th:if="${admin}" class="selo-admin" id="seloAdmin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>Administrador</span>
         <button class="sidebar-close" id="sidebarClose" type="button" aria-label="Fechar menu">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
@@ -46,6 +47,10 @@
             <button class="nav-item" data-view="corretoras">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
                 <span>Corretoras</span>
+            </button>
+            <button th:if="${admin}" class="nav-item" data-view="admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+                <span>Administração</span>
             </button>
         </nav>
 
@@ -371,6 +376,58 @@
                 </div>
                 <div id="cardsCorretoras" class="cards"></div>
                 <div class="empty hidden" id="emptyCorretoras">Nenhuma corretora cadastrada ainda.</div>
+            </div>
+        </section>
+
+        <!-- ===================== ADMINISTRAÇÃO (só ADMIN) ===================== -->
+        <section th:if="${admin}" class="view hidden" id="view-admin" data-motion th:data-eu="${emailLogado}">
+            <div class="stats-grid">
+                <div class="stat-card glass-surface"><span class="stat-label">Contas criadas</span><strong class="stat-value" id="admTotal">—</strong><span class="stat-hint">Todas as contas do site</span></div>
+                <div class="stat-card glass-surface"><span class="stat-label">Ativas</span><strong class="stat-value" id="admAtivas">—</strong><span class="stat-hint">Podem entrar</span></div>
+                <div class="stat-card glass-surface"><span class="stat-label">Bloqueadas</span><strong class="stat-value" id="admBloqueadas">—</strong><span class="stat-hint">Bloqueadas por um admin</span></div>
+                <div class="stat-card glass-surface"><span class="stat-label">E-mail pendente</span><strong class="stat-value" id="admNaoVerificado">—</strong><span class="stat-hint">Ainda não confirmaram</span></div>
+                <div class="stat-card glass-surface"><span class="stat-label">Administradores</span><strong class="stat-value" id="admAdmins">—</strong><span class="stat-hint">Com acesso a este painel</span></div>
+                <div class="stat-card glass-surface"><span class="stat-label">Novas (30 dias)</span><strong class="stat-value" id="admNovas">—</strong><span class="stat-hint">Cadastros recentes</span></div>
+            </div>
+
+            <div class="panel glass-surface">
+                <div class="panel-head"><h2>Criar conta</h2></div>
+                <form id="formNovaConta" class="form form-admin" novalidate>
+                    <label class="field"><span>Nome</span><input name="nome" maxlength="120" required autocomplete="off" /></label>
+                    <label class="field"><span>E-mail</span><input name="email" type="email" required autocomplete="off" /></label>
+                    <label class="field"><span>CPF</span><input name="cpf" inputmode="numeric" maxlength="14" placeholder="Somente números" required autocomplete="off" /></label>
+                    <label class="field"><span>Senha inicial</span><input name="senha" type="password" minlength="8" placeholder="Maiúscula e minúscula, 8+" required autocomplete="new-password" /></label>
+                    <label class="field"><span>Papel</span>
+                        <select name="role"><option value="USER">Usuário</option><option value="ADMIN">Administrador</option></select>
+                    </label>
+                    <button class="btn btn-primary" type="submit" id="btnNovaConta">Criar conta</button>
+                    <p class="form-hint">A conta já nasce com e-mail verificado e carteira com o saldo virtual inicial.</p>
+                </form>
+            </div>
+
+            <div class="panel glass-surface">
+                <div class="panel-head">
+                    <h2>Contas <span class="count-badge" id="countUsuarios">0</span></h2>
+                    <input class="filter-input" id="filterUsuarios" placeholder="Filtrar por nome ou e-mail…" aria-label="Filtrar contas" />
+                </div>
+                <div class="table-wrap">
+                    <table class="table" id="tableUsuarios">
+                        <thead>
+                        <tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Status</th><th>Cadastro</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="empty hidden" id="emptyUsuarios">Nenhuma conta encontrada.</div>
+                <div class="paginacao">
+                    <button class="btn btn-ghost btn-icon" id="btnUsuariosAnterior" title="Página anterior" aria-label="Página anterior">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <span id="labelPaginaUsuarios">Página 1 de 1</span>
+                    <button class="btn btn-ghost btn-icon" id="btnUsuariosProxima" title="Próxima página" aria-label="Próxima página">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                </div>
             </div>
         </section>
     </main>
