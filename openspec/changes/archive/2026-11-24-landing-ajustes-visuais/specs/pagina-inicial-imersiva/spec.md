@@ -27,7 +27,7 @@ Os satélites da abertura SHALL aparecer só a partir de 1130 px de largura, sem
 
 #### Scenario: Sem JavaScript
 - **WHEN** a página é aberta com JavaScript desligado
-- **THEN** a linha do gráfico tem pontos e traço visível, e os chips da alocação estão visíveis
+- **THEN** a linha do gráfico tem pontos e traço visível, os chips da alocação estão visíveis, nada cobre o cartão e o título da jornada aparece
 
 ### Requirement: Cores estaveis no anel do simulador
 Cada ação escolhida no simulador SHALL manter a mesma cor no anel e no chip enquanto continuar escolhida.

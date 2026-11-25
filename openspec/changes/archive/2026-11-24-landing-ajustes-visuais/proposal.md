@@ -7,7 +7,9 @@ A revisão da landing deixou cinco pendências visuais: o botão magnético volt
 - **Botão magnético:** a volta ao lugar fica animada (a `transition` do `.lp-botao` passa a incluir `translate`). Os efeitos de ponteiro (ímã, luz, inclinação) só reagem ao mouse (`pointerType === "mouse"`), nunca a toque ou caneta.
 - **Tour:** o passo ativo é o último cujo topo já passou do meio da tela, recalculado a cada quadro de rolagem, em vez de depender de qual passo entrou numa faixa estreita.
 - **Satélites:** só aparecem a partir de 1130 px de largura, no CSS e no `landing.js`.
-- **Cartão sem JS:** o HTML traz o estado final (linha do gráfico, fatias do anel, chips com cor). Com JS, `<html class="js">` (marcada pelo `tema-inicial.js`) esconde esse estado até a animação.
+- **Sem JS:** o HTML traz o estado final do cartão (linha do gráfico, fatias do anel, chips com cor). Com JS, `<html class="js">` (marcada pelo `tema-inicial.js`) esconde esse estado até a animação.
+  - A verificação no navegador mostrou mais dois problemas sem JS, que já existiam antes desta change: a tela de carregamento nunca saía de cima da página, e os textos da jornada, inclusive o título, ficavam invisíveis.
+  - Agora a tela de carregamento não aparece sem JS, e a jornada usa o mesmo layout do movimento reduzido (textos empilhados).
 - **Simulador:** cada ação guarda a sua cor enquanto estiver escolhida, e uma ação nova recebe a primeira cor livre.
 
 ## Impacto
