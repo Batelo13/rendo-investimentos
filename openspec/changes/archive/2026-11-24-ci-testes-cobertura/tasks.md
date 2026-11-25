@@ -1,0 +1,2 @@
+- [x] 1. Workflow `.github/workflows/testes.yml` com `clean verify` e artefatos (execução 45532386943 verde no GitHub Actions, commit 4784d73)
+- [x] 2. YAML válido e actions fixadas por SHA (actionlint 1.7.7 sem achados)
