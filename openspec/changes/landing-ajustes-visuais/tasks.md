@@ -1,0 +1,5 @@
+- [ ] 1. Botão magnético: volta animada e só mouse (`ima_volta_animada`, `ima_ignora_toque_em_tela_hibrida`, `cta_botao_magnetico`)
+- [ ] 2. Tour por posição (`tour_salto_para_tras_marca_passo_certo`, `tour_marca_passo_ao_rolar`)
+- [ ] 3. Satélites a partir de 1130 px (`satelites_ocultos_abaixo_de_1130`)
+- [ ] 4. Cartão com estado final sem JS (`sem_js_cartao_mostra_grafico_e_alocacao`)
+- [ ] 5. Cores estáveis no simulador (`simulador_cores_estaveis_ao_desmarcar`)
