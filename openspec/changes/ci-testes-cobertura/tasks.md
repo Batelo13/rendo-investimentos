@@ -1,0 +1,2 @@
+- [ ] 1. Workflow `.github/workflows/testes.yml` com `clean verify` e artefatos (execução verde no GitHub Actions após o push)
+- [ ] 2. YAML válido e actions fixadas por SHA (validação local do YAML + revisão)
