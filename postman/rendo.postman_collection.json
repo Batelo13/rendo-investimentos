@@ -81,6 +81,10 @@
     {
       "key": "jwt",
       "value": ""
+    },
+    {
+      "key": "usuarioGerenciadoId",
+      "value": ""
     }
   ],
   "item": [
@@ -580,6 +584,128 @@
             "method": "PATCH",
             "header": [],
             "url": "{{baseUrl}}/usuarios/{{usuarioId}}/desbloquear"
+          }
+        },
+        {
+          "name": "POST /usuarios/admin (criar conta)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 sem senha nem CPF\", () => {",
+                  "    pm.response.to.have.status(201);",
+                  "    const r = pm.response.json();",
+                  "    pm.expect(r.senha).to.be.undefined;",
+                  "    pm.expect(r.cpf).to.be.undefined;",
+                  "    pm.collectionVariables.set(\"usuarioGerenciadoId\", r.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Conta Criada Pelo Admin\",\n  \"email\": \"criada.admin@example.com\",\n  \"cpf\": \"12345678909\",\n  \"senha\": \"Senha123\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /usuarios/{id}/papel (promover)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 com papel ADMIN\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json().role).to.eql(\"ADMIN\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioGerenciadoId}}/papel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioGerenciadoId}}",
+                "papel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /usuarios/{id}/senha (redefinir)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"204 sem corpo\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senha\": \"NovaSenha9\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioGerenciadoId}}/senha",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioGerenciadoId}}",
+                "senha"
+              ]
+            }
           }
         }
       ]

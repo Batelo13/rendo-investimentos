@@ -50,6 +50,8 @@ public class PaginaController {
     public String dashboard(Authentication autenticacao, Model model) {
         model.addAttribute("admin", autenticacao.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority())));
+        // A tela esconde, na linha do proprio admin, acoes que o servidor recusaria.
+        model.addAttribute("emailLogado", autenticacao.getName());
         return "dashboard";
     }
 }

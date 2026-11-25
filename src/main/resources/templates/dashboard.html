@@ -380,14 +380,29 @@
         </section>
 
         <!-- ===================== ADMINISTRAÇÃO (só ADMIN) ===================== -->
-        <section th:if="${admin}" class="view hidden" id="view-admin" data-motion>
+        <section th:if="${admin}" class="view hidden" id="view-admin" data-motion th:data-eu="${emailLogado}">
             <div class="stats-grid">
                 <div class="stat-card glass-surface"><span class="stat-label">Contas criadas</span><strong class="stat-value" id="admTotal">—</strong><span class="stat-hint">Todas as contas do site</span></div>
                 <div class="stat-card glass-surface"><span class="stat-label">Ativas</span><strong class="stat-value" id="admAtivas">—</strong><span class="stat-hint">Podem entrar</span></div>
                 <div class="stat-card glass-surface"><span class="stat-label">Bloqueadas</span><strong class="stat-value" id="admBloqueadas">—</strong><span class="stat-hint">Bloqueadas por um admin</span></div>
                 <div class="stat-card glass-surface"><span class="stat-label">E-mail pendente</span><strong class="stat-value" id="admNaoVerificado">—</strong><span class="stat-hint">Ainda não confirmaram</span></div>
-                <div class="stat-card glass-surface"><span class="stat-label">Administradores</span><strong class="stat-value" id="admAdmins">—</strong><span class="stat-hint">Definidos no servidor</span></div>
+                <div class="stat-card glass-surface"><span class="stat-label">Administradores</span><strong class="stat-value" id="admAdmins">—</strong><span class="stat-hint">Com acesso a este painel</span></div>
                 <div class="stat-card glass-surface"><span class="stat-label">Novas (30 dias)</span><strong class="stat-value" id="admNovas">—</strong><span class="stat-hint">Cadastros recentes</span></div>
+            </div>
+
+            <div class="panel glass-surface">
+                <div class="panel-head"><h2>Criar conta</h2></div>
+                <form id="formNovaConta" class="form form-admin" novalidate>
+                    <label class="field"><span>Nome</span><input name="nome" maxlength="120" required autocomplete="off" /></label>
+                    <label class="field"><span>E-mail</span><input name="email" type="email" required autocomplete="off" /></label>
+                    <label class="field"><span>CPF</span><input name="cpf" inputmode="numeric" maxlength="14" placeholder="Somente números" required autocomplete="off" /></label>
+                    <label class="field"><span>Senha inicial</span><input name="senha" type="password" minlength="8" placeholder="Maiúscula e minúscula, 8+" required autocomplete="new-password" /></label>
+                    <label class="field"><span>Papel</span>
+                        <select name="role"><option value="USER">Usuário</option><option value="ADMIN">Administrador</option></select>
+                    </label>
+                    <button class="btn btn-primary" type="submit" id="btnNovaConta">Criar conta</button>
+                    <p class="form-hint">A conta já nasce com e-mail verificado e carteira com o saldo virtual inicial.</p>
+                </form>
             </div>
 
             <div class="panel glass-surface">

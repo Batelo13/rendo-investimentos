@@ -302,6 +302,8 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 .selo-admin svg { width: 14px; height: 14px; }
 .tag-admin { color: var(--brand-text); background: color-mix(in srgb, var(--brand-text) 10%, transparent); border-color: var(--brand-text); font-weight: 700; }
 .acoes-admin { display: flex; gap: 6px; flex-wrap: wrap; }
+.form-admin { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); align-items: end; }
+.form-admin .form-hint { grid-column: 1 / -1; margin: 0; }
 .tag-sell { color: var(--danger-text); background: color-mix(in srgb, var(--danger-text) 10%, transparent); border-color: var(--danger-text); }
 
 /* Wrapper interno: o <td> deve conservar o comportamento de table-cell. */
@@ -499,6 +501,8 @@ select option { background-color: var(--surface); color: var(--text-primary); }
 }
 .swal2-title { color: var(--text-primary); }
 .swal2-html-container { color: var(--text-secondary); }
+.swal2-validation-message { background: color-mix(in srgb, var(--danger-text) 10%, transparent) !important; color: var(--danger-text) !important; }
+.swal2-input-label { color: var(--text-secondary); }
 .swal-resumo .op-resumo-row { margin-top: 8px; }
 .swal-resumo .op-resumo-row:first-child { margin-top: 0; }
 .swal2-confirm { background: var(--brand) !important; color: var(--on-brand) !important; box-shadow: none !important; }

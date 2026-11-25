@@ -400,10 +400,12 @@ function renderUsuariosAdmin() {
     $("#btnUsuariosProxima").disabled = admin.pagina >= admin.totalPaginas - 1;
     $("#tableUsuarios tbody").innerHTML = lista.map((u) => {
         const ehAdmin = u.role === "ADMIN";
-        // Admin não bloqueia admin: o papel vem do servidor (ADMIN_EMAILS).
-        const acaoStatus = ehAdmin ? "" : u.ativo
-            ? `<button class="btn btn-sm btn-ghost" type="button" data-adm-acao="bloquear" data-id="${esc(u.id)}">Bloquear</button>`
-            : `<button class="btn btn-sm" type="button" data-adm-acao="desbloquear" data-id="${esc(u.id)}">Desbloquear</button>`;
+        // Na própria linha, nada de papel/bloqueio: o servidor recusaria (422).
+        const souEu = (u.email || "").toLowerCase() === euEmail;
+        const botao = (acao, texto, extra = "") =>
+            `<button class="btn btn-sm btn-ghost" type="button" data-adm-acao="${acao}" data-id="${esc(u.id)}" data-nome="${esc(u.nome)}"${extra}>${texto}</button>`;
+        const acaoStatus = souEu || ehAdmin ? "" : u.ativo ? botao("bloquear", "Bloquear") : botao("desbloquear", "Desbloquear");
+        const acaoPapel = souEu ? "" : ehAdmin ? botao("papel", "Tornar usuário", ' data-role="USER"') : botao("papel", "Tornar admin", ' data-role="ADMIN"');
         return `
         <tr>
             <td>${esc(u.nome)}</td>
@@ -412,7 +414,9 @@ function renderUsuariosAdmin() {
             <td>${u.ativo ? '<span class="tag tag-cvm">Ativa</span>' : '<span class="tag tag-sell">Bloqueada</span>'}</td>
             <td>${esc(u.dataCadastro ? new Date(u.dataCadastro + "T00:00:00").toLocaleDateString("pt-BR") : "—")}</td>
             <td class="acoes-admin">
-                <button class="btn btn-sm btn-ghost" type="button" data-adm-acao="carteira" data-id="${esc(u.id)}" data-nome="${esc(u.nome)}">Carteira</button>
+                ${botao("carteira", "Carteira")}
+                ${acaoPapel}
+                ${botao("senha", "Senha")}
                 ${acaoStatus}
             </td>
         </tr>`;
@@ -422,8 +426,10 @@ function renderUsuariosAdmin() {
 async function acaoAdmin(evento) {
     const botao = evento.target.closest("[data-adm-acao]");
     if (!botao) return;
-    const { admAcao: acao, id, nome } = botao.dataset;
+    const { admAcao: acao, id, nome, role } = botao.dataset;
     if (acao === "carteira") return verCarteiraUsuario(id, nome);
+    if (acao === "papel") return alterarPapelUsuario(id, nome, role);
+    if (acao === "senha") return redefinirSenhaUsuario(id, nome);
 
     const bloquear = acao === "bloquear";
     const { isConfirmed } = await Swal.fire({
@@ -441,6 +447,74 @@ async function acaoAdmin(evento) {
         carregarAdmin();
     } catch (e) {
         toast("Falha na administração", e.message, "err");
+    }
+}
+
+const euEmail = ($("#view-admin")?.dataset.eu || "").toLowerCase();
+
+async function alterarPapelUsuario(id, nome, role) {
+    const promover = role === "ADMIN";
+    const { isConfirmed } = await Swal.fire({
+        title: promover ? `Tornar ${nome} administrador?` : `Tirar o acesso de administrador de ${nome}?`,
+        text: promover ? "A conta passa a ver e gerenciar todas as contas do site." : "A conta volta a ser um usuário comum.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: promover ? "Tornar admin" : "Tornar usuário",
+        cancelButtonText: "Cancelar",
+    });
+    if (!isConfirmed) return;
+    try {
+        await api(`/usuarios/${encodeURIComponent(id)}/papel`, { method: "PATCH", body: JSON.stringify({ role }) });
+        toast(promover ? "Conta promovida a administrador" : "Conta voltou a ser usuário");
+        carregarAdmin();
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+async function redefinirSenhaUsuario(id, nome) {
+    const { value: senha } = await Swal.fire({
+        title: `Nova senha de ${nome}`,
+        input: "password",
+        inputLabel: "8+ caracteres, com maiúscula e minúscula",
+        inputAttributes: { autocomplete: "new-password", minlength: "8" },
+        showCancelButton: true,
+        confirmButtonText: "Redefinir",
+        cancelButtonText: "Cancelar",
+        // Mesma regra do servidor (que valida de novo).
+        inputValidator: (v) => (v.length >= 8 && /\p{Ll}/u.test(v) && /\p{Lu}/u.test(v))
+            ? undefined : "Use 8+ caracteres, com letra maiúscula e minúscula.",
+    });
+    if (!senha) return;
+    try {
+        await api(`/usuarios/${encodeURIComponent(id)}/senha`, { method: "PUT", body: JSON.stringify({ senha }) });
+        toast("Senha redefinida", `${nome} já pode entrar com a nova senha.`);
+    } catch (e) {
+        toast("Falha na administração", e.message, "err");
+    }
+}
+
+async function criarContaAdmin(evento) {
+    evento.preventDefault();
+    const form = evento.target;
+    const corpo = {
+        nome: form.nome.value.trim(),
+        email: form.email.value.trim(),
+        cpf: onlyDigits(form.cpf.value),
+        senha: form.senha.value,
+        role: form.role.value,
+    };
+    const botao = $("#btnNovaConta");
+    botao.disabled = true;
+    try {
+        const conta = await api("/usuarios/admin", { method: "POST", body: JSON.stringify(corpo) });
+        toast("Conta criada", `${conta.nome} já pode entrar.`);
+        form.reset();
+        carregarAdmin();
+    } catch (e) {
+        toast("Não foi possível criar a conta", e.message, "err");
+    } finally {
+        botao.disabled = false;
     }
 }
 
@@ -1496,6 +1570,7 @@ function bind() {
 
     if ($("#view-admin")) {
         $("#tableUsuarios tbody").addEventListener("click", acaoAdmin);
+        $("#formNovaConta").addEventListener("submit", criarContaAdmin);
         $("#filterUsuarios").addEventListener("input", renderUsuariosAdmin);
         $("#btnUsuariosAnterior").addEventListener("click", () => carregarAdmin(admin.pagina - 1));
         $("#btnUsuariosProxima").addEventListener("click", () => carregarAdmin(admin.pagina + 1));
