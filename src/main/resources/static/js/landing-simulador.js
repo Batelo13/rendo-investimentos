@@ -159,9 +159,23 @@
         area.setAttribute('d', `M${X0},${Y_BASE} L${pontos.join(' L')} L${X1},${Y_BASE} Z`);
     }
 
+    // Cor presa a acao enquanto ela estiver escolhida: desmarcar uma nao muda a
+    // cor das outras; a acao nova recebe a primeira cor livre.
+    const corDe = new Map();
+    function sincronizarCores() {
+        corDe.forEach((_, ticker) => { if (!estado.alocado.has(ticker)) corDe.delete(ticker); });
+        estado.alocado.forEach((_, ticker) => {
+            if (!corDe.has(ticker)) {
+                const usadas = new Set(corDe.values());
+                corDe.set(ticker, CORES.find((c) => !usadas.has(c)));
+            }
+        });
+    }
+
     const anel = $('simAnel');
     function desenharAnel() {
-        const fatias = [...estado.alocado].map(([, v], i) => [v / TOTAL, CORES[i]]);
+        sincronizarCores();
+        const fatias = [...estado.alocado].map(([ticker, v]) => [v / TOTAL, corDe.get(ticker)]);
         fatias.push([(TOTAL - soma()) / TOTAL, 'rgba(255,255,255,0.12)']);
         let inicio = 0;
         anel.replaceChildren(...fatias.filter(([f]) => f > 0).map(([f, cor]) => {
@@ -172,11 +186,7 @@
             inicio += f;
             return c;
         }));
-        const ordem = [...estado.alocado.keys()];
-        chips.forEach((b, ticker) => {
-            const i = ordem.indexOf(ticker);
-            b.style.setProperty('--cor', i >= 0 ? CORES[i] : 'transparent');
-        });
+        chips.forEach((b, ticker) => b.style.setProperty('--cor', corDe.get(ticker) || 'transparent'));
     }
 
     // Transicao: parte do desenho atual (mesmo no meio de outra) ate o alvo, 500 ms.

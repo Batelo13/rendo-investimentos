@@ -88,23 +88,25 @@
                         <strong class="cena-valor" id="cenaValor">R$ 100.000,00</strong>
                         <svg class="cena-grafico" id="cenaGrafico" viewBox="0 0 480 200" focusable="false">
                             <g id="cenaDegraus"></g>
+                            <!-- Estado final para quem esta sem JS (mesma formula do landing.js, que reescreve os pontos). -->
                             <polyline id="cenaLinha" pathLength="1" fill="none" stroke="#5DE2BA" stroke-width="2.5"
-                                      stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1" stroke-dashoffset="1"/>
+                                      stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1" stroke-dashoffset="0"
+                                      points="16.0,159.0 53.3,147.6 90.7,160.9 128.0,134.3 165.3,120.1 202.7,130.5 240.0,103.9 277.3,90.6 314.7,101.0 352.0,74.5 389.3,61.1 426.7,68.8 464.0,41.2"/>
                             <g id="cenaMarcadores"></g>
                         </svg>
                         <div class="cena-alocacao">
                             <svg class="cena-anel" id="cenaAnel" viewBox="0 0 120 120" focusable="false">
                                 <circle class="anel-trilho" cx="60" cy="60" r="48" pathLength="1"/>
-                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
-                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
-                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
-                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1" stroke="#5DE2BA" stroke-dasharray="0.35 1" stroke-dashoffset="0"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1" stroke="#2E9E7B" stroke-dasharray="0.25 1" stroke-dashoffset="-0.35"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1" stroke="#D4B07A" stroke-dasharray="0.2 1" stroke-dashoffset="-0.6"/>
+                                <circle class="anel-fatia" cx="60" cy="60" r="48" pathLength="1" stroke="#8FA79F" stroke-dasharray="0.2 1" stroke-dashoffset="-0.8"/>
                             </svg>
                             <ul class="cena-chips" id="cenaChips">
-                                <li><i></i><b>PETR4</b><span>35%</span></li>
-                                <li><i></i><b>VALE3</b><span>25%</span></li>
-                                <li><i></i><b>WEGE3</b><span>20%</span></li>
-                                <li><i></i><b>AAPL</b><span>20%</span></li>
+                                <li style="--cor: #5DE2BA"><i></i><b>PETR4</b><span>35%</span></li>
+                                <li style="--cor: #2E9E7B"><i></i><b>VALE3</b><span>25%</span></li>
+                                <li style="--cor: #D4B07A"><i></i><b>WEGE3</b><span>20%</span></li>
+                                <li style="--cor: #8FA79F"><i></i><b>AAPL</b><span>20%</span></li>
                             </ul>
                         </div>
                     </div>

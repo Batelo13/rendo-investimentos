@@ -78,10 +78,13 @@
     }
 
     /* ------------------------ Luz e inclinacao ---------------------------- */
-    // Agrupa eventos do ponteiro num unico quadro por elemento.
+    // Agrupa eventos do ponteiro num unico quadro por elemento. So mouse: em
+    // notebook com tela de toque a media query "pointer: fine" e verdadeira e o
+    // toque tambem dispara pointermove -- ima/luz/inclinacao nao devem reagir.
     function porQuadro(fn) {
         let pendente = 0, ultimo = null;
         return (evento) => {
+            if (evento.pointerType && evento.pointerType !== 'mouse') return;
             ultimo = evento;
             if (!pendente) pendente = requestAnimationFrame(() => { pendente = 0; fn(ultimo); });
         };

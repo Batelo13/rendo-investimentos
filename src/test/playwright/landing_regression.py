@@ -774,6 +774,84 @@ def cambio_anuncia_valor_final(browser: Browser) -> None:
     sem_erros(page)
 
 
+# ------------------------- Ajustes visuais (change landing-ajustes-visuais) -------------------------
+
+def ima_volta_animada(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    transicao = page.locator(".lp-cta [data-ima]").evaluate("e => getComputedStyle(e).transitionProperty")
+    assert "translate" in transicao, f"A volta do botao magnetico deveria ser animada (translate), veio {transicao!r}"
+    sem_erros(page)
+
+
+def ima_ignora_toque_em_tela_hibrida(browser: Browser) -> None:
+    # Desktop com mouse (pointer: fine), mas o movimento vem de um toque.
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    centralizar(page, ".lp-cta [data-ima]")
+    page.locator(".lp-cta [data-ima]").evaluate(
+        "e => { const r = e.getBoundingClientRect();"
+        " e.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'touch',"
+        " clientX: r.left + r.width / 2 + 10, clientY: r.top + r.height / 2 })); }"
+    )
+    time.sleep(0.2)
+    assert deslocamento_ima(page) == "", f"Toque nao deveria deslocar o botao: {deslocamento_ima(page)!r}"
+    sem_erros(page)
+
+
+def tour_salto_para_tras_marca_passo_certo(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    # Saltos instantaneos para 4 px dentro do comeco de cada passo, de tras para frente:
+    # a faixa de observacao pega a divisa entre dois passos (caso que travava).
+    for passo in ("tour-4", "tour-3", "tour-2", "tour-1"):
+        page.evaluate("""id => { const r = document.getElementById(id).getBoundingClientRect();
+            window.scrollTo({ top: scrollY + r.top - innerHeight / 2 + 4, behavior: 'instant' }); }""", passo)
+        time.sleep(0.4)
+        assert passos_ativos(page) == [passo], f"So o {passo} deveria estar ativo, veio {passos_ativos(page)}"
+    sem_erros(page)
+
+
+def satelites_ocultos_abaixo_de_1130(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1110, "height": 800})
+    visiveis = page.evaluate("[...document.querySelectorAll('.cena-satelite')].map(e => getComputedStyle(e).display)")
+    assert all(v == "none" for v in visiveis), f"Satelites deveriam ficar ocultos em 1110 px: {visiveis}"
+    sem_erros(page)
+
+
+def sem_js_cartao_mostra_grafico_e_alocacao(browser: Browser) -> None:
+    page = browser.new_context(java_script_enabled=False, viewport={"width": 1280, "height": 900}).new_page()
+    page.goto(BASE_URL + "/")
+    linha = page.locator("#cenaLinha").evaluate(
+        "e => [e.getAttribute('points') || '', getComputedStyle(e).strokeDashoffset]")
+    assert linha[0].count(",") == 13, f"Sem JS a linha deveria ter os 13 pontos: {linha[0]!r}"
+    assert linha[1] in ("0", "0px"), f"Sem JS a linha deveria estar desenhada: {linha[1]!r}"
+    chips = page.evaluate("[...document.querySelectorAll('#cenaChips li')].map(e => getComputedStyle(e).opacity)")
+    assert chips and all(o == "1" for o in chips), f"Sem JS os chips deveriam aparecer: {chips}"
+    fatias = page.evaluate("[...document.querySelectorAll('#cenaAnel .anel-fatia')].map(e => getComputedStyle(e).strokeDasharray)")
+    assert all(f not in ("", "none") for f in fatias), f"Sem JS o anel deveria ter as fatias: {fatias}"
+    # Nada cobrindo o cartao (a tela de carregamento so some via JS).
+    no_topo = page.evaluate("""() => { const r = document.getElementById('cenaCarteira').getBoundingClientRect();
+        const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return e && e.closest('#cenaCarteira') ? 'cartao' : (e ? e.id || e.className : 'nada'); }""")
+    assert no_topo == "cartao", f"Sem JS algo cobre o cartao: {no_topo!r}"
+    # Os textos da jornada (inclusive o titulo) ficam visiveis, empilhados.
+    titulo = page.locator(".jornada h1")
+    titulo.scroll_into_view_if_needed()
+    opacidade_titulo = titulo.evaluate("e => getComputedStyle(e.closest('.momento')).opacity")
+    assert opacidade_titulo == "1" and titulo.is_visible(), f"Sem JS o titulo deveria aparecer: {opacidade_titulo!r}"
+    page.context.close()
+
+
+def simulador_cores_estaveis_ao_desmarcar(browser: Browser) -> None:
+    page = abrir(browser, viewport={"width": 1280, "height": 900})
+    ir_para_simulador(page)
+    cor = lambda t: chip(page, t).evaluate("e => e.style.getPropertyValue('--cor')")
+    antes = {t: cor(t) for t in ("VALE3", "WEGE3")}
+    chip(page, "PETR4").click()  # a primeira escolhida sai
+    time.sleep(0.2)
+    depois = {t: cor(t) for t in ("VALE3", "WEGE3")}
+    assert antes == depois, f"As cores das outras acoes nao deveriam mudar: antes {antes}, depois {depois}"
+    sem_erros(page)
+
+
 TESTES = [
     contador_anima_ate_valor_final,
     contador_respeita_movimento_reduzido,
@@ -828,6 +906,12 @@ TESTES = [
     problema_leitor_distingue_antes_e_depois,
     simulador_aviso_e_regiao_de_status,
     cambio_anuncia_valor_final,
+    ima_volta_animada,
+    ima_ignora_toque_em_tela_hibrida,
+    tour_salto_para_tras_marca_passo_certo,
+    satelites_ocultos_abaixo_de_1130,
+    sem_js_cartao_mostra_grafico_e_alocacao,
+    simulador_cores_estaveis_ao_desmarcar,
     screenshots,
 ]
 

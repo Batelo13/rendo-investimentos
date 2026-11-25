@@ -23,6 +23,10 @@
     }
 }
 
+/* Sem JavaScript o loading.js nunca esconde o overlay: ele cobriria a pagina
+   para sempre. "js" no <html> vem do tema-inicial.js (no <head>). */
+html:not(.js) .loading-overlay { display: none !important; }
+
 .loading-overlay.hidden {
     display: flex !important;
     opacity: 0;
