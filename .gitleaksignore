@@ -1,0 +1,4 @@
+# Falso positivo (generic-api-key): "JWT_SECRET=" vazio no modelo .env.example;
+# a regra atravessa a quebra de linha e le "JWT_EXPIRATION=60m" como valor.
+# Nenhum segredo. O arquivo atual tem linha em branco depois da chave.
+65609c10b0c69d9103f822869a7277a0e68251d7:.env.example:generic-api-key:23
