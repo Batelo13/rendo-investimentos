@@ -29,8 +29,9 @@ numero na mensagem.
 - **THEN** a resposta nao contem o campo cpf
 
 ### Requirement: Papel ADMIN concedido por configuracao
-O sistema SHALL conceder papel ADMIN somente aos emails listados na configuracao do servidor, no
-cadastro e na inicializacao.
+O sistema SHALL conceder papel ADMIN aos emails listados na configuracao do servidor, no
+cadastro e na inicializacao. Alem disso, um ADMIN autenticado SHALL poder promover ou rebaixar
+outras contas, exceto emails listados na configuracao, que permanecem ADMIN.
 
 #### Scenario: Email configurado como administrador
 - **WHEN** um usuario se cadastra com email listado como administrador
@@ -39,6 +40,10 @@ cadastro e na inicializacao.
 #### Scenario: Email comum
 - **WHEN** um usuario se cadastra com email que nao esta na lista
 - **THEN** o usuario recebe papel USER
+
+#### Scenario: Admin configurado nao e rebaixado pela API
+- **WHEN** um ADMIN tenta mudar para USER o papel de um email listado na configuracao
+- **THEN** o sistema responde 422 e o papel continua ADMIN
 
 ### Requirement: Isolamento de dados entre contas
 O sistema SHALL mostrar a cada usuario apenas os dados da propria sessao e SHALL responder 403 a
