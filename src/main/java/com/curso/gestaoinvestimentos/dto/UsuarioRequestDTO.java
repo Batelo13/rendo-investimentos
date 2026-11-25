@@ -23,10 +23,14 @@ public record UsuarioRequestDTO(
         String cpf,
 
         @NotBlank(message = "Senha e obrigatoria")
-        @Size(min = 8, message = "Senha deve ter no minimo 8 caracteres")
-        // \p{Ll}/\p{Lu}: minuscula/maiuscula em qualquer alfabeto (aceita "Ç", "Á").
-        @Pattern(regexp = "(?=.*\\p{Ll})(?=.*\\p{Lu}).*", message = "Senha deve ter letra maiuscula e minuscula")
+        @Size(min = 8, message = MSG_SENHA_TAMANHO)
+        @Pattern(regexp = SENHA_FORTE, message = MSG_SENHA_FORTE)
         @TamanhoMaximoBytes(value = 72, message = "Senha deve ter no maximo 72 bytes")
         String senha
 ) {
+    // Regra unica de senha (cadastro, conta criada pelo admin, redefinicao).
+    // \p{Ll}/\p{Lu}: minuscula/maiuscula em qualquer alfabeto (aceita "Ç", "Á").
+    public static final String SENHA_FORTE = "(?=.*\\p{Ll})(?=.*\\p{Lu}).*";
+    public static final String MSG_SENHA_FORTE = "Senha deve ter letra maiuscula e minuscula";
+    public static final String MSG_SENHA_TAMANHO = "Senha deve ter no minimo 8 caracteres";
 }
